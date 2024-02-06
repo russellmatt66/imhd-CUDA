@@ -1,0 +1,5 @@
+N=128
+SM_mult_x=1
+SM_mult_y=1
+threads_per_block_x=32
+threads_per_block_y=32
