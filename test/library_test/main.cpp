@@ -3,6 +3,7 @@
 #include <cuda_runtime.h>
 #include "library/kernels.cuh"
 
+/* Write wrapper around CUDA kernel */
 int main(int argc, char* argv[]){
     // int num_blocks_x = atoi(argv[1]);
     // int num_blocks_y = atoi(argv[2]);
@@ -21,18 +22,18 @@ int main(int argc, char* argv[]){
 
     unsigned long N = num_blocks_x * num_blocks_y * num_blocks_z * num_threads_per_block_x * num_threads_per_block_y * num_threads_per_block_z;
 
-    /* Need to write a wrapper for the below */ 
-    dim3 block_dims(num_threads_per_block_x, num_threads_per_block_y, num_threads_per_block_z);
-    dim3 grid_dims(num_blocks_x, num_blocks_y, num_blocks_z);
+    /* TODO - Need to write a wrapper for the below */ 
+    // dim3 block_dims(num_threads_per_block_x, num_threads_per_block_y, num_threads_per_block_z);
+    // dim3 grid_dims(num_blocks_x, num_blocks_y, num_blocks_z);
 
-    HelloLauncher<<<grid_dims, block_dims>>>(N);
+    // HelloLauncher<<<grid_dims, block_dims>>>(N);
 
-    // Check for CUDA errors
-    cudaDeviceSynchronize();
-    cudaError_t cudaError = cudaGetLastError();
-    if (cudaError != cudaSuccess) {
-        std::cerr << "CUDA error: " << cudaGetErrorString(cudaError) << std::endl;
-        return 1;
-    }
+    // // Check for CUDA errors
+    // cudaDeviceSynchronize();
+    // cudaError_t cudaError = cudaGetLastError();
+    // if (cudaError != cudaSuccess) {
+    //     std::cerr << "CUDA error: " << cudaGetErrorString(cudaError) << std::endl;
+    //     return 1;
+    // }
     return 0;
 }
