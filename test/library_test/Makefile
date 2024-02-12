@@ -142,29 +142,90 @@ hello_launcher_cu/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_launcher_cu.dir/build.make CMakeFiles/hello_launcher_cu.dir/build
 .PHONY : hello_launcher_cu/fast
 
-library/hellolauncher.o: library/hellolauncher.cu.o
-.PHONY : library/hellolauncher.o
+#=============================================================================
+# Target rules for targets named hello_launcher_cpp
+
+# Build rule for target.
+hello_launcher_cpp: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 hello_launcher_cpp
+.PHONY : hello_launcher_cpp
+
+# fast build rule for target.
+hello_launcher_cpp/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_launcher_cpp.dir/build.make CMakeFiles/hello_launcher_cpp.dir/build
+.PHONY : hello_launcher_cpp/fast
+
+library/callLauncher.o: library/callLauncher.cu.o
+.PHONY : library/callLauncher.o
 
 # target to build an object file
-library/hellolauncher.cu.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hellolauncher_lib.dir/build.make CMakeFiles/hellolauncher_lib.dir/library/hellolauncher.cu.o
-.PHONY : library/hellolauncher.cu.o
+library/callLauncher.cu.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_launcher_cpp.dir/build.make CMakeFiles/hello_launcher_cpp.dir/library/callLauncher.cu.o
+.PHONY : library/callLauncher.cu.o
 
-library/hellolauncher.i: library/hellolauncher.cu.i
-.PHONY : library/hellolauncher.i
+library/callLauncher.i: library/callLauncher.cu.i
+.PHONY : library/callLauncher.i
 
 # target to preprocess a source file
-library/hellolauncher.cu.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hellolauncher_lib.dir/build.make CMakeFiles/hellolauncher_lib.dir/library/hellolauncher.cu.i
-.PHONY : library/hellolauncher.cu.i
+library/callLauncher.cu.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_launcher_cpp.dir/build.make CMakeFiles/hello_launcher_cpp.dir/library/callLauncher.cu.i
+.PHONY : library/callLauncher.cu.i
 
-library/hellolauncher.s: library/hellolauncher.cu.s
-.PHONY : library/hellolauncher.s
+library/callLauncher.s: library/callLauncher.cu.s
+.PHONY : library/callLauncher.s
 
 # target to generate assembly for a file
-library/hellolauncher.cu.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/hellolauncher_lib.dir/build.make CMakeFiles/hellolauncher_lib.dir/library/hellolauncher.cu.s
-.PHONY : library/hellolauncher.cu.s
+library/callLauncher.cu.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_launcher_cpp.dir/build.make CMakeFiles/hello_launcher_cpp.dir/library/callLauncher.cu.s
+.PHONY : library/callLauncher.cu.s
+
+library/helloLauncher.o: library/helloLauncher.cu.o
+.PHONY : library/helloLauncher.o
+
+# target to build an object file
+library/helloLauncher.cu.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hellolauncher_lib.dir/build.make CMakeFiles/hellolauncher_lib.dir/library/helloLauncher.cu.o
+.PHONY : library/helloLauncher.cu.o
+
+library/helloLauncher.i: library/helloLauncher.cu.i
+.PHONY : library/helloLauncher.i
+
+# target to preprocess a source file
+library/helloLauncher.cu.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hellolauncher_lib.dir/build.make CMakeFiles/hellolauncher_lib.dir/library/helloLauncher.cu.i
+.PHONY : library/helloLauncher.cu.i
+
+library/helloLauncher.s: library/helloLauncher.cu.s
+.PHONY : library/helloLauncher.s
+
+# target to generate assembly for a file
+library/helloLauncher.cu.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hellolauncher_lib.dir/build.make CMakeFiles/hellolauncher_lib.dir/library/helloLauncher.cu.s
+.PHONY : library/helloLauncher.cu.s
+
+main.o: main.cpp.o
+.PHONY : main.o
+
+# target to build an object file
+main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_launcher_cpp.dir/build.make CMakeFiles/hello_launcher_cpp.dir/main.cpp.o
+.PHONY : main.cpp.o
+
+main.i: main.cpp.i
+.PHONY : main.i
+
+# target to preprocess a source file
+main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_launcher_cpp.dir/build.make CMakeFiles/hello_launcher_cpp.dir/main.cpp.i
+.PHONY : main.cpp.i
+
+main.s: main.cpp.s
+.PHONY : main.s
+
+# target to generate assembly for a file
+main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hello_launcher_cpp.dir/build.make CMakeFiles/hello_launcher_cpp.dir/main.cpp.s
+.PHONY : main.cpp.s
 
 main.o: main.cu.o
 .PHONY : main.o
@@ -198,11 +259,18 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... hello_launcher_cpp"
 	@echo "... hello_launcher_cu"
 	@echo "... hellolauncher_lib"
-	@echo "... library/hellolauncher.o"
-	@echo "... library/hellolauncher.i"
-	@echo "... library/hellolauncher.s"
+	@echo "... library/callLauncher.o"
+	@echo "... library/callLauncher.i"
+	@echo "... library/callLauncher.s"
+	@echo "... library/helloLauncher.o"
+	@echo "... library/helloLauncher.i"
+	@echo "... library/helloLauncher.s"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

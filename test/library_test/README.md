@@ -2,6 +2,37 @@
 Current tasks:
 (1) Add builds for C, and C++ executables that launch CUDA kernel
 
+# Current Build Error
+Problem with multiple definitions (there aren't), when trying to compile project where kernel code is launched from inside C++. 
+```
+$ make
+[ 14%] Building CUDA object CMakeFiles/hellolauncher_lib.dir/library/helloLauncher.cu.o
+[ 28%] Linking CUDA static library libhellolauncher_lib.a
+[ 28%] Built target hellolauncher_lib
+[ 42%] Building CUDA object CMakeFiles/hello_launcher_cu.dir/main.cu.o
+[ 57%] Linking CUDA executable hello_launcher_cu
+[ 57%] Built target hello_launcher_cu
+[ 71%] Building CUDA object CMakeFiles/hello_launcher_cpp.dir/main.cpp.o
+/home/matt/Desktop/imhd-CUDA/test/library_test/main.cpp(31): warning #550-D: variable "hello_status" was set but never used
+      int hello_status = 0;
+          ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+[ 85%] Building CUDA object CMakeFiles/hello_launcher_cpp.dir/library/callLauncher.cu.o
+[100%] Linking CUDA executable hello_launcher_cpp
+/usr/bin/ld: CMakeFiles/hello_launcher_cpp.dir/library/callLauncher.cu.o: in function `helloWrapper(long*, long)':
+tmpxft_000023a1_00000000-6_callLauncher.cudafe1.cpp:(.text+0x1a): multiple definition of `helloWrapper(long*, long)'; CMakeFiles/hello_launcher_cpp.dir/main.cpp.o:tmpxft_00002389_00000000-6_main.cudafe1.cpp:(.text+0x1a): first defined here
+/usr/bin/ld: CMakeFiles/hello_launcher_cpp.dir/library/callLauncher.cu.o: in function `HelloLauncher(unsigned long)':
+tmpxft_000023a1_00000000-6_callLauncher.cudafe1.cpp:(.text+0x2fb): multiple definition of `HelloLauncher(unsigned long)'; CMakeFiles/hello_launcher_cpp.dir/main.cpp.o:tmpxft_00002389_00000000-6_main.cudafe1.cpp:(.text+0x3fa): first defined here
+/usr/bin/ld: CMakeFiles/hello_launcher_cpp.dir/library/callLauncher.cu.o: in function `__device_stub__Z13HelloLauncherm(unsigned long)':
+tmpxft_000023a1_00000000-6_callLauncher.cudafe1.cpp:(.text+0x1d5): multiple definition of `__device_stub__Z13HelloLauncherm(unsigned long)'; CMakeFiles/hello_launcher_cpp.dir/main.cpp.o:tmpxft_00002389_00000000-6_main.cudafe1.cpp:(.text+0x2d4): first defined here
+collect2: error: ld returned 1 exit status
+make[2]: *** [CMakeFiles/hello_launcher_cpp.dir/build.make:114: hello_launcher_cpp] Error 1
+make[1]: *** [CMakeFiles/Makefile2:139: CMakeFiles/hello_launcher_cpp.dir/all] Error 2
+make: *** [Makefile:91: all] Error 2
+```
+
 # Linker Error Reference
 BELOW IS SOLVED. 
 

@@ -2,6 +2,9 @@
 #include <iostream>
 #include <cuda_runtime.h>
 #include "library/kernels.cuh"
+#include "library/callLauncher.cu"
+
+// extern "C" int helloWrapper(const long* exec_config, const long N);
 
 /* Write wrapper around CUDA kernel */
 int main(int argc, char* argv[]){
@@ -22,18 +25,14 @@ int main(int argc, char* argv[]){
 
     unsigned long N = num_blocks_x * num_blocks_y * num_blocks_z * num_threads_per_block_x * num_threads_per_block_y * num_threads_per_block_z;
 
-    /* TODO - Need to write a wrapper for the below */ 
-    // dim3 block_dims(num_threads_per_block_x, num_threads_per_block_y, num_threads_per_block_z);
-    // dim3 grid_dims(num_blocks_x, num_blocks_y, num_blocks_z);
+    long* exec_config;
+    exec_config = (long*)malloc(6*sizeof(unsigned long));
 
-    // HelloLauncher<<<grid_dims, block_dims>>>(N);
+    int hello_status = 0;
 
-    // // Check for CUDA errors
-    // cudaDeviceSynchronize();
-    // cudaError_t cudaError = cudaGetLastError();
-    // if (cudaError != cudaSuccess) {
-    //     std::cerr << "CUDA error: " << cudaGetErrorString(cudaError) << std::endl;
-    //     return 1;
-    // }
+    // Calls HelloLauncher 
+    hello_status = helloWrapper(exec_config, N);
+
+    free(exec_config);
     return 0;
 }
