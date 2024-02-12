@@ -29,6 +29,7 @@ __global__ void FluidAdvanceE(float* E_np1, const float* rho, const float* rhov_
     const float* Bz, const float* e, const int N);
 
 // Flux functions
+// These should all be consts - will fix with Python at the right time
 __device__ float XFluxRho(int i, int j, int k, float* rho, float* rhov_x, float* rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
 __device__ float YFluxRho(int i, int j, int k, float* rho, float* rhov_x, float* rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
 __device__ float ZFluxRho(int i, int j, int k, float* rho, float* rhov_x, float* rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
@@ -62,6 +63,7 @@ __device__ float YFluxE(int i, int j, int k, float* rho, float* rhov_x, float *r
 __device__ float ZFluxE(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
 
 // Intermediate flux functions
+// These should all be consts - will fix with Python at the right time
 __device__ float INTXFluxRho(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
 __device__ float INTYFluxRho(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
 __device__ float INTZFluxRho(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
