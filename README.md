@@ -21,6 +21,15 @@ Data volume = 4 * (8 + 24 + 8 + 24 + 8)* N^3 (Cur. fluid vars + fluxes + int. va
 The on-device approach would store all the required data in the GPUs VRAM, and will consequently be much faster as no migrations will be required during the 
 bulk of the computation, and the amount of synchronization required will be decimated as well. The tradeoff is not being able to simulate as large of a domain. 
 
-## 
+## Cube, or Rectangle?
+The goal is to design the simulation according to a data volume of `4.5` GB. This figure is picked based on the fact that it represents the amount of VRAM required to store an On-Device simulation with a cube of `N=256`, or a Host-Device simulation with a cube of `N=512`. For the RTX2060 architecture which this application is targeted at, this gives a nice headroom of `~1 GB` to handle tasks like display while the algorithm is running, as well as additional data in the form of the simulation mesh. 
+
+A cubic simulation can be readily constructed from the general rectangular case
+
+## Dimensionless variables
+Numerical simulations of physical systems are best implemented in `non-dimensional` form. 
+
+## Initial and Boundary Conditions
+
 
 # Directory Structure

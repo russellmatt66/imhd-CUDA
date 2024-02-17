@@ -2,13 +2,29 @@
 #define KERNELS_OD_CUH
 
 // Lax-Wendroff scheme
+/*
+CUDA discourages the use of complex class structures, and race conditions that exist as a consequence of asynchronous thread execution necessitate that the fluid data be 
+partitioned into two sets:
+
+(1) The set of fluid variables at the current timestep (const)
+(2) The set of fluid variables for the future timestep (*_np1)
+
+(1) will be held static while data is populated into (2). Then, data will be transferred from (2) -> (1), and the process repeated. 
+*/ 
+
+/* DONT FORGET NUMERICAL DIFFUSION */
 __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
      const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
-     const int N);
+     const float D, const int Nx, const int Ny, const int Nz);
 
+/* DONT FORGET NUMERICAL DIFFUSION */
+__global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
+     const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
+     const int Nx, const int Ny, const int Nz);
+     
 // Flux functions
-// These should all be consts - will fix with Python at the right time
-__device__ float XFluxRho(int i, int j, int k, float* rho, float* rhov_x, float* rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
+// These should all be consts - fixing as I go
+__device__ float XFluxRho(const int i, const int j, const int k, const float* rhov_x, const int Nx, const int Ny, const int Nz);
 __device__ float YFluxRho(int i, int j, int k, float* rho, float* rhov_x, float* rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
 __device__ float ZFluxRho(int i, int j, int k, float* rho, float* rhov_x, float* rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
 
@@ -41,7 +57,7 @@ __device__ float YFluxE(int i, int j, int k, float* rho, float* rhov_x, float *r
 __device__ float ZFluxE(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
 
 // Intermediate flux functions
-// These should all be consts - will fix with Python at the right time
+// These should all be consts - fixing as I go
 __device__ float INTXFluxRho(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
 __device__ float INTYFluxRho(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
 __device__ float INTZFluxRho(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);

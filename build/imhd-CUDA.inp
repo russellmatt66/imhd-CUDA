@@ -1,5 +1,9 @@
-N=128
+Nx=128
+Ny=128
+Nz=512
 SM_mult_x=1
 SM_mult_y=1
+SM_mult_z=1
 threads_per_block_x=32
 threads_per_block_y=32
+threads_per_block_z=32
