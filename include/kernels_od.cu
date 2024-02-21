@@ -21,23 +21,44 @@ __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1,
         int ythreads = gridDim.y * blockDim.y;
         int zthreads = gridDim.z * blockDim.z;
 
+        /* 
+        This all is getting re-declared every timestep 
+        */
         // Hoist fluid variables
         float t_rho = 0.0;
-        float t_rhov_x = 0.0, t_rhov_y = 0.0, t_rhov_z = 0.0, KE = 0.0;
-        float t_Bx = 0.0, t_By = 0.0, t_Bz = 0.0, t_B_sq = 0.0;
+        float t_rhov_x = 0.0, t_rhov_y = 0.0, t_rhov_z = 0.0;
+        float t_Bx = 0.0, t_By = 0.0, t_Bz = 0.0;
         float t_p = 0.0, t_e = 0.0; 
+        float t_KE = 0.0, t_B_sq = 0.0;
 
-        /* 
-        TODO: Declare Fluid Fluxes 
-        */
+        
+        // Hoist Fluid Fluxes 
+        float t_xflux_rho = 0.0, t_yflux_rho = 0.0, t_zflux_rho = 0.0;
+        float t_xflux_rhovx = 0.0, t_yflux_rhovx = 0.0, t_zflux_rhovx = 0.0;
+        float t_xflux_rhovy = 0.0, t_yflux_rhovy = 0.0, t_zflux_rhovy = 0.0;
+        float t_xflux_rhovz = 0.0, t_yflux_rhovz = 0.0, t_zflux_rhovz = 0.0;
+        float t_xflux_Bx = 0.0, t_yflux_Bx = 0.0, t_zflux_Bx = 0.0;
+        float t_xflux_By = 0.0, t_yflux_By = 0.0, t_zflux_By = 0.0;
+        float t_xflux_Bz = 0.0, t_yflux_Bz = 0.0, t_zflux_Bz = 0.0;
+        float t_xflux_e = 0.0, t_yflux_e = 0.0, t_zflux_e = 0.0;
 
-        /* 
-        TODO: Declare Intermediate Variables
-        */
+        
+        // Hoist Intermediate Variables
+        float t_int_rho = 0.0;
+        float t_int_rhov_x = 0.0, t_int_rhov_y = 0.0, t_int_rhov_z = 0.0;
+        float t_int_Bx = 0.0, t_int_By = 0.0, t_int_Bz = 0.0;
+        float t_int_p = 0.0, t_int_e = 0.0; 
+        float t_int_KE = 0.0, t_int_B_sq = 0.0;
 
-        /* 
-        TODO: Declare Intermediate Fluxes
-        */
+        //Hoist Intermediate Fluxes
+        float t_int_xflux_rho = 0.0, t_int_yflux_rho = 0.0, t_int_zflux_rho = 0.0;
+        float t_int_xflux_rhovx = 0.0, t_int_yflux_rhovx = 0.0, t_int_zflux_rhovx = 0.0;
+        float t_int_xflux_rhovy = 0.0, t_int_yflux_rhovy = 0.0, t_int_zflux_rhovy = 0.0;
+        float t_int_xflux_rhovz = 0.0, t_int_yflux_rhovz = 0.0, t_int_zflux_rhovz = 0.0;
+        float t_int_xflux_Bx = 0.0, t_int_yflux_Bx = 0.0, t_int_zflux_Bx = 0.0;
+        float t_int_xflux_By = 0.0, t_int_yflux_By = 0.0, t_int_zflux_By = 0.0;
+        float t_int_xflux_Bz = 0.0, t_int_yflux_Bz = 0.0, t_int_zflux_Bz = 0.0;
+        float t_int_xflux_e = 0.0, t_int_yflux_e = 0.0, t_int_zflux_e = 0.0;
 
         // Handle B.Cs separately
         for (int k = tidz + 1; k < Nz - 1; k += zthreads){ // THIS LOOP ORDER IS FOR CONTIGUOUS MEMORY ACCESS
@@ -48,15 +69,22 @@ __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1,
                     t_rhov_x = rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)];
                     t_rhov_y = rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)];
                     t_rhov_z = rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)];
-                    // t_KE = KE(); 
+                    t_KE = KE(i, j, k, rho, rhov_x, rhov_y, rhov_z, Nx, Ny, Nz); // I know this is overly verbose, current concern is get it working and correct 
+                    
                     t_Bx = Bx[IDX3D(i, j, k, Nx, Ny, Nz)];
                     t_By = By[IDX3D(i, j, k, Nx, Ny, Nz)];
                     t_Bz = Bz[IDX3D(i, j, k, Nx, Ny, Nz)];
-                    // t_B_sq = B_sq()
+                    t_B_sq = B_sq(i, j, k, Bx, By, Bz, Nx, Ny, Nz);
                     
-                    // t_p = p(i, j, k, e, )
+                    t_e = e[IDX3D(i, j, k, Nx, Ny, Nz)];
+                    t_p = p(i, j, k, e, t_B_sq, t_KE, Nx, Ny, Nz);
                     
                     /* TODO - Compute fluid fluxes */
+                    t_xflux_rho = XFluxRho(i, j, k, rhov_x, Nx, Ny, Nz);
+                    t_yflux_rho = YFluxRho(i, j, k, rhov_y, Nx, Ny, Nz);
+                    t_zflux_rho = ZFluxRho(i, j, k, rhov_z, Nx, Ny, Nz);
+
+                    t_xflux_rhovx = XFluxRhoVX()
 
                     /* TODO - Compute intermediate variables */
 
@@ -103,6 +131,7 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
 
 /* Flux declarations */
 // Rho
+/* THESE CAN BE REFACTORED TO MINIMIZE VERBOSITY */
 __device__ float XFluxRho(const int i, const int j, const int k, const float* rhov_x, const int Nx, const int Ny, const int Nz)
     {
         return rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)];
@@ -117,9 +146,76 @@ __device__ float ZFluxRho(const int i, const int j, const int k, const float* rh
     }
 
 // RhoVX
-__device__ float XFluxRhoVX(const int i, const int j, const int k, const float* rhov_x, const float* rho, const float* Bx, 
-    const float p, const float B)
+__device__ float XFluxRhoVX(const float rho, const float rhov_x, const float Bx, const float B_sq, const float p)
     {
         /* IMPLEMENT */
+        return (1.0 / rho) * pow(rhov_x, 2) - pow(Bx, 2) + p + B_sq / 2.0;
+    }
+
+__device__ float YFluxRhoVX(const float rho, const float rhov_x, const float rhov_y, const float Bx, const float By)
+    {
+        /* IMPLEMENT */
+        return (1.0 / rho) * rhov_x * rhov_y - Bx * By;
+    }
+
+__device__ float ZFluxRhoVX(const float rho, const float rhov_x, const float rhov_z, const float Bx, const float Bz)
+    {
+        /* IMPLEMENT */
+        return (1.0 / rho) * rhov_x * rhov_z - Bx * Bz;
+    }
+
+// RhoVY
+__device__ float XFluxRhoVY(const float rho, const float rhov_x, const float rhov_y, const float Bx, const float By)
+    {
+        /* IMPLEMENT */
+        return (1.0 / rho) * rhov_x * rhov_y - Bx * By;
+    }
+
+__device__ float YFluxRhoVY(const float rho, const float rhov_y, const float By, const float B_sq, const float p)
+    {
+        /* IMPLEMENT */
+        return (1.0 / rho) * pow(rhov_y, 2) - pow(By, 2) + p + B_sq / 2.0;
+    }
+
+__device__ float ZFluxRhoVY(const float rho, const float rhov_y, const float rhov_z, const float By, const float Bz)
+    {
+        /* IMPLEMENT */
+        return (1.0 / rho) * rhov_y * rhov_z - By * Bz;
+    }
+
+/* 
+Intermediate Flux declarations 
+(Aren't these just flux functions w / intermediate variables?)
+*/
+
+
+/* B-squared, etc. */
+__device__ float B_sq(const int i, const int j, const int k, const float* Bx, const float* By, const float* Bz, 
+    const int Nx, const int Ny, const int Nz)
+    {
+        return pow(Bx[IDX3D(i, j, k, Nx, Ny, Nz)], 2) + pow(By[IDX3D(i, j, k, Nx, Ny, Nz)], 2) + pow(Bz[IDX3D(i, j, k, Nx, Ny, Nz)], 2);
+    }
+
+__device__ float p(const int i, const int j, const int k, const float* e, const float B_sq, const float KE, 
+    const int Nx, const int Ny, const int Nz)
+    {
+        return (gamma - 1.0) * (e[IDX3D(i, j, k, Nx, Ny, Nz)] - KE - B_sq / 2.0);
+    }
+
+__device__ float KE(const int i, const int j, const int k, const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
+    const int Nx, const int Ny, const int Nz)
+    {
+        float KE = (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) * (
+            pow(rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)], 2) + pow(rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)], 2) + pow(rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)], 2));
+        return KE;
+    }
+
+__device__ float B_dot_u(const int i, const int j, const int k, const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
+    const float* Bx, const float* By, const float* Bz, const int Nx, const int Ny, const int Nz)
+    {
+        float B_dot_u = 0.0;
+        B_dot_u = (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) * (rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)] * Bx[IDX3D(i, j, k, Nx, Ny, Nz)]
+            + rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)] * By[IDX3D(i, j, k, Nx, Ny, Nz)] + rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)] * Bz[IDX3D(i, j, k, Nx, Ny, Nz)]);
+        return B_dot_u;
     }
 #endif
