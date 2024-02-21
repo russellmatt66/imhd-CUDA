@@ -8,7 +8,6 @@ SM_mult_z=1
 threads_per_block_x=1024
 threads_per_block_y=1024
 threads_per_block_z=1024
-gamma=5/3
 initial_conditions='screw_pinch'
 x_min=-3.14159
 x_max=3.14159

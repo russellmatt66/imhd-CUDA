@@ -12,6 +12,11 @@ partitioned into two sets:
 (1) will be held static while data is populated into (2). Then, data will be transferred from (2) -> (1), and the process repeated. 
 */ 
 
+// physical constants
+#define gamma = 5.0 / 3.0
+#define q_e = 1.6 * pow(10,-19) // [C]
+#define m = 1.67 * pow(10, -27) // [kg]
+
 /* DONT FORGET NUMERICAL DIFFUSION */
 __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
      const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
@@ -89,4 +94,16 @@ __device__ float INTZFluxBZ(int i, int j, int k, float* rho, float* rhov_x, floa
 __device__ float INTXFluxE(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
 __device__ float INTYFluxE(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
 __device__ float INTZFluxE(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
+
+// Precomputed values
+// B / \sqrt{\mu_{0}} -> B 
+__device__ float B_sq(int i, int j, int k, const float* Bx, const float* By, const float* Bz, const int Nx, const int Ny, const int Nz);
+
+__device__ float p(int i, int j, int k, const float* e, const float B_sq, const float KE, const int Nx, const int Ny, const int Nz);
+
+// \vec{u}\cdot\vec{u}
+__device__ float u_sq(int i, int j, int k, const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, const int Nx, const int Ny, const int Nz);
+
+__device__ float B_dot_u(int i, int j, int k, const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz, const int Nx, const int Ny, const int Nz);
 #endif

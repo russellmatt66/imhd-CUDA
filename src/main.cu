@@ -30,14 +30,14 @@ int main(int argc, char* argv[]){
 	int num_threads_per_block_x = atoi(argv[8]);
 	int num_threads_per_block_y = atoi(argv[9]);
 	int num_threads_per_block_z = atoi(argv[10]);
-	float gamma = atof(argv[11]);
-	int ics_flag = atoi(argv[12]);
-	float x_min = atof(argv[13]);
-	float x_max = atof(argv[14]);
-	float y_min = atof(argv[15]);
-	float y_max = atof(argv[16]);
-	float z_min = atof(argv[17]);
-	float z_max = atof(argv[18]);
+	// float gamma = atof(argv[11]);
+	int ics_flag = atoi(argv[11]);
+	float x_min = atof(argv[12]);
+	float x_max = atof(argv[13]);
+	float y_min = atof(argv[14]);
+	float y_max = atof(argv[15]);
+	float z_min = atof(argv[16]);
+	float z_max = atof(argv[17]);
 
 	/* Initialize device data */
 	int deviceId;

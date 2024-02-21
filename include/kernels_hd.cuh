@@ -1,8 +1,9 @@
 #ifndef KERNELS_HD_CUH
 #define KERNELS_HD_CUH
 
-/* Host-device declarations - see README.md for explanation */
+#define gamma = 5.0 / 3.0
 
+/* Host-device declarations - see README.md for explanation */
 // Lax-Wendroff scheme
 __global__ void FluidAdvanceRho(float* rho_np1, const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, 
     const float* By, const float* Bz, const float* e, const int N);
