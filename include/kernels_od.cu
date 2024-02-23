@@ -216,48 +216,124 @@ __device__ float XFluxRhoVX(const float rho, const float rhov_x, const float Bx,
     {
         return (1.0 / rho) * pow(rhov_x, 2) - pow(Bx, 2) + p + B_sq / 2.0;
     }
+__device__ float XFluxRhoVX(const int i, const int j, const int k, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
+     const float* Bx, const float* By, const float* Bz, const float* e, 
+     const int Nx, const int Ny, const int Nz)
+     {
+        float Bsq = B_sq(i, j, k, Bx, By, Bz, Nx, Ny, Nz);
+        float ke = KE(i, j, k, rho, rhov_x, rhov_y, rhov_z, Nx, Ny, Nz);
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) * pow(rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)], 2) 
+            - pow(Bx[IDX3D(i, j, k, Nx, Ny, Nz)], 2) + p(i, j, k, e, Bsq, ke, Nx, Ny, Nz)
+            + Bsq / 2.0;
+     }
+
 
 __device__ float YFluxRhoVX(const float rho, const float rhov_x, const float rhov_y, const float Bx, const float By)
     {
         return (1.0 / rho) * rhov_x * rhov_y - Bx * By;
     }
+__device__ float YFluxRhoVX(const int i, const int j, const int k,
+     const float* rho, const float* rhov_x, const float* rhov_y, 
+     const float* Bx, const float* By,
+     const int Nx, const int Ny, const int Nz)
+     {
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) * rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)] * rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)]
+            - Bx[IDX3D(i, j, k, Nx, Ny, Nz)] * By[IDX3D(i, j, k, Nx, Ny, Nz)];
+     }
 
 __device__ float ZFluxRhoVX(const float rho, const float rhov_x, const float rhov_z, const float Bx, const float Bz)
     {
         return (1.0 / rho) * rhov_x * rhov_z - Bx * Bz;
     }
+__device__ float ZFluxRhoVX(const int i, const int j, const int k,
+     const float* rho, const float* rhov_x, const float* rhov_z, 
+     const float* Bx, const float* Bz,
+     const int Nx, const int Ny, const int Nz)
+     {
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) * rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)] * rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)]
+            - Bx[IDX3D(i, j, k, Nx, Ny, Nz)] * Bz[IDX3D(i, j, k, Nx, Ny, Nz)];
+     }
 
 // RhoVY
 __device__ float XFluxRhoVY(const float rho, const float rhov_x, const float rhov_y, const float Bx, const float By)
     {
         return (1.0 / rho) * rhov_x * rhov_y - Bx * By;
     }
+__device__ float XFluxRhoVY(const int i, const int j, const int k,
+     const float* rho, const float* rhov_x, const float* rhov_y, 
+     const float* Bx, const float* By,
+     const int Nx, const int Ny, const int Nz)
+     {
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) * rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)] * rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)]
+            - Bx[IDX3D(i, j, k, Nx, Ny, Nz)] * By[IDX3D(i, j, k, Nx, Ny, Nz)];
+     }
 
 __device__ float YFluxRhoVY(const float rho, const float rhov_y, const float By, const float B_sq, const float p)
     {
         return (1.0 / rho) * pow(rhov_y, 2) - pow(By, 2) + p + B_sq / 2.0;
     }
+__device__ float YFluxRhoVY(const int i, const int j, const int k, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
+     const float* Bx, const float* By, const float* Bz, const float* e, 
+     const int Nx, const int Ny, const int Nz)
+     {
+        float Bsq = B_sq(i, j, k, Bx, By, Bz, Nx, Ny, Nz);
+        float ke = KE(i, j, k, rho, rhov_x, rhov_y, rhov_z, Nx, Ny, Nz);
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) * pow(rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)], 2) 
+            - pow(By[IDX3D(i, j, k, Nx, Ny, Nz)], 2) + p(i, j, k, e, Bsq, ke, Nx, Ny, Nz)
+            + Bsq / 2.0;
+     }
 
 __device__ float ZFluxRhoVY(const float rho, const float rhov_y, const float rhov_z, const float By, const float Bz)
     {
         return (1.0 / rho) * rhov_y * rhov_z - By * Bz;
     }
+__device__ float ZFluxRhoVY(const int i, const int j, const int k,
+     const float* rho, const float* rhov_y, const float* rhov_z, 
+     const float* By, const float* Bz,
+     const int Nx, const int Ny, const int Nz)
+     {
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) * rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)] * rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)]
+            - By[IDX3D(i, j, k, Nx, Ny, Nz)] * Bz[IDX3D(i, j, k, Nx, Ny, Nz)];
+     }
 
 // RhoVZ
 __device__ float XFluxRhoVZ(const float rho, const float rhov_x, const float rhov_z, const float Bx, const float Bz)
     {
         return (1.0 / rho) * rhov_x * rhov_z - Bx * Bz;
     }
+__device__ float XFluxRhoVZ(const int i, const int j, const int k,
+     const float* rho, const float* rhov_x, const float* rhov_z, 
+     const float* Bx, const float* Bz,
+     const int Nx, const int Ny, const int Nz)
+     {
+        /* IMPLEMENT */
+     }
 
 __device__ float YFluxRhoVZ(const float rho, const float rhov_y, const float rhov_z, const float By, const float Bz)
     {
         return (1.0 / rho) * rhov_y * rhov_z - By * Bz;
+    }
+__device__ float YFluxRhoVZ(const int i, const int j, const int k,
+     const float* rho, const float* rhov_y, const float* rhov_z,
+     const float* By, const float* Bz,
+     const int Nx, const int Ny, const int Nz)
+    {
+        /* IMPLEMENT */
     }
 
 __device__ float ZFluxRhoVZ(const float rho, const float rhov_z, const float Bz, const float B_sq, const float p)
     {
         return (1.0 / rho) * pow(rhov_z, 2) - pow(Bz, 2) + p + B_sq / 2.0;
     }
+__device__ float ZFluxRhoVZ(const int i, const int j, const int k, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
+     const float* Bx, const float* By, const float* Bz, const float* e, 
+     const int Nx, const int Ny, const int Nz)
+     {
+        /* IMPLEMENT */
+     }
 
 // Bx
 __device__ float XFluxBX()
@@ -269,17 +345,38 @@ __device__ float YFluxBX(const float rho, const float rhov_x, const float rhov_y
     {
         return (1.0 / rho) * (rhov_x * By - Bx * rhov_y);
     }
+__device__ float YFluxBX(const int i, const int j, const int k,
+     const float* rho, const float* rhov_x, const float* rhov_y, 
+     const float* Bx, const float* By,
+     const int Nx, const int Ny, const int Nz)
+     {
+        /* IMPLEMENT */
+     }
 
 __device__ float ZFluxBX(const float rho, const float rhov_x, const float rhov_z, const float Bx, const float Bz)
     {
         return (1.0 / rho) * (rhov_x * Bz - Bx * rhov_z);
     }
+__device__ float ZFluxBX(const int i, const int j, const int k,
+     const float* rho, const float* rhov_x, const float* rhov_z, 
+     const float* Bx, const float* Bz,
+     const int Nx, const int Ny, const int Nz)
+     {
+        /* IMPLEMENT */
+     }
 
 // By
 __device__ float XFluxBY(const float rho, const float rhov_x, const float rhov_y, const float Bx, const float By)
     {
         return (1.0 / rho) * (rhov_y * Bx - By * rhov_x); 
     }
+__device__ float XFluxBY(const int i, const int j, const int k,
+     const float* rho, const float* rhov_x, const float* rhov_y, 
+     const float* Bx, const float* By,
+     const int Nx, const int Ny, const int Nz)
+     {
+        /* IMPLEMENT */
+     }
 
 __device__ float YFluxBY()
     {
@@ -290,17 +387,38 @@ __device__ float ZFluxBY(const float rho, const float rhov_y, const float rhov_z
     {
         return (1.0 / rho) * (rhov_y * Bz - By * rhov_z);
     }
+__device__ float ZFluxBY(const int i, const int j, const int k,
+     const float* rho, const float* rhov_y, const float* rhov_z, 
+     const float* By, const float* Bz,
+     const int Nx, const int Ny, const int Nz)
+     {
+        /* IMPLEMENT */
+     }
 
 // Bz
 __device__ float XFluxBZ(const float rho, const float rhov_x, const float rhov_z, const float Bx, const float Bz)
     {
         return (1.0 / rho) * (rhov_z * Bx - Bz * rhov_x);
     }
+__device__ float XFluxBZ(const int i, const int j, const int k,
+     const float* rho, const float* rhov_x, const float* rhov_z, 
+     const float* Bx, const float* Bz,
+     const int Nx, const int Ny, const int Nz)
+     {
+        /* IMPLEMENT */
+     }
 
 __device__ float YFluxBZ(const float rho, const float rhov_y, const float rhov_z, const float By, const float Bz)
     {
         return (1.0 / rho) * (rhov_z * By - Bz * rhov_y);
     }
+__device__ float YFluxBZ(const int i, const int j, const int k,
+     const float* rho, const float* rhov_y, const float* rhov_z, 
+     const float* By, const float* Bz,
+     const int Nx, const int Ny, const int Nz)
+     {
+        /* IMPLEMENT */
+     }
 
 __device__ float ZFluxBZ()
     {
@@ -312,16 +430,38 @@ __device__ float XFluxE(const float rho, const float rhov_x, const float Bx, con
     {
         return e + p + B_sq * (rhov_x / rho) - B_dot_u * Bx; 
     }
+__device__ float XFluxE(const int i, const int j, const int k,
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
+     const float* Bx, const float* By, const float* Bz, const float* e, 
+     const int Nx, const int Ny, const int Nz)
+     {
+        /* IMPLEMENT */
+     }
+
 
 __device__ float YFluxE(const float rho, const float rhov_y, const float By, const float e, const float p, const float B_sq, const float B_dot_u)
     {
         return e + p + B_sq * (rhov_y / rho) - B_dot_u * By; 
     }
+__device__ float YFluxE(const int i, const int j, const int k,
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
+     const float* Bx, const float* By, const float* Bz, const float* e, 
+     const int Nx, const int Ny, const int Nz)
+     {
+        /* IMPLEMENT */
+     }
 
 __device__ float ZFluxE(const float rho, const float rhov_z, const float Bz, const float e, const float p, const float B_sq, const float B_dot_u)
     {
         return e + p + B_sq * (rhov_z / rho) - B_dot_u * Bz; 
     }
+__device__ float ZFluxE(const int i, const int j, const int k,
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
+     const float* Bx, const float* By, const float* Bz, const float* e, 
+     const int Nx, const int Ny, const int Nz)
+     {
+        /* IMPLEMENT */
+     }
 
 /* 
 Intermediate Flux declarations 
