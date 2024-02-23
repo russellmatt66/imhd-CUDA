@@ -3,11 +3,21 @@ import numpy as np
 import pandas as pd
 
 # Side lengths of simulation domain
-Nx = [2**i for i in range(5,11)]
-Ny = [2**j for j in range(5,11)]
-Nz = [2**k for k in range(5,11)]
+Nx = np.linspace(256,1024,49)
+Ny = np.linspace(256,1024,49)
+Nz = np.linspace(256,1024,49)
+# These are exploratory
+# Nx = [2**i for i in range(5,11)]
+# Ny = [2**j for j in range(5,11)]
+# Nz = [2**k for k in range(5,11)]
 
 def DV(nx: int, ny: int, nz: int) -> np.float64: # Assumes intermediate variables are also being stored in device memory
+    # 4.0 = `number of bytes per float`
+    # 3.0 = `number of sets of fluid variables`
+    # 8.0 = `number of rank-3 tensors per set of fluid variables`
+    # nx = `x-dimension of the rank-3 tensor (number of floats)`
+    # ny = `y-dimension of the rank-3 tensor (number of floats)`
+    # nz = `z-dimension of the rank-3 tensor (number of floats)`
     return (4.0 * 3.0 * 8.0 * nx * ny * nz) / (1024.0**3) # GB
 
 problem_sizes = []
@@ -21,20 +31,22 @@ for nx in Nx:
 # print(data_volumes)
 
 ps_df = pd.DataFrame(problem_sizes,columns=['Nx','Ny','Nz'])
-print(ps_df.head())
+print(ps_df.shape)
+# print(ps_df.head())
 
 dv_df = pd.DataFrame(data_volumes,columns=['GB'])
-print(dv_df.head())
+print(dv_df.shape)
+# print(dv_df.head())
 
 # df = pd.concat([ps_df, dv_df])
 df = pd.merge(ps_df, dv_df, left_index=True, right_index=True)
 print(df.shape)
-print(df.head())
+# print(df.head())
 
 too_large = 5.0 # GB
 tl_df = df[df['GB'] >= too_large]
 print(tl_df.shape)
-print(tl_df.head())
+# print(tl_df.head())
 impossible_sizes = tl_df.index.values.tolist()
 
 possible_df = df.drop(index=impossible_sizes)
@@ -42,6 +54,8 @@ print(possible_df.shape)
 print(possible_df.head())
 
 ''' TODO: Find the largest possible problem sizes from the above '''
+possible_df = possible_df.sort_values(by=['Nz'], ascending=False)
+possible_df[(possible_df['GB'] >= 4.5) & (possible_df['Nx'] == possible_df['Ny'])].to_csv('./possible.csv',index=False)
 
 # tl_df = dv_df.loc['']
 
