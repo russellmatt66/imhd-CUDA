@@ -20,6 +20,7 @@ partitioned into two sets:
 /* DONT FORGET NUMERICAL DIFFUSION */
 __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
      const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
+     float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
      const float D, const float dt, const float dx, const float dy, const float dz, 
      const int Nx, const int Ny, const int Nz);
 
@@ -158,6 +159,19 @@ __device__ float ZFluxE(const int i, const int j, const int k,
      const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
      const float* Bx, const float* By, const float* Bz, const float* e, 
      const int Nx, const int Ny, const int Nz);
+
+/* INTERMEDIATE VARIABLES */
+__device__ float intRho(const int i, const int j, const int k, 
+    const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
+    const float dt, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz);
+__device__ float intRhoVX(const int i, const int j, const int k, const float* rhov_x, const int Nx, const int Ny, const int Nz);
+__device__ float intRhoVY(const int i, const int j, const int k, const float* rhov_y, const int Nx, const int Ny, const int Nz);
+__device__ float intRhoVZ(const int i, const int j, const int k, const float* rhov_z, const int Nx, const int Ny, const int Nz);
+__device__ float intBx(const int i, const int j, const int k, const float* Bx, const int Nx, const int Ny, const int Nz);
+__device__ float intBy(const int i, const int j, const int k, const float* By, const int Nx, const int Ny, const int Nz);
+__device__ float intBz(const int i, const int j, const int k, const float* Bz, const int Nx, const int Ny, const int Nz);
+__device__ float intE(const int i, const int j, const int k, const float* e, const int Nx, const int Ny, const int Nz);
 
 // Intermediate flux functions
 // These should all be consts - fixing as I go
