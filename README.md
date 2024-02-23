@@ -1,6 +1,10 @@
 # Overview
 Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD system.
 
+# Current Tasks
+(1) Rewrite `FluidAdvance` kernel to use intermediate variables that are stored in memory
+(2) Finish analyzing the data volume subject to these new constraints using `test/problem_size.py`
+
 # Design
 ## On-Device or Host-Device?
 Limited VRAM on GPU (RTX 2060) means storage is at a premium, and thread asynchronity means that the computation cannot just launched with the algorithm naively implemented. 
