@@ -42,7 +42,7 @@ __device__ float ZFluxRho(const int i, const int j, const int k, const float* rh
 __device__ float XFluxRhoVX(const float rho, const float rhov_x, const float Bx, const float B_sq, const float p);
 __device__ float XFluxRhoVX(const int i, const int j, const int k, 
      const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
-     const float* Bx, const float* By, const float* Bz, 
+     const float* Bx, const float* By, const float* Bz, const float* e, 
      const int Nx, const int Ny, const int Nz);
 
 __device__ float YFluxRhoVX(const float rho, const float rhov_x, const float rhov_y, const float Bx, const float By);

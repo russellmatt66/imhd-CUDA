@@ -46,8 +46,8 @@ __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1,
         float t_int_rho = 0.0;
         float t_int_rhov_x = 0.0, t_int_rhov_y = 0.0, t_int_rhov_z = 0.0;
         float t_int_Bx = 0.0, t_int_By = 0.0, t_int_Bz = 0.0;
-        float t_int_p = 0.0, t_int_e = 0.0; 
-        float t_int_KE = 0.0, t_int_B_sq = 0.0;
+        // float t_int_p = 0.0, t_int_e = 0.0; 
+        // float t_int_KE = 0.0, t_int_B_sq = 0.0;
 
         //Hoist Intermediate Fluxes
         float t_int_xflux_rho = 0.0, t_int_yflux_rho = 0.0, t_int_zflux_rho = 0.0;
@@ -124,7 +124,61 @@ __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1,
                         - (dt / dz) * (t_zflux_rho - ZFluxRho(i, j, k-1, rhov_z, Nx, Ny, Nz));
                     
                     t_int_rhov_x = t_rhov_x
-                        - (dt / dx) * (t_xflux_rhovx - XFluxRhoVX()) /* IMPLEMENT OVERLOADED FUNCTIONS FOR THESE */
+                        - (dt / dx) * (t_xflux_rhovx 
+                            - XFluxRhoVX(i-1, j, k, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz))
+                        - (dt / dy) * (t_yflux_rhovx
+                            - YFluxRhoVX(i, j-1, k, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz))
+                        - (dt / dz) * (t_zflux_rhovx
+                            - ZFluxRhoVX(i, j, k-1, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz));
+                    
+                    t_int_rhov_y = t_rhov_y
+                        - (dt / dx) * (t_xflux_rhovy
+                            - XFluxRhoVY(i-1, j, k, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz))
+                        - (dt / dy) * (t_yflux_rhovy
+                            - YFluxRhoVY(i, j-1, k, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz))
+                        - (dt / dz) * (t_zflux_rhovy
+                            - ZFluxRhoVY(i, j, k-1, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz));
+                    
+                    t_int_rhov_z = t_rhov_z
+                        - (dt / dx) * (t_xflux_rhovz
+                            - XFluxRhoVZ(i-1, j, k, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz))
+                        - (dt / dy) * (t_yflux_rhovz
+                            - YFluxRhoVZ(i, j-1, k, rho, rhov_x, rhov_z, By, Bz, Nx, Ny, Nz))
+                        - (dt / dz) * (t_zflux_rhovz
+                            - ZFluxRhoVZ(i, j, k-1, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz));
+                    
+                    t_int_Bx = t_Bx
+                        - (dt / dx) * (t_xflux_Bx 
+                            - XFluxBX())
+                        - (dt / dy) * (t_yflux_Bx
+                            - YFluxBX(i, j-1, k, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz))
+                        - (dt / dz) * (t_zflux_Bx
+                            - ZFluxBX(i, j, k-1, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz));
+                    
+                    t_int_By = t_By
+                        - (dt / dx) * (t_xflux_By 
+                            - XFluxBY(i-1, j, k, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz))
+                        - (dt / dy) * (t_yflux_By
+                            - YFluxBY())
+                        - (dt / dz) * (t_zflux_By
+                            - ZFluxBY(i, j, k-1, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz));
+
+                    t_int_Bz = t_Bz
+                        - (dt / dx) * (t_xflux_Bz 
+                            - XFluxBZ(i-1, j, k, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz))
+                        - (dt / dy) * (t_yflux_Bz
+                            - YFluxBZ(i, j-1, k, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz))
+                        - (dt / dz) * (t_zflux_Bz
+                            - ZFluxBZ());   
+                    
+                    t_int_e = t_e
+                        - (dt / dx) * (t_xflux_e
+                            - XFluxE(i-1, j, k, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz))
+                        - (dt / dy) * (t_yflux_e
+                            - YFluxE(i, j-1, k, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz))
+                        - (dt / dz) * (t_zflux_e
+                            - ZFluxE(i, j, k-1, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz));
+
                     // I fully understand how awful this looks, and it's going to happen for 7 more variables 
                     // t_int_rho = t_rho 
                     //     - (dt / dx) * (t_xflux_rho - 
@@ -154,7 +208,10 @@ __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1,
 
                     //         )
                     //     );
-                    /* TODO - Compute intermediate fluxes */
+                    /* 
+                    TODO: Compute intermediate fluxes
+                    Call flux functions on intermediate variables
+                    */
 
                     /* TODO - Update fluid variables */
                 }
@@ -308,7 +365,8 @@ __device__ float XFluxRhoVZ(const int i, const int j, const int k,
      const float* Bx, const float* Bz,
      const int Nx, const int Ny, const int Nz)
      {
-        /* IMPLEMENT */
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) * rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)] * rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)]
+            - Bx[IDX3D(i, j, k, Nx, Ny, Nz)] * Bz[IDX3D(i, j, k, Nx, Ny, Nz)];
      }
 
 __device__ float YFluxRhoVZ(const float rho, const float rhov_y, const float rhov_z, const float By, const float Bz)
@@ -320,7 +378,8 @@ __device__ float YFluxRhoVZ(const int i, const int j, const int k,
      const float* By, const float* Bz,
      const int Nx, const int Ny, const int Nz)
     {
-        /* IMPLEMENT */
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) * rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)] * rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)]
+            - By[IDX3D(i, j, k, Nx, Ny, Nz)] * Bz[IDX3D(i, j, k, Nx, Ny, Nz)];
     }
 
 __device__ float ZFluxRhoVZ(const float rho, const float rhov_z, const float Bz, const float B_sq, const float p)
@@ -332,7 +391,11 @@ __device__ float ZFluxRhoVZ(const int i, const int j, const int k,
      const float* Bx, const float* By, const float* Bz, const float* e, 
      const int Nx, const int Ny, const int Nz)
      {
-        /* IMPLEMENT */
+        float Bsq = B_sq(i, j, k, Bx, By, Bz, Nx, Ny, Nz);
+        float ke = KE(i, j, k, rho, rhov_x, rhov_y, rhov_z, Nx, Ny, Nz);
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) * pow(rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)], 2) 
+            - pow(Bz[IDX3D(i, j, k, Nx, Ny, Nz)], 2) + p(i, j, k, e, Bsq, ke, Nx, Ny, Nz)
+            + Bsq / 2.0;
      }
 
 // Bx
@@ -350,7 +413,9 @@ __device__ float YFluxBX(const int i, const int j, const int k,
      const float* Bx, const float* By,
      const int Nx, const int Ny, const int Nz)
      {
-        /* IMPLEMENT */
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) 
+            * (rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)] * By[IDX3D(i, j, k, Nx, Ny, Nz)] 
+            - Bx[IDX3D(i, j, k, Nx, Ny, Nz)] * rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)]);
      }
 
 __device__ float ZFluxBX(const float rho, const float rhov_x, const float rhov_z, const float Bx, const float Bz)
@@ -362,7 +427,9 @@ __device__ float ZFluxBX(const int i, const int j, const int k,
      const float* Bx, const float* Bz,
      const int Nx, const int Ny, const int Nz)
      {
-        /* IMPLEMENT */
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) 
+        * (rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)] * Bz[IDX3D(i, j, k, Nx, Ny, Nz)] 
+        - Bx[IDX3D(i, j, k, Nx, Ny, Nz)] * rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)]);
      }
 
 // By
@@ -375,7 +442,9 @@ __device__ float XFluxBY(const int i, const int j, const int k,
      const float* Bx, const float* By,
      const int Nx, const int Ny, const int Nz)
      {
-        /* IMPLEMENT */
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) 
+        * (rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)] * Bx[IDX3D(i, j, k, Nx, Ny, Nz)] 
+        - By[IDX3D(i, j, k, Nx, Ny, Nz)] * rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)]); 
      }
 
 __device__ float YFluxBY()
@@ -392,7 +461,9 @@ __device__ float ZFluxBY(const int i, const int j, const int k,
      const float* By, const float* Bz,
      const int Nx, const int Ny, const int Nz)
      {
-        /* IMPLEMENT */
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) 
+        * (rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)] * Bz[IDX3D(i, j, k, Nx, Ny, Nz)] 
+        - By[IDX3D(i, j, k, Nx, Ny, Nz)] * rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)]);
      }
 
 // Bz
@@ -405,7 +476,9 @@ __device__ float XFluxBZ(const int i, const int j, const int k,
      const float* Bx, const float* Bz,
      const int Nx, const int Ny, const int Nz)
      {
-        /* IMPLEMENT */
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) 
+        * (rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)] * Bx[IDX3D(i, j, k, Nx, Ny, Nz)] 
+        - Bz[IDX3D(i, j, k, Nx, Ny, Nz)] * rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)]);
      }
 
 __device__ float YFluxBZ(const float rho, const float rhov_y, const float rhov_z, const float By, const float Bz)
@@ -417,7 +490,9 @@ __device__ float YFluxBZ(const int i, const int j, const int k,
      const float* By, const float* Bz,
      const int Nx, const int Ny, const int Nz)
      {
-        /* IMPLEMENT */
+        return (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) 
+        * (rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)] * By[IDX3D(i, j, k, Nx, Ny, Nz)] 
+        - Bz[IDX3D(i, j, k, Nx, Ny, Nz)] * rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)]);
      }
 
 __device__ float ZFluxBZ()
@@ -434,8 +509,17 @@ __device__ float XFluxE(const int i, const int j, const int k,
      const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
      const float* Bx, const float* By, const float* Bz, const float* e, 
      const int Nx, const int Ny, const int Nz)
-     {
-        /* IMPLEMENT */
+    {
+        float Bsq = B_sq(i, j, k, Bx, By, Bz, Nx, Ny, Nz);
+        float ke = KE(i, j, k, rho, rhov_x, rhov_y, rhov_z, Nx, Ny, Nz);
+        float pressure = p(i, j, k, e, Bsq, ke, Nx, Ny, Nz);
+        float Bdotu = B_dot_u(i, j, k, 
+            rho, rhov_x, rhov_y, rhov_z,
+            Bx, By, Bz, 
+            Nx, Ny, Nz);
+        return e[IDX3D(i, j, k, Nx, Ny, Nz)] + pressure + Bsq 
+            * (rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)] / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) 
+            - Bdotu * Bx[IDX3D(i, j, k, Nx, Ny, Nz)]; 
      }
 
 
@@ -448,7 +532,16 @@ __device__ float YFluxE(const int i, const int j, const int k,
      const float* Bx, const float* By, const float* Bz, const float* e, 
      const int Nx, const int Ny, const int Nz)
      {
-        /* IMPLEMENT */
+        float Bsq = B_sq(i, j, k, Bx, By, Bz, Nx, Ny, Nz);
+        float ke = KE(i, j, k, rho, rhov_x, rhov_y, rhov_z, Nx, Ny, Nz);
+        float pressure = p(i, j, k, e, Bsq, ke, Nx, Ny, Nz);
+        float Bdotu = B_dot_u(i, j, k, 
+            rho, rhov_x, rhov_y, rhov_z,
+            Bx, By, Bz, 
+            Nx, Ny, Nz);
+        return e[IDX3D(i, j, k, Nx, Ny, Nz)] + pressure + Bsq 
+            * (rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)] / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) 
+            - Bdotu * By[IDX3D(i, j, k, Nx, Ny, Nz)]; 
      }
 
 __device__ float ZFluxE(const float rho, const float rhov_z, const float Bz, const float e, const float p, const float B_sq, const float B_dot_u)
@@ -460,7 +553,16 @@ __device__ float ZFluxE(const int i, const int j, const int k,
      const float* Bx, const float* By, const float* Bz, const float* e, 
      const int Nx, const int Ny, const int Nz)
      {
-        /* IMPLEMENT */
+        float Bsq = B_sq(i, j, k, Bx, By, Bz, Nx, Ny, Nz);
+        float ke = KE(i, j, k, rho, rhov_x, rhov_y, rhov_z, Nx, Ny, Nz);
+        float pressure = p(i, j, k, e, Bsq, ke, Nx, Ny, Nz);
+        float Bdotu = B_dot_u(i, j, k, 
+            rho, rhov_x, rhov_y, rhov_z,
+            Bx, By, Bz, 
+            Nx, Ny, Nz);
+        return e[IDX3D(i, j, k, Nx, Ny, Nz)] + pressure + Bsq 
+            * (rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)] / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) 
+            - Bdotu * Bz[IDX3D(i, j, k, Nx, Ny, Nz)]; 
      }
 
 /* 
