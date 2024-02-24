@@ -38,7 +38,7 @@ __global__ void IntermediateVarsBCs(const float* rho,
     float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int,
     float* Bx_int, float* By_int, float* Bz_int, float* e_int, 
     const float dt, const float dx, const float dy, const float dz,
-    const float Nx, const float Ny, const float Nz);
+    const float Nx, const float Ny, const float Nz)
     {
         // Execution configuration boilerplate
         int tidx = threadIdx.x + blockDim.x * blockIdx.x; 

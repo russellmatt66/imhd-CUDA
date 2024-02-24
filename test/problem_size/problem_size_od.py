@@ -55,7 +55,7 @@ print(possible_df.head())
 
 ''' TODO: Find the largest possible problem sizes from the above '''
 possible_df = possible_df.sort_values(by=['Nz'], ascending=False)
-possible_df[(possible_df['GB'] >= 4.5) & (possible_df['Nx'] == possible_df['Ny'])].to_csv('./possible.csv',index=False)
+possible_df[(possible_df['GB'] >= 4.5) & (possible_df['Nx'] == possible_df['Ny'])].to_csv('./possible_od.csv',index=False)
 
 # tl_df = dv_df.loc['']
 
