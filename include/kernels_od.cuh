@@ -18,6 +18,10 @@ partitioned into two sets:
 #define m 1.67 * pow(10, -27) // [kg]
 
 /* DONT FORGET NUMERICAL DIFFUSION */
+__global__ void IntermediateVarsInterior();
+
+__global__ void IntermediateVarsBCs();
+
 __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
      const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
      float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
@@ -33,7 +37,6 @@ __global__ void BoundaryConditions(
      const int Nx, const int Ny, const int Nz);
 
 // Flux functions - Overloaded b/c of intermediate variable calculation
-/* TODO: IMPLEMENT OVERLOADED FUNCTIONS */
 // Rho - Not overloaded b/c minimal verbosity
 __device__ float XFluxRho(const int i, const int j, const int k, const float* rhov_x, const int Nx, const int Ny, const int Nz);
 __device__ float YFluxRho(const int i, const int j, const int k, const float* rhov_y, const int Nx, const int Ny, const int Nz);
