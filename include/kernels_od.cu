@@ -115,7 +115,37 @@ __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1,
                                                             dt, dx, dy, dz, Nx, Ny, Nz);                
 
                     /* Update fluid variables on interior */
-                    rho_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRho(i, j, k, rho, rhov_x, rhov_y, rhov_z, Nx, Ny, Nz);
+                    rho_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRho(i, j, k, rho, 
+                                                            rho_int, rhovx_int, rhovy_int, rhovz_int,
+                                                            dt, dx, dy, dz, Nx, Ny, Nz);
+                    rhovx_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRhoVX(i, j, k, rhov_x, 
+                                                                rho_int, rhovx_int, rhovy_int, rhovz_int, 
+                                                                Bx_int, By_int, Bz_int, e_int, 
+                                                                dt, dx, dy, dz, Nx, Ny, Nz);
+                    rhovy_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRhoVY(i, j, k, rhov_y, 
+                                                                rho_int, rhovx_int, rhovy_int, rhovz_int,
+                                                                Bx_int, By_int, Bz_int, e_int, 
+                                                                dt, dx, dy, dz, Nx, Ny, Nz);
+                    rhovz_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRhoVZ(i, j, k, rhov_z, 
+                                                                rho_int, rhovx_int, rhovy_int, rhovz_int,
+                                                                Bx_int, By_int, Bz_int, e_int, 
+                                                                dt, dx, dy, dz, Nx, Ny, Nz);
+                    Bx_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvBX(i, j, k, Bx, 
+                                                                rho_int, rhovx_int, rhovy_int, rhovz_int, 
+                                                                Bx_int, By_int, Bz_int, 
+                                                                dt, dx, dy, dz, Nx, Ny, Nz);
+                    By_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvBY(i, j, k, By, 
+                                                                rho_int, rhovx_int, rhovy_int, rhovz_int, 
+                                                                Bx_int, By_int, Bz_int,
+                                                                dt, dx, dy, dz, Nx, Ny, Nz);
+                    Bz_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvBZ(i, j, k, Bz,
+                                                                rho_int, rhovx_int, rhovy_int, rhovz_int,
+                                                                Bx_int, By_int, Bz_int, 
+                                                                dt, dx, dy, dz, Nx, Ny, Nz);
+                    e_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvE(i, j, k, e, 
+                                                                rho_int, rhovx_int, rhovy_int, rhovz_int, 
+                                                                Bx_int, By_int, Bz_int, e_int, 
+                                                                dt, dx, dy, dz, Nx, Ny, Nz);
                 }
             }
         }
@@ -140,24 +170,48 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
         int zthreads = gridDim.z * blockDim.z;
 
         /* B.Cs on (i, j, k = 0) */
-
+        for (int i = tidx; i < Nx; i += xthreads){
+            for (int j = tidy; j < Ny; j += ythreads){
+                /* IMPLEMENT */
+            }
+        }
         /* B.Cs on (i, j, k = N-1) */
-
+        for (int i = tidx; i < Nx; i += xthreads){
+            for (int j = tidy; j < Ny; j += ythreads){
+                /* IMPLEMENT */
+            }
+        }
         /* B.Cs on (i = 0, j, k) */
-        
+        for (int k = tidz; k < Nz; k += zthreads){
+            for (int j = tidy; j < Ny; j += ythreads){
+                /* IMPLEMENT */
+            }
+        }
         /* B.Cs on (i = N-1, j, k) */
-
+        for (int k = tidz; k < Nz; k += zthreads){
+            for (int j = tidy; j < Ny; j += ythreads){
+                /* IMPLEMENT */
+            }
+        }
         /* B.Cs on (i, j = 0, k) */
-
+        for (int k = tidz; k < Nz; k += zthreads){
+            for (int j = tidy; j < Ny; j += ythreads){
+                /* IMPLEMENT */
+            }
+        }
         /* B.Cs on (i, j = N-1, k) */
-
+        for (int k = tidz; k < Nz; k += zthreads){
+            for (int j = tidy; j < Ny; j += ythreads){
+                /* IMPLEMENT */
+            }
+        }
         return;
      }
 
 /* LAX WENDROFF ADVANCES */
 __device__ float LaxWendroffAdvRho(const int i, const int j, const int k, 
-    const float* rho_int, const float* rho, 
-    const float* rhovx_int, const float* rhovy_int, const float* rhovz_int, 
+    const float* rho, 
+    const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
@@ -196,7 +250,17 @@ __device__ float LaxWendroffAdvRhoVY(const int i, const int j, const int k,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-
+        return 0.5 * (rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)] + rhovy_int[IDX3D(i, j, k, Nx, Ny, Nz)])
+                - 0.5 * (dt / dx) * (XFluxRhoVY(i+1, j, k, rho_int, rhovx_int, rhovy_int, Bx_int, By_int,
+                                        Nx, Ny, Nz)
+                                    - XFluxRhoVY(i, j, k, rho_int, rhovx_int, rhovy_int, Bx_int, By_int,
+                                        Nx, Ny, Nz))
+                - 0.5 * (dt / dy) * (YFluxRhoVY(i, j+1, k, rho_int, rhovx_int, rhovy_int, rhovz_int, 
+                                        Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz)
+                                    - YFluxRhoVY(i, j, k, rho_int, rhovx_int, rhovy_int, rhovz_int,
+                                        Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz))
+                - 0.5 * (dt / dz) * (ZFluxRhoVY(i, j, k+1, rho_int, rhovy_int, rhovz_int, By_int, Bz_int,
+                                        Nx, Ny, Nz));
     }
 
 __device__ float LaxWendroffAdvRhoVZ(const int i, const int j, const int k,
@@ -206,7 +270,17 @@ __device__ float LaxWendroffAdvRhoVZ(const int i, const int j, const int k,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-    
+        return 0.5 * (rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)] + rhovz_int[IDX3D(i, j, k, Nx, Ny, Nz)])
+                - 0.5 * (dt / dx) * (XFluxRhoVZ(i+1, j, k, rho_int, rhovx_int, rhovz_int, Bx_int, Bz_int, 
+                                        Nx, Ny, Nz)
+                                    - XFluxRhoVZ(i, j, k, rho_int, rhovx_int, rhovz_int, Bx_int, Bz_int,
+                                        Nx, Ny, Nz))
+                - 0.5 * (dt / dy) * (YFluxRhoVZ(i, j+1, k, rho_int, rhovy_int, rhovz_int, By_int, Bz_int,
+                                        Nx, Ny, Nz)
+                                    - YFluxRhoVZ(i, j, k, rho_int, rhovy_int, rhovz_int, By_int, Bz_int,
+                                        Nx, Ny, Nz))
+                - 0.5 * (dt / dz) * (ZFluxRhoVZ(i, j, k+1, rho_int, rhovx_int, rhovy_int, rhovz_int, 
+                                        Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz));
     }
 
 __device__ float LaxWendroffAdvBX(const int i, const int j, const int k,
@@ -216,7 +290,16 @@ __device__ float LaxWendroffAdvBX(const int i, const int j, const int k,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-    
+        return 0.5 * (Bx[IDX3D(i, j, k, Nx, Ny, Nz)] + Bx_int[IDX3D(i, j, k, Nx, Ny, Nz)])
+                - 0.5 * (dt / dx) * (XFluxBX() - XFluxBX())
+                - 0.5 * (dt / dy) * (YFluxBX(i, j+1, k, rho_int, rhovx_int, rhovy_int, Bx_int, By_int, 
+                                        Nx, Ny, Nz)
+                                    - YFluxBX(i, j, k, rho_int, rhovx_int, rhovy_int, Bx_int, By_int,
+                                        Nx, Ny, Nz))
+                - 0.5 * (dt / dz) * (ZFluxBX(i, j, k+1, rho_int, rhovx_int, rhovz_int, Bx_int, Bz_int,
+                                        Nx, Ny, Nz)
+                                    - ZFluxBX(i, j, k, rho_int, rhovx_int, rhovz_int, Bx_int, Bz_int,
+                                        Nx, Ny, Nz));
     }
 
 __device__ float LaxWendroffAdvBY(const int i, const int j, const int k,
@@ -226,7 +309,16 @@ __device__ float LaxWendroffAdvBY(const int i, const int j, const int k,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-    
+        return 0.5 * (By[IDX3D(i, j, k, Nx, Ny, Nz)] + By_int[IDX3D(i, j, k, Nx, Ny, Nz)])
+                - 0.5 * (dt / dx) * (XFluxBY(i+1, j, k, rho_int, rhovx_int, rhovy_int, Bx_int, By_int, 
+                                        Nx, Ny, Nz)
+                                    - XFluxBY(i, j, k, rho_int, rhovx_int, rhovy_int, Bx_int, By_int,
+                                        Nx, Ny, Nz))
+                - 0.5 * (dt / dy) * (YFluxBY() - YFluxBY())
+                - 0.5 * (dt / dz) * (ZFluxBY(i, j, k+1, rho_int, rhovy_int, rhovz_int, By_int, Bz_int, 
+                                        Nx, Ny, Nz)
+                                    - ZFluxBY(i, j, k, rho_int, rhovy_int, rhovz_int, By_int, Bz_int,
+                                        Nx, Ny, Nz));
     }
 
 __device__ float LaxWendroffAdvBZ(const int i, const int j, const int k,
@@ -236,7 +328,16 @@ __device__ float LaxWendroffAdvBZ(const int i, const int j, const int k,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-    
+        return 0.5 * (Bz[IDX3D(i, j, k, Nx, Ny, Nz)] + Bz_int[IDX3D(i, j, k, Nx, Ny, Nz)])
+                - 0.5 * (dt / dx) * (XFluxBZ(i+1, j, k, rho_int, rhovx_int, rhovz_int, Bx_int, Bz_int, 
+                                        Nx, Ny, Nz)
+                                    - XFluxBZ(i, j, k, rho_int, rhovx_int, rhovz_int, Bx_int, Bz_int,
+                                        Nx, Ny, Nz))
+                - 0.5 * (dt / dy) * (YFluxBZ(i, j+1, k, rho_int, rhovy_int, rhovz_int, By_int, Bz_int, 
+                                        Nx, Ny, Nz)
+                                    - YFluxBZ(i, j, k, rho_int, rhovy_int, rhovz_int, By_int, Bz_int, 
+                                        Nx, Ny, Nz))
+                - 0.5 * (dt / dz) * (ZFluxBZ() - ZFluxBZ());
     }
 
 __device__ float LaxWendroffAdvE(const int i, const int j, const int k,
@@ -246,10 +347,18 @@ __device__ float LaxWendroffAdvE(const int i, const int j, const int k,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-    
+        return 0.5 * (e[IDX3D(i, j, k, Nx, Ny, Nz)] + e_int[IDX3D(i, j, k, Nx, Ny, Nz)])
+                - 0.5 * (dt / dx) * (XFluxE(i+1, j, k, rho_int, rhovx_int, rhovy_int, rhovz_int, 
+                                        Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz)
+                                    - XFluxE(i, j, k, rho_int, rhovx_int, rhovy_int, rhovz_int,
+                                        Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz))
+                - 0.5 * (dt / dy) * (YFluxE(i, j+1, k, rho_int, rhovx_int, rhovy_int, rhovz_int, 
+                                        Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz)
+                                    - YFluxE(i, j, k, rho_int, rhovx_int, rhovx_int, rhovz_int, 
+                                        Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz))
+                - 0.5 * (dt / dz) * (ZFluxE(i, j, k+1, rho_int, rhovx_int, rhovy_int, rhovz_int, 
+                                        Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz));
     }
-
-
 
 /* 
 Flux Functions 
