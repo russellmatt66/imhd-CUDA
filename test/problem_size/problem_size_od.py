@@ -13,12 +13,12 @@ Nz = np.linspace(256,1024,49)
 
 def DV(nx: int, ny: int, nz: int) -> np.float64: # Assumes intermediate variables are also being stored in device memory
     # 4.0 = `number of bytes per float`
-    # 3.0 = `number of sets of fluid variables`
-    # 8.0 = `number of rank-3 tensors per set of fluid variables`
+    # 6.0 = `number of sets of simulation variables`
+    # 8.0 = `number of rank-3 tensors per set of simulation variables`
     # nx = `x-dimension of the rank-3 tensor (number of floats)`
     # ny = `y-dimension of the rank-3 tensor (number of floats)`
     # nz = `z-dimension of the rank-3 tensor (number of floats)`
-    return (4.0 * 3.0 * 8.0 * nx * ny * nz) / (1024.0**3) # GB
+    return (4.0 * 6.0 * 8.0 * nx * ny * nz) / (1024.0**3) # GB
 
 problem_sizes = []
 data_volumes = []
