@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "locale": "cpp",
+        "type_traits": "cpp",
+        "ostream": "cpp"
     }
 }
