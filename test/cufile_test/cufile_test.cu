@@ -1,7 +1,10 @@
 /* 
 Figure out how to write using GDS
-(1) There's a segfault in here
-(2) It would be useful to error check the cuFile API calls
+
+This writes gibberish, and I don't know why.
+
+"Go look at the samples"
+The samples also write gibberish.
 */
 #include <stdio.h>
 #include <fcntl.h>
@@ -10,12 +13,14 @@ Figure out how to write using GDS
 #include <iostream>
 #include <string>
 
+#include "cufile_sample_utils.h"
+
 __global__ void InitializeBuffer(float* buffer, const size_t size){
     int tidx = threadIdx.x + blockDim.x * blockIdx.x;
     int xthreads = blockDim.x * gridDim.x;
 
     for (size_t i = tidx; i < size; i += xthreads){
-        buffer[i] = 0.0;
+        buffer[i] = 1.0;
         // printf("Value is: %f\n", buffer[i]);
     }
 
@@ -41,47 +46,59 @@ int main(int argc, char* argv[]){
     // std::cout << "Opening cuFile driver" << std::endl;
     status = cuFileDriverOpen();
     // std::cout << "cuFile driver opened" << std::endl;
-    // if (status.err != CU_FILE_SUCCESS) {
-    //     fprintf(stderr, "cuFile error: %s\n", status);
-    //     return -11;
-    // }
+    if (status.err != CU_FILE_SUCCESS) {
+        // fprintf(stderr, "cuFile error: %s\n", cuFileGetErrorString(status));
+        std::cerr << "CUDA Driver open error: " << cuFileGetErrorString(status) << std::endl;
+        return -11;
+    }
 
-    const size_t bufferSize = 1024 * 1024; 
+    const size_t bufferSize = sizeof(float) * 1024 * 1024; 
+    const size_t N = 1024 * 1024;
     float* gpuBuffer;
-    cudaMalloc(&gpuBuffer, sizeof(float)*bufferSize);
+    cudaMalloc(&gpuBuffer, bufferSize);
+
+    fd = open(filename, O_CREAT | O_WRONLY, 0664);
+	memset((void *)&cf_descr, 0, sizeof(CUfileDescr_t));
+    cf_descr.handle.fd = fd;
+	cf_descr.type = CU_FILE_HANDLE_TYPE_OPAQUE_FD;
+    
+    status = cuFileBufRegister(gpuBuffer, bufferSize, 0);
+    if (status.err != CU_FILE_SUCCESS) {
+        // fprintf(stderr, "cuFile error: %s\n", cuFileGetErrorString(status));
+        std::cerr << "cuFile Buffer registration error: " << cuFileGetErrorString(status) << std::endl;
+        return -11;
+    }
+
+	status = cuFileHandleRegister(&cf_handle, &cf_descr);
+    if (status.err != CU_FILE_SUCCESS) {
+        // fprintf(stderr, "cuFile error: %s\n", cuFileGetErrorString(status));
+        std::cerr << "cuFile Handle registration error: " << cuFileGetErrorString(status) << std::endl;
+        return -11;
+    }
 
     dim3 grid_dimensions(60,1,1);
     dim3 block_dimensions(1024,1,1);
-
-    fd = open(filename, O_CREAT | O_RDWR | O_DIRECT, 0664);
-    cf_descr.handle.fd = fd;
-	cf_descr.type = CU_FILE_HANDLE_TYPE_OPAQUE_FD;
-    status = cuFileBufRegister(gpuBuffer, bufferSize, 0);
-	status = cuFileHandleRegister(&cf_handle, &cf_descr);
-    // if (status.err != CU_FILE_SUCCESS) {
-    //     fprintf(stderr, "cuFile error: %s\n", cuFileGetErrorString(status));
-    //     return -11;
-    // }
-
     std::cout << "Initializing buffer" << std::endl;
-    InitializeBuffer<<<grid_dimensions, block_dimensions>>>(gpuBuffer, bufferSize);
+    InitializeBuffer<<<grid_dimensions, block_dimensions>>>(gpuBuffer, N);
     cudaDeviceSynchronize();
     std::cout << "Buffer initialized" << std::endl;
 
-    // if (status.err != CU_FILE_SUCCESS) {
-    //     fprintf(stderr, "cuFile error: %s\n", status);
-    //     return -11;
-    // }
     ret = cuFileWrite(cf_handle, gpuBuffer, bufferSize, 0, 0);
-
-    // if (status.err != CU_FILE_SUCCESS) {
-    //     fprintf(stderr, "cuFile error: %s\n", status);
-    //     return -11;
-    // }
+    if (status.err != CU_FILE_SUCCESS) {
+        // fprintf(stderr, "cuFile error: %s\n", cuFileGetErrorString(status));
+        std::cerr << "cuFile File write error: " << cuFileGetErrorString(status) << std::endl;
+        return -11;
+    }
 
     cudaFree(gpuBuffer);
-    status = cuFileBufDeregister(gpuBuffer);
+    cuFileBufDeregister(gpuBuffer);
     cuFileHandleDeregister(cf_handle);
+
     status = cuFileDriverClose();
+    if (status.err != CU_FILE_SUCCESS) {
+        // fprintf(stderr, "cuFile error: %s\n", cuFileGetErrorString(status));
+        std::cerr << "CUDA Driver close error: " << cuFileGetErrorString(status) << std::endl;
+        return -11;
+    }
     return ret;
 }

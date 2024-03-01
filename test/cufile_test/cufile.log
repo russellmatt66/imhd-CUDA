@@ -5,3 +5,29 @@
  29-02-2024 22:34:32:117 [pid=22003 tid=22003] NOTICE  cufio-drv:727 running in compatible mode
  29-02-2024 22:42:00:474 [pid=22339 tid=22339] NOTICE  cufio-drv:727 running in compatible mode
  29-02-2024 22:42:00:890 [pid=22339 tid=22339] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 01-03-2024 12:44:40:617 [pid=6183 tid=6183] NOTICE  cufio-drv:727 running in compatible mode
+ 01-03-2024 12:44:41:49 [pid=6183 tid=6183] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 01-03-2024 12:45:33:600 [pid=6246 tid=6246] NOTICE  cufio-drv:727 running in compatible mode
+ 01-03-2024 12:45:34:4 [pid=6246 tid=6246] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 01-03-2024 13:42:42:568 [pid=11020 tid=11020] NOTICE  cufio-drv:727 running in compatible mode
+ 01-03-2024 13:42:42:987 [pid=11020 tid=11020] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 01-03-2024 14:33:41:3 [pid=15000 tid=15000] NOTICE  cufio-drv:727 running in compatible mode
+ 01-03-2024 14:34:57:358 [pid=15123 tid=15123] NOTICE  cufio-drv:727 running in compatible mode
+ 01-03-2024 14:34:57:770 [pid=15123 tid=15123] ERROR  cufio-obj:54 cuFile error fetching fd, null CUfileHandle
+ 01-03-2024 14:34:57:770 [pid=15123 tid=15123] ERROR  cufio:367 cuFile invalid file handle to destroy
+ 01-03-2024 14:35:20:804 [pid=15180 tid=15180] NOTICE  cufio-drv:727 running in compatible mode
+ 01-03-2024 14:35:21:206 [pid=15180 tid=15180] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 01-03-2024 14:35:32:325 [pid=15233 tid=15233] NOTICE  cufio-drv:727 running in compatible mode
+ 01-03-2024 14:35:32:743 [pid=15233 tid=15233] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 01-03-2024 14:35:47:982 [pid=15320 tid=15320] NOTICE  cufio-drv:727 running in compatible mode
+ 01-03-2024 14:35:48:399 [pid=15320 tid=15320] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 01-03-2024 14:40:28:927 [pid=15639 tid=15639] NOTICE  cufio-drv:727 running in compatible mode
+ 01-03-2024 14:40:29:335 [pid=15639 tid=15639] ERROR  cufio:272 cuFileHandleRegister error, fd opened with unsupported flags: 33793
+ 01-03-2024 14:40:29:335 [pid=15639 tid=15639] ERROR  cufio:339 cuFileHandleRegister error: unsupported file open flags
+ 01-03-2024 14:41:37:792 [pid=15772 tid=15772] NOTICE  cufio-drv:727 running in compatible mode
+ 01-03-2024 14:41:38:194 [pid=15772 tid=15772] ERROR  cufio:272 cuFileHandleRegister error, fd opened with unsupported flags: 33793
+ 01-03-2024 14:41:38:194 [pid=15772 tid=15772] ERROR  cufio:339 cuFileHandleRegister error: unsupported file open flags
+ 01-03-2024 14:43:38:750 [pid=15923 tid=15923] NOTICE  cufio-drv:727 running in compatible mode
+ 01-03-2024 14:43:39:166 [pid=15923 tid=15923] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 01-03-2024 14:54:49:596 [pid=17370 tid=17370] NOTICE  cufio-drv:727 running in compatible mode
+ 01-03-2024 14:54:50:23 [pid=17370 tid=17370] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
