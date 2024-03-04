@@ -324,4 +324,7 @@ __device__ float KE(int i, int j, int k, const float* rho, const float* rhov_x, 
 
 __device__ float B_dot_u(int i, int j, int k, const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
      const float* Bx, const float* By, const float* Bz, const int Nx, const int Ny, const int Nz);
+
+__device__ float numericalDiffusion(const int i, const int j, const int k, const float* fluid_var, 
+    const float D, const int Nx, const int Ny, const int Nz);
 #endif

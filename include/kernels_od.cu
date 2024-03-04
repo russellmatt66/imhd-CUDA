@@ -117,35 +117,51 @@ __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1,
                     /* Update fluid variables on interior */
                     rho_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRho(i, j, k, rho, 
                                                             rho_int, rhovx_int, rhovy_int, rhovz_int,
-                                                            dt, dx, dy, dz, Nx, Ny, Nz);
+                                                            dt, dx, dy, dz, Nx, Ny, Nz)
+                                                        + numericalDiffusion(i, j, k, rho, D, Nx, Ny, Nz);
+
                     rhovx_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRhoVX(i, j, k, rhov_x, 
                                                                 rho_int, rhovx_int, rhovy_int, rhovz_int, 
                                                                 Bx_int, By_int, Bz_int, e_int, 
                                                                 dt, dx, dy, dz, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, rhov_x, D, Nx, Ny, Nz);
+
                     rhovy_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRhoVY(i, j, k, rhov_y, 
                                                                 rho_int, rhovx_int, rhovy_int, rhovz_int,
                                                                 Bx_int, By_int, Bz_int, e_int, 
                                                                 dt, dx, dy, dz, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, rhov_y, D, Nx, Ny, Nz);
+
                     rhovz_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRhoVZ(i, j, k, rhov_z, 
                                                                 rho_int, rhovx_int, rhovy_int, rhovz_int,
                                                                 Bx_int, By_int, Bz_int, e_int, 
                                                                 dt, dx, dy, dz, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, rhov_z, D, Nx, Ny, Nz);
+
                     Bx_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvBX(i, j, k, Bx, 
                                                                 rho_int, rhovx_int, rhovy_int, rhovz_int, 
                                                                 Bx_int, By_int, Bz_int, 
                                                                 dt, dx, dy, dz, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, Bx, D, Nx, Ny, Nz);
+
                     By_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvBY(i, j, k, By, 
                                                                 rho_int, rhovx_int, rhovy_int, rhovz_int, 
                                                                 Bx_int, By_int, Bz_int,
                                                                 dt, dx, dy, dz, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, By, D, Nx, Ny, Nz);
+
                     Bz_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvBZ(i, j, k, Bz,
                                                                 rho_int, rhovx_int, rhovy_int, rhovz_int,
                                                                 Bx_int, By_int, Bz_int, 
                                                                 dt, dx, dy, dz, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, Bz, D, Nx, Ny, Nz);
+
                     e_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvE(i, j, k, e, 
                                                                 rho_int, rhovx_int, rhovy_int, rhovz_int, 
                                                                 Bx_int, By_int, Bz_int, e_int, 
                                                                 dt, dx, dy, dz, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, e, D, Nx, Ny, Nz);
+
                 }
             }
         }
@@ -828,7 +844,7 @@ __device__ float intE(const int i, const int j, const int k,
 
 /* 
 Helper Functions
-B-squared, etc. 
+B-squared, pressure, Kinetic Energy, 2nd derivative central difference, etc. 
 */
 __device__ float B_sq(const int i, const int j, const int k, const float* Bx, const float* By, const float* Bz, 
     const int Nx, const int Ny, const int Nz)
@@ -857,5 +873,20 @@ __device__ float B_dot_u(const int i, const int j, const int k, const float* rho
         B_dot_u = (1.0 / rho[IDX3D(i, j, k, Nx, Ny, Nz)]) * (rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)] * Bx[IDX3D(i, j, k, Nx, Ny, Nz)]
             + rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)] * By[IDX3D(i, j, k, Nx, Ny, Nz)] + rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)] * Bz[IDX3D(i, j, k, Nx, Ny, Nz)]);
         return B_dot_u;
+    }
+
+// Adds numerical diffusion to the interior
+// 2nd-order central difference
+__device__ float numericalDiffusion(const int i, const int j, const int k, const float* fluid_var, 
+    const float D, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        float num_diff = 0.0;
+        num_diff = D * (
+            (1.0 / pow(dx, 2)) * (fluid_var[IDX3D(i+1, j, k, Nx, Ny, Nz)] - 2.0*fluid_var[IDX3D(i, j, k, Nx, Ny, Nz)] + fluid_var[IDX3D(i-1, j, k, Nx, Ny, Nz)])
+            + (1.0 / pow(dy, 2)) * (fluid_var[IDX3D(i, j+1, k, Nx, Ny, Nz)] - 2.0*fluid_var[IDX3D(i, j, k, Nx, Ny, Nz)] + fluid_var[IDX3D(i, j-1, k, Nx, Ny, Nz)])
+            + (1.0 / pow(dz, 2)) * (fluid_var[IDX3D(i, j, k+1, Nx, Ny, Nz)] - 2.0*fluid_var[IDX3D(i, j, k, Nx, Ny, Nz)] + fluid_var[IDX3D(i, j, k-1, Nx, Ny, Nz)])
+            );
+        return num_diff;
     }
 #endif
