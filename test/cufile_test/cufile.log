@@ -31,3 +31,5 @@
  01-03-2024 14:43:39:166 [pid=15923 tid=15923] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
  01-03-2024 14:54:49:596 [pid=17370 tid=17370] NOTICE  cufio-drv:727 running in compatible mode
  01-03-2024 14:54:50:23 [pid=17370 tid=17370] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 03-03-2024 19:05:03:957 [pid=19411 tid=19411] NOTICE  cufio-drv:727 running in compatible mode
+ 03-03-2024 19:05:04:394 [pid=19411 tid=19411] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
