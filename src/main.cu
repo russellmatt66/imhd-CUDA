@@ -59,6 +59,8 @@ int main(int argc, char* argv[]){
 	float *rho_int, *rhovx_int, *rhovy_int, *rhovz_int, *Bx_int, *By_int, *Bz_int, *e_int;
 	float *grid_x, *grid_y, *grid_z;
 
+	/* MALLOC TO DEVICE */
+
 	dim3 grid_dimensions(SM_mult_x * numberOfSMs, SM_mult_y * numberOfSMs, SM_mult_z * numberOfSMs);
 	dim3 block_dimensions(num_threads_per_block_x, num_threads_per_block_y, num_threads_per_block_z);
 
@@ -82,10 +84,11 @@ int main(int argc, char* argv[]){
 		BoundaryConditions<<<grid_dimensions, block_dimensions>>>(rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1,
 																	rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz);
 		checkCuda(cudaDeviceSynchronize());
+		
 		/* Transfer future timestep data to current timestep */
 		checkCuda(cudaDeviceSynchronize());
 	}
 
-	/* Free */ 
+	/* FREE */ 
 	return 0;
 }

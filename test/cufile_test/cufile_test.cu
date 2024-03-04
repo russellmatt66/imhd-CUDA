@@ -1,10 +1,7 @@
 /* 
 Figure out how to write using GDS
 
-This writes gibberish, and I don't know why.
-
-"Go look at the samples"
-The samples also write gibberish.
+Use this as a reference for how to write a function that writes data out 
 */
 #include <stdio.h>
 #include <fcntl.h>

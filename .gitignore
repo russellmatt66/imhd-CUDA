@@ -5,3 +5,6 @@
 /test/grid_test/*.cmake
 /test/grid_test/Makefile
 /test/grid_test/CMakeCache.txt
+/test/write_cufilefunc_test/buf1.dat
+/test/write_cufilefunc_test/buf2.dat
+/test/write_cufilefunc_test/buf3.dat
