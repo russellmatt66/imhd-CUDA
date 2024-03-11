@@ -1,10 +1,11 @@
 /test/library_test/CMakeFiles/*
 /test/library_test/*.cmake
 /test/library_test/Makefile
-/test/grid_test/CMakeFiles/*
-/test/grid_test/*.cmake
-/test/grid_test/Makefile
-/test/grid_test/CMakeCache.txt
-/test/write_cufilefunc_test/buf1.dat
-/test/write_cufilefunc_test/buf2.dat
-/test/write_cufilefunc_test/buf3.dat
+/test/oop/grid_test/CMakeFiles/*
+/test/oop/grid_test/*.cmake
+/test/oop/grid_test/Makefile
+/test/oop/grid_test/CMakeCache.txt
+/test/gds/write_cufilefunc_test/buf1.dat
+/test/gds/write_cufilefunc_test/buf2.dat
+/test/gds/write_cufilefunc_test/buf3.dat
+# /test/vtk/

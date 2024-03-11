@@ -6,8 +6,8 @@
 #define q_e 1.6 * pow(10, -19) // [C]
 #define m 1.67 * pow(10, -27) // [kg]
 
-__global__ void InitializeGrid(float x_min, float x_max, float y_min, float y_max, float z_min, float z_max, 
-    float* grid_x, float* grid_y, float* grid_z, 
+__global__ void InitializeGrid(const float x_min, const float x_max, const float y_min, const float y_max, const float z_min, const float z_max, 
+    const float dx, const float dy, const float dz, float* grid_x, float* grid_y, float* grid_z, 
     const int Nx, const int Ny, const int Nz);
 
 __global__ void InitialConditions(float* rho, float* rhov_x, float* rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e,
