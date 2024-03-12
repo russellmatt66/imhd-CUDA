@@ -66,14 +66,27 @@ __global__ void InitializeGrid(const float x_min, const float x_max, const float
         int zthreads = gridDim.z * blockDim.z;
 
         for (int k = tidz; k < Nz; k += zthreads){
-            for (int i = tidx; i < Nx; i += xthreads){
-                for (int j = tidy; j < Ny; j += ythreads){
-                    grid_x[IDX3D(i, j, k, Nx, Ny, Nz)] = x_min + i * dx;
-                    grid_y[IDX3D(i, j, k, Nx, Ny, Nz)] = y_min + j * dy;
-                    grid_z[IDX3D(i, j, k, Nx, Ny, Nz)] = z_min + k * dz;
-                }
-            }
+            grid_z[k] = z_min + k * dz;
         }
+
+        for (int i = tidx; i < Nx; i += xthreads){
+            grid_x[i] = x_min + i * dx;
+        }
+
+        for (int j = tidy; j < Ny; j += ythreads){
+            grid_y[j] = y_min + j * dy;
+        }
+
+        // "meshgrid"
+        // for (int k = tidz; k < Nz; k += zthreads){
+        //     for (int i = tidx; i < Nx; i += xthreads){
+        //         for (int j = tidy; j < Ny; j += ythreads){
+        //             grid_x[IDX3D(i, j, k, Nx, Ny, Nz)] = x_min + i * dx;
+        //             grid_y[IDX3D(i, j, k, Nx, Ny, Nz)] = y_min + j * dy;
+        //             grid_z[IDX3D(i, j, k, Nx, Ny, Nz)] = z_min + k * dz;
+        //         }
+        //     }
+        // }
 
         return;
     }
