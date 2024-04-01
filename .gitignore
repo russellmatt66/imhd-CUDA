@@ -17,4 +17,5 @@
 /test/vtk/ics_test/CMakeCache.txt
 /test/vtk/ics_test/*.cmake
 /test/vtk/ics_test/*.a
+/test/vtk/ics_test/*.dat
 # /test/vtk/

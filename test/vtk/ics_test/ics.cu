@@ -1,5 +1,4 @@
 /* 
-WIP 
 Visualize the initial conditions
 (1) Compute ICs
 (2) Output them for visualization
@@ -10,6 +9,7 @@ Visualize the initial conditions
 #include <math.h>
 #include <cstdlib>
 #include <cstdio>
+#include <iostream>
 
 #include "../../../include/initialize_od.cuh"
 #include "../../../include/gds.cuh"
@@ -82,7 +82,9 @@ int main(int argc, char* argv[]){
    InitialConditions<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 1.0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
-   writeGridGDS("xyz.dat", x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   writeGridGDS("xyz_grid.dat", x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   
+   std::cout << "Writing rho data out" << std::endl;
    writeDataGDS("rho_ics.dat", rho, fluid_data_dimension);
 
    cudaFree(rho);

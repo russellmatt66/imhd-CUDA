@@ -2,9 +2,8 @@
 Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD system.
 
 # Current Tasks
-(1) Rewrite `FluidAdvance` kernel to use intermediate variables that are stored in memory
-
-(2) Finish analyzing the data volume subject to these new constraints using `test/problem_size.py`
+(1) Visualize initial conditions 
+- Code at `./test/vtk/ics_test`
 
 # Design
 ## On-Device or Host-Device?
@@ -23,6 +22,7 @@ The goal is to design the simulation according to a data volume of 5 GB. For the
 Numerical simulations of physical systems are best implemented in `non-dimensional` form. 
 
 ## Initial and Boundary Conditions
-
+WIP
 
 # Directory Structure
+WIP
