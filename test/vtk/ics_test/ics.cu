@@ -7,6 +7,8 @@ Visualize the initial conditions
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
+#include <cuda_runtime.h>
+
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
@@ -31,6 +33,13 @@ int main(int argc, char* argv[]){
    int Ny = atoi(argv[2]);
    int Nz = atoi(argv[3]);
 
+   size_t freePinned, totalPinned;
+
+   std::cout << "Beginning of program" << std::endl;
+   checkCuda(cudaMemGetInfo(&freePinned, &totalPinned));
+   std::cout << "Total pinned memory: " << totalPinned / (1024 * 1024) << " MB" << std::endl;
+   std::cout << "Free pinned memory: " << freePinned / (1024 * 1024) << " MB" << std::endl;
+
    int deviceId;
    int numberOfSMs;
 
@@ -45,6 +54,7 @@ int main(int argc, char* argv[]){
 
    float *rho, *rhov_x, *rhov_y, *rhov_z, *Bx, *By, *Bz, *e;
    float *x_grid, *y_grid, *z_grid;
+   float *grid_data;
 
    size_t fluid_data_dimension = Nx*Ny*Nz;
    size_t fluid_data_size = sizeof(float)*fluid_data_dimension;
@@ -64,6 +74,8 @@ int main(int argc, char* argv[]){
    checkCuda(cudaMalloc(&x_grid, sizeof(float)*Nx));
    checkCuda(cudaMalloc(&y_grid, sizeof(float)*Ny));
    checkCuda(cudaMalloc(&z_grid, sizeof(float)*Nz));
+   
+   checkCuda(cudaMalloc(&grid_data, fluid_data_size * 3));
 
    float x_min = -M_PI;
    float x_max = M_PI;
@@ -80,12 +92,31 @@ int main(int argc, char* argv[]){
    checkCuda(cudaDeviceSynchronize());
 
    InitialConditions<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 1.0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   WriteGridBuffer<<<grid_dimensions, block_dimensions>>>(grid_data, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
-   writeGridGDS("xyz_grid.dat", x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   std::cout << "Right before writing grid data to storage" << std::endl;
+   checkCuda(cudaMemGetInfo(&freePinned, &totalPinned));
+   std::cout << "Total pinned memory: " << totalPinned / (1024 * 1024) << " MB" << std::endl;
+   std::cout << "Free pinned memory: " << freePinned / (1024 * 1024) << " MB" << std::endl;
+
+   std::cout << "Writing grid data out" << std::endl;
+   std::cout << "Size of grid data is " << fluid_data_size * 3 / (1024 * 1024) << " MB" << std::endl;
+   /*
+      grid_data looks like 
+      x0 y0 z0 x0 y1 z0 x0 y2 z0 ... x0 yNy-1 z0 x1 y0 z0 x1 y1 z0 ... xNx-1 yNy-1 z0 x0 y0 z1 x0 y1 z1 ... xNx-1 yNy-1 zNz-1
+   */  
+   writeGridGDS("xyz_grid.dat", grid_data, Nx, Ny, Nz); 
+   
+   std::cout << "Right before writing fluid data to storage" << std::endl;
+   checkCuda(cudaMemGetInfo(&freePinned, &totalPinned));
+   std::cout << "Total pinned memory: " << totalPinned / (1024 * 1024) << " MB" << std::endl;
+   std::cout << "Free pinned memory: " << freePinned / (1024 * 1024) << " MB" << std::endl;
    
    std::cout << "Writing rho data out" << std::endl;
-   writeDataGDS("rho_ics.dat", rho, fluid_data_dimension);
+   std::cout << "Size of rho data is " << fluid_data_size / (1024 * 1024) << " MB" << std::endl;
+   // data looks like d000 d010 d020 ... d0,Ny-1,0 d100 d110 ... dNx-1,Ny-1,0 d001 d011 ... dNx-1,Ny-1,Nz-1
+   writeDataGDS("rho_ics.dat", rho, fluid_data_dimension); 
 
    cudaFree(rho);
    cudaFree(rhov_x);
