@@ -18,4 +18,9 @@
 /test/vtk/ics_test/*.cmake
 /test/vtk/ics_test/*.a
 /test/vtk/ics_test/*.dat
+
+/test/vtk/ics_test/visualization/*.txt
+/test/vtk/ics_test/visualization/CMakeFiles/*
+/test/vtk/ics_test/visualization/*.cmake
+/test/vtk/ics_test/visualization/Makefile
 # /test/vtk/

@@ -9,6 +9,8 @@ ics.cu
 
 visualization/
 - Visualizes data written out by `ics.cu`
+- `grid.cpp`
+-- Visualizes grid
 
 # Current Tasks
 (1) Investigate following related to `ics.cu`:
@@ -29,5 +31,6 @@ visualization/
 -- (b) Track memory usage with a tool to see what's going on in more depth
 
 (2) Write visualization code
-
+- `visualization/grid.cpp`
+-- Need to read grid data in, correctly interpreting the raw bytes in the `xyz_grid.dat` file as a set of points 
 

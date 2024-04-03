@@ -2,6 +2,8 @@
 animate_test/
 
 ics_test/
+- Visualizes initial conditions and grid
 
-structured_grid/
-- Visualize a 3D, structured, cartesian, rectangular grid using VTK
+# Current Tasks
+(1) Complete `ics_test`
+
