@@ -15,7 +15,7 @@ Visualize the initial conditions
 
 #include "../../../include/initialize_od.cuh"
 #include "../../../include/gds.cuh"
-
+#include "../../../include/utils.cuh"
 
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define checkCuda(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -88,8 +88,28 @@ int main(int argc, char* argv[]){
    float dy = (y_max - y_min) / (Ny - 1.0);
    float dz = (z_max - z_min) / (Nz - 1.0);
 
+   std::cout << "Domain boundaries are: " << std::endl;
+   std::cout << "[x_min, x_max] = [" << x_min << ", " << x_max << "]" << std::endl;
+   std::cout << "[y_min, y_max] = [" << y_min << ", " << y_max << "]" << std::endl; 
+   std::cout << "[z_min, z_max] = [" << z_min << ", " << z_max << "]" << std::endl; 
+
+   std::cout << "Spacing is: " << std::endl;
+   std::cout << "dx = " << dx << std::endl;
+   std::cout << "dy = " << dy << std::endl;
+   std::cout << "dz = " << dz << std::endl;
+
    InitializeGrid<<<grid_dimensions, block_dimensions>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
+
+   // // Print some values of the grid out
+   // size_t stride_x = Nx / 8, stride_y = Ny / 8, stride_z = Nz / 8;
+   // for (int k = 0; k < Nz; k += stride_z){
+   //    for (int i = 0; i < Nx; i += stride_x){
+   //       for (int j = 0; j < Ny; j += stride_y){
+   //          std::cout << "(x, y, z) = (" << x_grid[i] << ", " << y_grid[j] << ", " << z_grid[k] << ")" << std::endl;  
+   //       }
+   //    }
+   // } 
 
    InitialConditions<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 1.0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    WriteGridBuffer<<<grid_dimensions, block_dimensions>>>(grid_data, x_grid, y_grid, z_grid, Nx, Ny, Nz);
@@ -102,6 +122,7 @@ int main(int argc, char* argv[]){
 
    std::cout << "Writing grid data out" << std::endl;
    std::cout << "Size of grid data is " << fluid_data_size * 3 / (1024 * 1024) << " MB" << std::endl;
+
    /*
       grid_data looks like 
       x0 y0 z0 x0 y1 z0 x0 y2 z0 ... x0 yNy-1 z0 x1 y0 z0 x1 y1 z0 ... xNx-1 yNy-1 z0 x0 y0 z1 x0 y1 z1 ... xNx-1 yNy-1 zNz-1
@@ -129,5 +150,6 @@ int main(int argc, char* argv[]){
    cudaFree(x_grid);
    cudaFree(y_grid);
    cudaFree(z_grid);
+   cudaFree(grid_data);
    return 0;
 }

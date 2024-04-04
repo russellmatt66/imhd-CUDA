@@ -8,6 +8,11 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <cstring>
+
 int main(int argc, char* argv[]) {
     // Read data from .dat files into memory and store in vectors or arrays
     std::ifstream infile("../xyz_grid.dat");
@@ -16,22 +21,39 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    uint64_t numPoints = 0;
+
+    std::vector<char> buffer(std::istreambuf_iterator<char>(infile), {});
+    float x, y, z;
+    std::vector<float> xCoords, yCoords, zCoords;
+    size_t numPoints = buffer.size() / sizeof(float)/ 3;
+
+    for (size_t i = 0; i < numPoints; i++){
+        std::memcpy(&x, &buffer[i * sizeof(float) * 3], sizeof(float));
+        std::memcpy(&y, &buffer[i * sizeof(float) * 3 + sizeof(float)], sizeof(float));
+        std::memcpy(&z, &buffer[i * sizeof(float) * 3 + 2 * sizeof(float)], sizeof(float));
+
+        std::cout << "Pushing: " << x << "," << y << "," << z << std::endl;
+
+        xCoords.push_back(x);
+        yCoords.push_back(y);
+        zCoords.push_back(z);
+    }
+
     /* 
     NOTE:
     .dat files contains raw bytes, need to correctly interpet as floating-point values representing points on a cartesian grid
     */
-    std::vector<double> xCoords, yCoords, zCoords;
-    double x, y, z;
-    while (infile >> x >> y >> z) {
-        std::cout << "Pushing " << x << "," << y << "," << z << std::endl; 
-        xCoords.push_back(x); 
-        yCoords.push_back(y);
-        zCoords.push_back(z);
-        numPoints++;
-    }
+    // std::vector<double> xCoords, yCoords, zCoords;
+    // double x, y, z;
+    // while (infile >> x >> y >> z) {
+    //     std::cout << "Pushing " << x << "," << y << "," << z << std::endl; 
+    //     xCoords.push_back(x); 
+    //     yCoords.push_back(y);
+    //     zCoords.push_back(z);
+    //     numPoints++;
+    // }
+    
     infile.close();
-
     std::cout << "Number of points read: " << numPoints << std::endl;
 
     // Create a VTK Points object

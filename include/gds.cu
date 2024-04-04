@@ -198,11 +198,7 @@ void writeGridGDS(const char* filename, const float* grid_data, const int Nx, co
         return;
     }
 
-    // Create data buffer
     const int bufferSize = sizeof(float) * Nx * Ny * Nz * 3;
-    // float* data;
-    // data = (float*)malloc(bufferSize);
-    // cudaMalloc(&data, bufferSize);
 
     status = cuFileBufRegister(grid_data, bufferSize, 0);
     if (status.err != CU_FILE_SUCCESS) {
@@ -242,7 +238,7 @@ __global__ void WriteGridBuffer(float* buffer, const float* x_grid, const float*
     int ythreads = gridDim.y * blockDim.y;
     int zthreads = gridDim.z * blockDim.z;
 
-    // buffer looks like: x0 y0 z0 x0 y1 z0 ... x0 yN-1 z0 x1 y0 z0 x1 y1 z0 ... xN-1 yN-1 z0 x0 y0 z1 x0 y1 x1 ... xN-1 yN-1 zN-1 
+    // buffer looks like: x0 y0 z0 x0 y1 z0 ... x0 yN-1 z0 x1 y0 z0 x1 y1 z0 ... xN-1 yN-1 z0 x0 y0 z1 x0 y1 z1 ... xN-1 yN-1 zN-1 
     for (int k = tidz; k < Nz; k += zthreads){
         for (int i = tidx; i < Nx; i += xthreads){
             for (int j = tidy; j < Ny; j += ythreads){

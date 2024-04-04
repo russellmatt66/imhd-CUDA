@@ -33,4 +33,5 @@ visualization/
 (2) Write visualization code
 - `visualization/grid.cpp`
 -- Need to read grid data in, correctly interpreting the raw bytes in the `xyz_grid.dat` file as a set of points 
+--- DEBUG: Why are all the values read as 0's?
 
