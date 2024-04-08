@@ -3,8 +3,9 @@ Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD sys
 
 # Current Tasks
 (1) Visualize initial conditions 
-- Code at `./test/vtk/ics_test`
-- DEBUG: Why are all grid values reading as 0?
+- IMPLEMENT: Bounce-buffer for writing data out to `.csv`
+- DEBUG: Why are all grid values reading as 0 when data is written out with GDS?
+-- Code at `./test/vtk/ics_test_gds`
 
 # Design
 ## On-Device or Host-Device?

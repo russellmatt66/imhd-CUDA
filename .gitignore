@@ -11,16 +11,35 @@
 /test/gds/write_cufilefunc_test/buf2.dat
 /test/gds/write_cufilefunc_test/buf3.dat
 
-/test/vtk/ics_test/CMakeFiles/*
-/test/vtk/ics_test/Makefile
-/test/vtk/ics_test/ReadPLOT3D/
-/test/vtk/ics_test/CMakeCache.txt
-/test/vtk/ics_test/*.cmake
-/test/vtk/ics_test/*.a
-/test/vtk/ics_test/*.dat
+# /test/vtk/ics_test/CMakeFiles/*
+# /test/vtk/ics_test/Makefile
+# /test/vtk/ics_test/ReadPLOT3D/
+# /test/vtk/ics_test/CMakeCache.txt
+# /test/vtk/ics_test/*.cmake
+# /test/vtk/ics_test/*.a
+# /test/vtk/ics_test/*.dat
 
-/test/vtk/ics_test/visualization/*.txt
-/test/vtk/ics_test/visualization/CMakeFiles/*
-/test/vtk/ics_test/visualization/*.cmake
-/test/vtk/ics_test/visualization/Makefile
-# /test/vtk/
+# /test/vtk/ics_test/visualization/*.txt
+# /test/vtk/ics_test/visualization/CMakeFiles/*
+# /test/vtk/ics_test/visualization/*.cmake
+# /test/vtk/ics_test/visualization/Makefile
+
+/test/vtk/ics_test_gds/CMakeFiles/*
+/test/vtk/ics_test_gds/Makefile
+/test/vtk/ics_test_gds/ReadPLOT3D/
+/test/vtk/ics_test_gds/CMakeCache.txt
+/test/vtk/ics_test_gds/*.cmake
+/test/vtk/ics_test_gds/*.a
+/test/vtk/ics_test_gds/*.dat
+
+/test/vtk/ics_test_gds/visualization/*.txt
+/test/vtk/ics_test_gds/visualization/CMakeFiles/*
+/test/vtk/ics_test_gds/visualization/*.cmake
+/test/vtk/ics_test_gds/visualization/Makefile
+
+/test/vtk/ics_test_hostbuf/CMakeFiles/*
+/test/vtk/ics_test_hostbuf/Makefile
+/test/vtk/ics_test_hostbuf/CMakeCache.txt
+/test/vtk/ics_test_hostbuf/*.cmake
+/test/vtk/ics_test_hostbuf/*.a
+/test/vtk/ics_test_hostbuf/data/*

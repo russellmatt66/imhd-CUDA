@@ -1,3 +1,8 @@
 # Overview
-- Should there be a Python launcher that does the input file parsing, and then passes these arguments to the CUDA binary?
-    - I feel like there should
+Source directory
+
+# Directory Structure
+
+# Current Tasks
+(1) Visualize Initial Conditions
+- `imhd-CUDA/test/vtk/`

@@ -3,7 +3,7 @@ gds/
 - Snippets related to GPU Direct Storage functionality
 
 vtk/
-- Snippets related to implementing VTK visualization codes
+- Code related to implementing VTK visualization codes
 
 oop/
 - Snippets related to implementing object-oriented kernels
@@ -19,5 +19,9 @@ inverse_map/
 
 # Current Tasks
 (1) Visualize initial conditions 
-- `./vtk/ics_test`
+- `./vtk/ics_test_gds`
+-- Writes data directly to storage from the device
+- `./vtk/ics_test_hostbuf`
+-- Writes data to storage via a bounce buffer through the host
+- DEBUG: `InitializeGrid` device kernel seems to be the culprit for why grid values aren't coming out right (they're all 0).
 
