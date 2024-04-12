@@ -55,7 +55,7 @@ int main(int argc, char* argv[]){
    float *x_grid, *y_grid, *z_grid;
    float *grid_data;
 
-   uint64_t *num_gp;
+   // uint64_t *num_gp;
    // size_t *num_gp;
 
    size_t fluid_data_dimension = Nx*Ny*Nz;
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]){
    checkCuda(cudaMalloc(&z_grid, sizeof(float)*Nz));
    
    checkCuda(cudaMalloc(&grid_data, fluid_data_size * 3));
-   checkCuda(cudaMalloc(&num_gp, sizeof(uint64_t)));
+   // checkCuda(cudaMalloc(&num_gp, sizeof(uint64_t)));
 
    float x_min = -M_PI;
    float x_max = M_PI;
@@ -115,7 +115,8 @@ int main(int argc, char* argv[]){
    // } 
    
    InitialConditions<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 1.0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   WriteGridBuffer<<<grid_dimensions, block_dimensions>>>(grid_data, num_gp, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   WriteGridBuffer<<<grid_dimensions, block_dimensions>>>(grid_data, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   // WriteGridBuffer<<<grid_dimensions, block_dimensions>>>(grid_data, num_gp, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
    std::cout << "Right before writing grid data to storage" << std::endl;
@@ -157,6 +158,6 @@ int main(int argc, char* argv[]){
    cudaFree(y_grid);
    cudaFree(z_grid);
    cudaFree(grid_data);
-   cudaFree(num_gp);
+   // cudaFree(num_gp);
    return 0;
 }

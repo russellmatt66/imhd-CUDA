@@ -23,5 +23,4 @@ inverse_map/
 -- Writes data directly to storage from the device
 - `./vtk/ics_test_hostbuf`
 -- Writes data to storage via a bounce buffer through the host
-- DEBUG: `InitializeGrid` device kernel seems to be the culprit for why grid values aren't coming out right (they're all 0).
 

@@ -32,10 +32,10 @@
 /test/vtk/ics_test_gds/*.a
 /test/vtk/ics_test_gds/*.dat
 
-/test/vtk/ics_test_gds/visualization/*.txt
-/test/vtk/ics_test_gds/visualization/CMakeFiles/*
-/test/vtk/ics_test_gds/visualization/*.cmake
-/test/vtk/ics_test_gds/visualization/Makefile
+/test/vtk/ics_test_gds/grid_vis/*.txt
+/test/vtk/ics_test_gds/grid_vis/CMakeFiles/*
+/test/vtk/ics_test_gds/grid_vis/*.cmake
+/test/vtk/ics_test_gds/grid_vis/Makefile
 
 /test/vtk/ics_test_hostbuf/CMakeFiles/*
 /test/vtk/ics_test_hostbuf/Makefile

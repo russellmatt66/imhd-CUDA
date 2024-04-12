@@ -1,0 +1,26 @@
+ 12-04-2024 13:28:56:349 [pid=13034 tid=13034] NOTICE  cufio-drv:727 running in compatible mode
+ 12-04-2024 13:28:56:806 [pid=13034 tid=13034] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 12-04-2024 13:28:56:815 [pid=13034 tid=13034] NOTICE  cufio-drv:727 running in compatible mode
+ 12-04-2024 13:28:57:284 [pid=13034 tid=13034] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 12-04-2024 13:54:01:609 [pid=14744 tid=14744] NOTICE  cufio-drv:727 running in compatible mode
+ 12-04-2024 13:54:02:83 [pid=14744 tid=14744] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 12-04-2024 13:54:02:92 [pid=14744 tid=14744] NOTICE  cufio-drv:727 running in compatible mode
+ 12-04-2024 13:54:02:584 [pid=14744 tid=14744] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 12-04-2024 13:55:06:450 [pid=15003 tid=15003] NOTICE  cufio-drv:727 running in compatible mode
+ 12-04-2024 13:55:06:920 [pid=15003 tid=15003] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 12-04-2024 13:55:06:928 [pid=15003 tid=15003] NOTICE  cufio-drv:727 running in compatible mode
+ 12-04-2024 13:55:07:408 [pid=15003 tid=15003] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 12-04-2024 14:09:55:201 [pid=15863 tid=15863] NOTICE  cufio-drv:727 running in compatible mode
+ 12-04-2024 14:09:55:666 [pid=15863 tid=15863] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 12-04-2024 14:09:55:692 [pid=15863 tid=15863] NOTICE  cufio-drv:727 running in compatible mode
+ 12-04-2024 14:09:56:160 [pid=15863 tid=15863] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 12-04-2024 14:12:02:672 [pid=16240 tid=16240] NOTICE  cufio-drv:727 running in compatible mode
+ 12-04-2024 14:12:03:125 [pid=16240 tid=16240] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 12-04-2024 14:12:03:225 [pid=16240 tid=16240] NOTICE  cufio-drv:727 running in compatible mode
+ 12-04-2024 14:12:03:707 [pid=16240 tid=16240] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 12-04-2024 14:14:26:244 [pid=16588 tid=16588] NOTICE  cufio-drv:727 running in compatible mode
+ 12-04-2024 14:14:26:695 [pid=16588 tid=16588] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 12-04-2024 14:14:26:695 [pid=16588 tid=16588] ERROR  cufio_core:1531 cuFileBufRegister error, requested size: 656523264 exceeds permitted bar size: 268435456 gpu: 0
+ 12-04-2024 14:14:26:695 [pid=16588 tid=16588] ERROR  cufio_core:1548 cuFileBufRegister checks failed: -5016
+ 12-04-2024 14:14:26:695 [pid=16588 tid=16588] ERROR  cufio_core:1580 cuFile buffer object device memory check failed
+ 12-04-2024 14:14:26:695 [pid=16588 tid=16588] ERROR  cufio_core:1703 cuFileBufRegister error access beyond maximum pinned size
