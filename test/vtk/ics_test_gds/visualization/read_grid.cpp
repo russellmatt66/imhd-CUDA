@@ -27,16 +27,21 @@ int main(int argc, char* argv[]) {
     std::vector<float> xCoords, yCoords, zCoords;
     size_t numPoints = buffer.size() / sizeof(float)/ 3;
 
+    size_t num_zerozerozero = 0; // Having a problem where all three coordinates are 0 more than they should be
     for (size_t i = 0; i < numPoints; i++){
         std::memcpy(&x, &buffer[i * sizeof(float) * 3], sizeof(float));
         std::memcpy(&y, &buffer[i * sizeof(float) * 3 + sizeof(float)], sizeof(float));
         std::memcpy(&z, &buffer[i * sizeof(float) * 3 + 2 * sizeof(float)], sizeof(float));
 
-        std::cout << "Pushing: " << x << "," << y << "," << z << std::endl;
-
-        xCoords.push_back(x);
-        yCoords.push_back(y);
-        zCoords.push_back(z);
+        if (x == 0.0 && y == 0.0 && z == 0.0) {
+            num_zerozerozero++;
+        }
+        else {
+            std::cout << "Pushing: " << x << "," << y << "," << z << std::endl;
+            xCoords.push_back(x);
+            yCoords.push_back(y);
+            zCoords.push_back(z);
+        }
     }
 
     /* 
@@ -55,6 +60,8 @@ int main(int argc, char* argv[]) {
     
     infile.close();
     std::cout << "Number of points read: " << numPoints << std::endl;
+    std::cout << "Number of 0,0,0 found: " << num_zerozerozero << std::endl;
+
 
     // Create a VTK Points object
     // vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();

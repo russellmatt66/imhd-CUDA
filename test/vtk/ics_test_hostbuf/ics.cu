@@ -44,15 +44,14 @@ int main(int argc, char* argv[]){
 
    int deviceId;
    int numberOfSMs;
-
+   
    cudaGetDevice(&deviceId);
    cudaDeviceGetAttribute(&numberOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
 
    int num_blocks = 2 * numberOfSMs;
-   int num_threads_per_block = 1024;
 
    dim3 grid_dimensions(num_blocks, num_blocks, num_blocks);
-   dim3 block_dimensions(num_threads_per_block, num_threads_per_block, num_threads_per_block);
+   dim3 block_dimensions(32, 16, 2);
 
    float *rho, *rhov_x, *rhov_y, *rhov_z, *Bx, *By, *Bz, *e;
    float *x_grid, *y_grid, *z_grid;
@@ -97,17 +96,19 @@ int main(int argc, char* argv[]){
    std::cout << "dz = " << dz << std::endl;
 
    InitializeGrid<<<grid_dimensions, block_dimensions>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   checkCuda(cudaPeekAtLastError());
+   checkCuda(cudaDeviceSynchronize());
 
    float *h_xgrid, *h_ygrid, *h_zgrid;
 
    h_xgrid = (float*)malloc(sizeof(float)*Nx);
    h_ygrid = (float*)malloc(sizeof(float)*Ny);
    h_zgrid = (float*)malloc(sizeof(float)*Nz); 
-   checkCuda(cudaDeviceSynchronize());
 
    cudaMemcpy(h_xgrid, x_grid, sizeof(float)*Nx, cudaMemcpyDeviceToHost);
    cudaMemcpy(h_ygrid, y_grid, sizeof(float)*Ny, cudaMemcpyDeviceToHost);
    cudaMemcpy(h_zgrid, z_grid, sizeof(float)*Nz, cudaMemcpyDeviceToHost);
+   checkCuda(cudaPeekAtLastError());
    checkCuda(cudaDeviceSynchronize());
 
    std::vector<std::string> grid_files (8);
@@ -118,6 +119,7 @@ int main(int argc, char* argv[]){
    writeGrid(grid_files, h_xgrid, h_ygrid, h_zgrid, Nx, Ny, Nz);
 
    InitialConditions<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 1.0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   checkCuda(cudaPeekAtLastError());
    // WriteGridBuffer<<<grid_dimensions, block_dimensions>>>(grid_data, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 

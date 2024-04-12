@@ -47,14 +47,16 @@ int main(int argc, char* argv[]){
    cudaDeviceGetAttribute(&numberOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
 
    int num_blocks = 2 * numberOfSMs;
-   int num_threads_per_block = 1024;
 
    dim3 grid_dimensions(num_blocks, num_blocks, num_blocks);
-   dim3 block_dimensions(num_threads_per_block, num_threads_per_block, num_threads_per_block);
+   dim3 block_dimensions(32, 16, 2);
 
    float *rho, *rhov_x, *rhov_y, *rhov_z, *Bx, *By, *Bz, *e;
    float *x_grid, *y_grid, *z_grid;
    float *grid_data;
+
+   uint64_t *num_gp;
+   // size_t *num_gp;
 
    size_t fluid_data_dimension = Nx*Ny*Nz;
    size_t fluid_data_size = sizeof(float)*fluid_data_dimension;
@@ -76,6 +78,7 @@ int main(int argc, char* argv[]){
    checkCuda(cudaMalloc(&z_grid, sizeof(float)*Nz));
    
    checkCuda(cudaMalloc(&grid_data, fluid_data_size * 3));
+   checkCuda(cudaMalloc(&num_gp, sizeof(uint64_t)));
 
    float x_min = -M_PI;
    float x_max = M_PI;
@@ -110,9 +113,9 @@ int main(int argc, char* argv[]){
    //       }
    //    }
    // } 
-
+   
    InitialConditions<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 1.0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   WriteGridBuffer<<<grid_dimensions, block_dimensions>>>(grid_data, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   WriteGridBuffer<<<grid_dimensions, block_dimensions>>>(grid_data, num_gp, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
    std::cout << "Right before writing grid data to storage" << std::endl;
@@ -127,6 +130,7 @@ int main(int argc, char* argv[]){
       grid_data looks like 
       x0 y0 z0 x0 y1 z0 x0 y2 z0 ... x0 yNy-1 z0 x1 y0 z0 x1 y1 z0 ... xNx-1 yNy-1 z0 x0 y0 z1 x0 y1 z1 ... xNx-1 yNy-1 zNz-1
    */  
+   std::remove("./xyz_grid.dat");
    writeGridGDS("xyz_grid.dat", grid_data, Nx, Ny, Nz); 
    
    std::cout << "Right before writing fluid data to storage" << std::endl;
@@ -136,7 +140,9 @@ int main(int argc, char* argv[]){
    
    std::cout << "Writing rho data out" << std::endl;
    std::cout << "Size of rho data is " << fluid_data_size / (1024 * 1024) << " MB" << std::endl;
+   
    // data looks like d000 d010 d020 ... d0,Ny-1,0 d100 d110 ... dNx-1,Ny-1,0 d001 d011 ... dNx-1,Ny-1,Nz-1
+   std::remove("./rho_ics.dat");
    writeDataGDS("rho_ics.dat", rho, fluid_data_dimension); 
 
    cudaFree(rho);
@@ -151,5 +157,6 @@ int main(int argc, char* argv[]){
    cudaFree(y_grid);
    cudaFree(z_grid);
    cudaFree(grid_data);
+   cudaFree(num_gp);
    return 0;
 }

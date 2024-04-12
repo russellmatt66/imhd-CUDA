@@ -7,6 +7,7 @@
 #include "cufile_sample_utils.h"
 
 #define IDX3D(i, j, k, Nx, Ny, Nz) (k * (Nx * Ny) + i * Ny + j) // row-major, column-minor order
+#define IDXGRID(i, j, k, Np, Nx, Ny, Nz) (IDX3D(i, j, k, Nx, Ny, Nz) + 3 * Np) // this is for writing the grid to storage in the specified format x0 y0 z0 x0 y1 z0 ... (see comments below)
 
 // data looks like d000 d010 d020 ... d0,Ny-1,0 d100 d110 ... dNx-1,Ny-1,0 d001 d011 ... dNx-1,Ny-1,Nz-1
 // row-major, column-minor order
@@ -229,7 +230,7 @@ void writeGridGDS(const char* filename, const float* grid_data, const int Nx, co
 
 // buffer looks like: x0 y0 z0 x0 y1 z0 ... x0 yN-1 z0 x1 y0 z0 x1 y1 z0 ... xN-1 yN-1 z0 x0 y0 z1 x0 y1 x1 ... xN-1 yN-1 zN-1 
 // row-major, column-minor order
-__global__ void WriteGridBuffer(float* buffer, const float* x_grid, const float* y_grid, const float* z_grid, const int Nx, const int Ny, const int Nz){
+__global__ void WriteGridBuffer(float* buffer, uint64_t* num_points, const float* x_grid, const float* y_grid, const float* z_grid, const int Nx, const int Ny, const int Nz){
     int tidx = threadIdx.x + blockIdx.x * blockDim.x;
     int tidy = threadIdx.y + blockIdx.y * blockDim.y;
     int tidz = threadIdx.z + blockIdx.z * blockDim.z;
@@ -239,12 +240,16 @@ __global__ void WriteGridBuffer(float* buffer, const float* x_grid, const float*
     int zthreads = gridDim.z * blockDim.z;
 
     // buffer looks like: x0 y0 z0 x0 y1 z0 ... x0 yN-1 z0 x1 y0 z0 x1 y1 z0 ... xN-1 yN-1 z0 x0 y0 z1 x0 y1 z1 ... xN-1 yN-1 zN-1 
+    // FIX: Not writing the correct pattern
+    //  - Basic problem is IDX3D(...) doesn't compute the correct location for this
+    //  - Solution is to add a counter that tracks how many points have been written so nothing gets rewritten 
     for (int k = tidz; k < Nz; k += zthreads){
         for (int i = tidx; i < Nx; i += xthreads){
             for (int j = tidy; j < Ny; j += ythreads){
-                buffer[IDX3D(i, j, k, Nx, Ny, Nz)] = x_grid[i];
-                buffer[IDX3D(i, j, k, Nx, Ny, Nz) + 1] = y_grid[j];
-                buffer[IDX3D(i, j, k, Nx, Ny, Nz) + 2] = z_grid[k]; 
+                buffer[IDXGRID(i, j, k, *num_points, Nx, Ny, Nz)] = x_grid[i];
+                buffer[IDXGRID(i, j, k, *num_points, Nx, Ny, Nz) + 1] = y_grid[j];
+                buffer[IDXGRID(i, j, k, *num_points, Nx, Ny, Nz) + 2] = z_grid[k]; 
+                *num_points++;
             }
         }
     }
