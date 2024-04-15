@@ -43,3 +43,8 @@
 /test/vtk/ics_test_hostbuf/*.cmake
 /test/vtk/ics_test_hostbuf/*.a
 /test/vtk/ics_test_hostbuf/data/*
+
+/test/vtk/ics_test_gds/ics_vis/*.txt
+/test/vtk/ics_test_gds/ics_vis/CMakeFiles/*
+/test/vtk/ics_test_gds/ics_vis/*.cmake
+/test/vtk/ics_test_gds/ics_vis/Makefile

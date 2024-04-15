@@ -24,3 +24,7 @@
  12-04-2024 14:14:26:695 [pid=16588 tid=16588] ERROR  cufio_core:1548 cuFileBufRegister checks failed: -5016
  12-04-2024 14:14:26:695 [pid=16588 tid=16588] ERROR  cufio_core:1580 cuFile buffer object device memory check failed
  12-04-2024 14:14:26:695 [pid=16588 tid=16588] ERROR  cufio_core:1703 cuFileBufRegister error access beyond maximum pinned size
+ 15-04-2024 14:08:44:110 [pid=19930 tid=19930] NOTICE  cufio-drv:727 running in compatible mode
+ 15-04-2024 14:08:44:572 [pid=19930 tid=19930] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2
+ 15-04-2024 14:08:44:593 [pid=19930 tid=19930] NOTICE  cufio-drv:727 running in compatible mode
+ 15-04-2024 14:08:45:73 [pid=19930 tid=19930] ERROR  cufio-fs:79 mount option not found in mount table data device: /dev/nvme0n1p2

@@ -14,18 +14,17 @@
 #include <cstring>
 
 int main(int argc, char* argv[]) {
-    // Read data from .dat files into memory and store in vectors or arrays
+    // Read data from .dat files into memory and store in array
     std::ifstream infile("../xyz_grid.dat");
     if (!infile.is_open()) {
         std::cerr << "Error opening file" << std::endl;
         return 1;
     }
 
-
     std::vector<char> buffer(std::istreambuf_iterator<char>(infile), {});
     float x, y, z;
     std::vector<float> xCoords, yCoords, zCoords;
-    size_t numPoints = buffer.size() / sizeof(float)/ 3;
+    size_t numPoints = buffer.size() / sizeof(float) / 3;
 
     size_t num_zerozerozero = 0; // Having a problem where all three coordinates are 0 more than they should be
     for (size_t i = 0; i < numPoints; i++){
