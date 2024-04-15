@@ -7,3 +7,6 @@ cufile_test/
 
 write_cufilefunc_test/
 - Tests function for writing data to storage with GDS
+
+max_pinned/
+- Determining, and playing around with, the size of the maximum pinned memory on the GPU 

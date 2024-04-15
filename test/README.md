@@ -13,6 +13,7 @@ problem_size/
 
 library_test/
 - Demonstrates how to write a library of kernels, and then call this from inside a C or C++ file.
+- Might need to be renamed
 
 inverse_map/
 - Python file to map from the linear index of the data arrays, l, to the tensor indices (i, j, k).

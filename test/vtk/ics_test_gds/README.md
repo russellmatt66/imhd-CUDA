@@ -5,15 +5,18 @@ Part of the project to test writing the initial conditions out, and then visuali
 ics.cu
 - Initializes simulation data, and writes it to `.dat` files
 - Currently writes `rho_ics.dat`, and `xyz_grid.dat`
-    - 
 
-visualization/
-- Visualizes data written out by `ics.cu`
-- `grid.cpp`
--- Visualizes grid
+grid_vis/
+- Visualizes grid data in `xyz_grid.dat`
+
+ics_vis/
+- Visualizes data in `rho_ics.dat`
 
 # Current Tasks
-(1) Investigate following related to `ics.cu`:
+(1) Complete `ics_vis/`
+- 
+
+(2) Investigate following related to pinned memory size limits `ics.cu`:
 - ~/Desktop/imhd-CUDA/test/vtk/ics_test_gds$ ./ics_cu 256 256 384
     Beginning of program
     Total pinned memory: 5918 MB
@@ -36,7 +39,7 @@ Domain boundaries are:
 [y_min, y_max] = [-3.14159, 3.14159]
 [z_min, z_max] = [-3.14159, 3.14159]
 Spacing is: 
-dx = 0.0207366
+(dx = 0.0207366
 dy = 0.0207366
 dz = 0.0106314
 Right before writing grid data to storage
@@ -52,10 +55,8 @@ Writing rho data out
 Size of rho data is 208 MB
 Fluid data successfully written out
 
-- Solution approaches: 
--- (a) Try and increase maximum pinned size
--- (b) Track memory usage with a tool to see what's going on in more depth
 
-(2) In `grid_vis/`
+
+(3) In `grid_vis/`
 - Eliminate host code for reading in points
 - Use `vtkImageData` reader
