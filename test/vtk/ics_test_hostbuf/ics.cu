@@ -111,17 +111,11 @@ int main(int argc, char* argv[]){
    checkCuda(cudaPeekAtLastError());
    checkCuda(cudaDeviceSynchronize());
 
-   std::vector<std::string> grid_files (8);
-   std::string base_file = "./data/grid_data";
+   std::vector<std::string> grid_files (8); // 8 is the number of threads I'm going with
+   std::string base_file = "./data/grid/grid_data";
    for (size_t i = 0; i < grid_files.size(); i++){
       grid_files[i] = base_file + std::to_string(i) + ".csv";
    }   
-   writeGrid(grid_files, h_xgrid, h_ygrid, h_zgrid, Nx, Ny, Nz);
-
-   InitialConditions<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 1.0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   checkCuda(cudaPeekAtLastError());
-   // WriteGridBuffer<<<grid_dimensions, block_dimensions>>>(grid_data, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   checkCuda(cudaDeviceSynchronize());
 
    std::cout << "Right before writing grid data to storage" << std::endl;
    checkCuda(cudaMemGetInfo(&freePinned, &totalPinned));
@@ -131,6 +125,29 @@ int main(int argc, char* argv[]){
    std::cout << "Writing grid data out" << std::endl;
    std::cout << "Size of grid data is " << fluid_data_size * 3 / (1024 * 1024) << " MB" << std::endl;
    
+   writeGrid(grid_files, h_xgrid, h_ygrid, h_zgrid, Nx, Ny, Nz);
+
+   InitialConditions<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 1.0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   checkCuda(cudaPeekAtLastError());
+   // WriteGridBuffer<<<grid_dimensions, block_dimensions>>>(grid_data, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   checkCuda(cudaDeviceSynchronize());
+
+   float *h_rho;
+
+   h_rho = (float*)malloc(sizeof(float)*Nx*Ny*Nz);
+
+   cudaMemcpy(h_rho, rho, sizeof(float)*Nx*Ny*Nz, cudaMemcpyDeviceToHost);
+   checkCuda(cudaPeekAtLastError());
+   checkCuda(cudaDeviceSynchronize());
+
+   std::vector<std::string> fluidvar_files (8); // 8 is the number of threads I'm going with
+   base_file = "./data/fluidvars/fluid_data";
+   for (size_t i = 0; i < grid_files.size(); i++){
+      fluidvar_files[i] = base_file + std::to_string(i) + ".csv";
+   }  
+
+   writeFluidVars(fluidvar_files, h_rho, Nx, Ny, Nz);
+
    std::cout << "Right before writing fluid data to storage" << std::endl;
    checkCuda(cudaMemGetInfo(&freePinned, &totalPinned));
    std::cout << "Total pinned memory: " << totalPinned / (1024 * 1024) << " MB" << std::endl;
@@ -138,6 +155,7 @@ int main(int argc, char* argv[]){
    
    std::cout << "Writing rho data out" << std::endl;
    std::cout << "Size of rho data is " << fluid_data_size / (1024 * 1024) << " MB" << std::endl;
+
 
    // Free device data
    cudaFree(rho);
@@ -157,5 +175,6 @@ int main(int argc, char* argv[]){
    free(h_xgrid);
    free(h_ygrid);
    free(h_zgrid);
+   free(h_rho);
    return 0;
 }
