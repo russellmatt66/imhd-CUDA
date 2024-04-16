@@ -25,9 +25,10 @@ __global__ void InitialConditions(float* rho, float* rhov_x, float* rhov_y, floa
         for (int k = tidz; k < Nz; k += zthreads){ // THIS LOOP ORDER IMPLEMENTS CONTIGUOUS MEMORY ACCESSES
             for (int i = tidx; i < Nx; i += xthreads){
                 for (int j = tidy; j < Ny; j += ythreads){
-                    r = sqrtf(pow(grid_x[i], 2) + pow(grid_y[j], 2) + pow(grid_z[k], 2));
+                    // r = sqrtf(pow(grid_x[i], 2) + pow(grid_y[j], 2) + pow(grid_z[k], 2));
+                    r = sqrtf(pow(grid_x[i], 2) + pow(grid_y[j], 2));
                     /* Screw-pinch ICs */
-                    rho[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    rho[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0001;
                     rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
                     rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
                     rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;

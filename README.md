@@ -2,7 +2,8 @@
 Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD system.
 
 # Current Tasks
-(1) Visualize initial conditions 
+(1) Visualize initial conditions
+- `test/vtk/ics_test_hostbuf` 
 - `test/vtk/ics_test_gds`
 
 (2) Figure out how to change the maximum amount of device pinned memory
