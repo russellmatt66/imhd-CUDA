@@ -4,11 +4,16 @@ import os
 import sys
 
 '''
-Next steps
-(1) Create different actors for plasma / vacuum
-    - Want to remove values below a certain threshold
-(2) Enable rendering of arbitrary plasma variable
-(3) Move different rendering methods to their own scripts
+Low-cost rendering of plasma and vacuum as a structured grid
+
+Data Volume:
+64 x 64 x 64 = 19 MiB
+128 x 128 x 128 = 22 MiB
+256 x 256 x 256 = 34 MiB
+304 x 304 x 592 = 192 MiB
+
+Next steps:
+(1) Enable rendering of arbitrary plasma variable
 '''
 
 gridfile_location = "../data/grid/"
@@ -48,18 +53,15 @@ rho = fluid_df['rho']
 points = vtk.vtkPoints()
 vtk_float_array = vtk.vtkFloatArray()
 vtk_float_array.SetNumberOfComponents(1)
-# grid = vtk.vtkStructuredGrid()
-# grid.SetDimensions(len(set(x)), len(set(y)), len(set(z))) 
+grid = vtk.vtkStructuredGrid()
+grid.SetDimensions(len(set(x)), len(set(y)), len(set(z))) 
 
 for l in range(len(rho)):
     points.InsertNextPoint(x[l], y[l], z[l])
     vtk_float_array.InsertNextValue(rho[l])
 
-polydata = vtk.vtkPolyData()
-polydata.SetPoints(points)
-polydata.GetPointData().SetScalars(vtk_float_array)
-# grid.SetPoints(points)
-# grid.GetPointData().SetScalars(vtk_float_array)
+grid.SetPoints(points)
+grid.GetPointData().SetScalars(vtk_float_array)
 
 # Create a lookup table (LUT)
 lut = vtk.vtkLookupTable()
@@ -68,47 +70,14 @@ lut.SetTableRange(min(rho), max(rho))
 print(lut.GetTableRange())
 lut.Build()
 
-# Create spheres at each point position
-# sphere_source = vtk.vtkSphereSource()
-# sphere_source.SetRadius(0.01)  # Set the radius of the spheres
-
-# glyph = vtk.vtkGlyph3D()
-# glyph.SetInputData(polydata)
-# glyph.SetSourceConnection(sphere_source.GetOutputPort())
-# glyph.SetScaleFactor(0.01)
-
-glyph = vtk.vtkVertexGlyphFilter()
-glyph.SetInputData(polydata)
-
 # Create mapper
-# mapper = vtk.vtkDataSetMapper()
-mapper = vtk.vtkPolyDataMapper()
-# mapper.SetInputData(polydata)
-mapper.SetInputConnection(glyph.GetOutputPort())
-mapper.SetLookupTable(lut)
-mapper.SetScalarRange(vtk_float_array.GetRange())
+mapper = vtk.vtkDataSetMapper()
+mapper.SetInputData(grid)
 
 # Create actor
 actor = vtk.vtkActor()
 actor.SetMapper(mapper)
-# actor.GetProperty().SetOpacity(1.0)  # Adjust the opacity value as needed
-# actor.GetProperty().SetColor(1.0, 0.0, 0.0)  # Set point color to red
-# actor.GetProperty().SetPointSize(1)  # Adjust the point size as needed
-# actor.GetProperty().SetRepresentationToPoints()  # Set representation to points
 
-# Change opacity of non-pinch points
-opacities = vtk.vtkFloatArray()
-opacities.SetNumberOfComponents(1)
-opacities.SetNumberOfTuples(polydata.GetNumberOfPoints())
-
-for l in range(polydata.GetNumberOfPoints()):
-    scalar_val = polydata.GetPointData().GetScalars().GetValue(l)
-    if scalar_val < 0.001:
-        opacities.SetValue(l, 0.0)
-    else:
-        opacities.SetValue(l, 1.0)
-
-polydata.GetPointData().SetScalars(opacities)
 
 # Create renderer
 renderer = vtk.vtkRenderer()
