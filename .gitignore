@@ -37,6 +37,11 @@
 /test/vtk/ics_test_gds/grid_vis/*.cmake
 /test/vtk/ics_test_gds/grid_vis/Makefile
 
+/test/vtk/ics_test_gds/ics_vis/*.txt
+/test/vtk/ics_test_gds/ics_vis/CMakeFiles/*
+/test/vtk/ics_test_gds/ics_vis/*.cmake
+/test/vtk/ics_test_gds/ics_vis/Makefile
+
 /test/vtk/ics_test_hostbuf/CMakeFiles/*
 /test/vtk/ics_test_hostbuf/Makefile
 /test/vtk/ics_test_hostbuf/CMakeCache.txt
@@ -44,7 +49,8 @@
 /test/vtk/ics_test_hostbuf/*.a
 /test/vtk/ics_test_hostbuf/data/*
 
-/test/vtk/ics_test_gds/ics_vis/*.txt
-/test/vtk/ics_test_gds/ics_vis/CMakeFiles/*
-/test/vtk/ics_test_gds/ics_vis/*.cmake
-/test/vtk/ics_test_gds/ics_vis/Makefile
+/test/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/CMakeFiles/*
+/test/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/Makefile
+/test/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/CMakeCache.txt
+/test/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/*.cmake
+/test/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/*.a

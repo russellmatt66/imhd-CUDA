@@ -23,14 +23,14 @@ fluidvar_list = [fluidvar_location + f for f in os.listdir(fluidvar_location) if
 fluidvar_list_sorted = sorted(fluidvar_list, key=extract_number)
 print(fluidvar_list_sorted)
 
-grid_dfs = [pd.read_csv(f) for f in gridfile_list_sorted]
-fluid_dfs = [pd.read_csv(f) for f in fluidvar_list_sorted]
+grid_dfs = [cudf.read_csv(f) for f in gridfile_list_sorted]
+fluid_dfs = [cudf.read_csv(f) for f in fluidvar_list_sorted]
 
-grid_df = pd.concat(grid_dfs, ignore_index=True)
+grid_df = cudf.concat(grid_dfs, ignore_index=True)
 print(grid_df.shape)
 print(grid_df.head)
 
-fluid_df = pd.concat(fluid_dfs, ignore_index=True)
+fluid_df = cudf.concat(fluid_dfs, ignore_index=True)
 print(fluid_df.shape)
 print(fluid_df.head)
 
@@ -40,5 +40,8 @@ print(fluid_df.head)
 # for partial_datafile in fluidvar_list_sorted:
 #     os.remove(partial_datafile)
 
-grid_df.to_csv('./data/grid_data.csv')
-fluid_df.to_csv('./data/fluid_data.csv')
+# grid_df.to_csv('./data/grid_data.csv')
+# fluid_df.to_csv('./data/fluid_data.csv')
+merged_df = cudf.merge(grid_df, fluid_df, on=['i', 'j', 'k'])
+sorted_df = merged_df.sort_values(by=['j', 'i', 'k'])
+merged_df.to_csv('./data/sim_data.csv', index=False)
