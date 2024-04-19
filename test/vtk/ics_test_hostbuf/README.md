@@ -10,4 +10,9 @@ Write Initial Conditions out to `.csv`'s using host bounce-buffer, and then visu
 -- Structured Grid
 
 - C++
--- Ape Python 
+-- Ape Python
+
+# Directory Structure
+condense_csvs.py
+- Must run after `./ics_cu Nx Ny Nz`
+- Combines data files from above into one 

@@ -1,10 +1,19 @@
 # import pandas as pd
 import cudf
 import os
+import pynvml
+import time
 
 '''
-Implement this with cuDF
+DO NOT USE
+
+Combine data files into a single one
+
+RUNS INTO MEMORY ISSUES FROM TRYING TO DO ALL AT ONCE
+REFACTOR, SPLIT THE COMBINATION OF FLUID AND GRID DATAFILES INTO THEIR OWN SCRIPTS
 '''
+pynvml.nvmlInit()
+handle = pynvml.nvmlDeviceGetHandleByIndex(0) # Need to specify GPU
 
 gridfile_location = "./data/grid/"
 fluidvar_location = "./data/fluidvars/"
@@ -42,6 +51,30 @@ print(fluid_df.head)
 
 # grid_df.to_csv('./data/grid_data.csv')
 # fluid_df.to_csv('./data/fluid_data.csv')
+
+mem = pynvml.nvmlDeviceGetMemoryInfo(handle)
+
+print("Memory stats after concating fluid and grid: free, used, total\n")
+print(mem.free / 1024**3, mem.used / 1024**3, mem.total / 1024**3)
+
 merged_df = cudf.merge(grid_df, fluid_df, on=['i', 'j', 'k'])
-sorted_df = merged_df.sort_values(by=['j', 'i', 'k'])
+
+del fluid_df # need to save memory
+del grid_df 
+
+merged_usage = merged_df.memory_usage(deep=True)
+print(merged_usage / 1024 / 1024 / 1024)
+merged_df = merged_df.sort_values(by=['j', 'i', 'k'])
+
+print("Memory stats before writing merged_df to storage\n")
+print(mem.free / 1024**3, mem.used / 1024**3, mem.total / 1024**3)
+
+# time.sleep(60) # time to use $ nvidia-smi
+
 merged_df.to_csv('./data/sim_data.csv', index=False)
+
+# sorted_df = merged_df.sort_values(by=['j', 'i', 'k'])
+# sorted_usage = sorted_df.memory_usage(deep=True)
+# print(sorted_usage / 1024 / 1024 / 1024)
+
+# sorted_df.to_csv('./data/sim_data.csv', index=False)

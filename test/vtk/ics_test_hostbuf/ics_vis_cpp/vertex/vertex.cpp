@@ -163,10 +163,10 @@ int main(int argc, char* argv[]){
     renderWindow->Render();
     renderWindowInteractor->Start();
 
-    free(x_a);
-    free(y_a);
-    free(z_a);
-    free(rho_a);
+    // free(x_a);
+    // free(y_a);
+    // free(z_a);
+    // free(rho_a);
     return 0;
 }
 
