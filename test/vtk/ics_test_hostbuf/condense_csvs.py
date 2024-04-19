@@ -5,12 +5,7 @@ import pynvml
 import time
 
 '''
-DO NOT USE
-
 Combine data files into a single one
-
-RUNS INTO MEMORY ISSUES FROM TRYING TO DO ALL AT ONCE
-REFACTOR, SPLIT THE COMBINATION OF FLUID AND GRID DATAFILES INTO THEIR OWN SCRIPTS
 '''
 pynvml.nvmlInit()
 handle = pynvml.nvmlDeviceGetHandleByIndex(0) # Need to specify GPU
@@ -59,8 +54,8 @@ print(mem.free / 1024**3, mem.used / 1024**3, mem.total / 1024**3)
 
 merged_df = cudf.merge(grid_df, fluid_df, on=['i', 'j', 'k'])
 
-del fluid_df # need to save memory
-del grid_df 
+# del fluid_df # need to save memory
+# del grid_df 
 
 merged_usage = merged_df.memory_usage(deep=True)
 print(merged_usage / 1024 / 1024 / 1024)
@@ -71,7 +66,9 @@ print(mem.free / 1024**3, mem.used / 1024**3, mem.total / 1024**3)
 
 # time.sleep(60) # time to use $ nvidia-smi
 
-merged_df.to_csv('./data/sim_data.csv', index=False)
+h_df = merged_df.to_pandas() # ran into memory issues
+
+h_df.to_csv('./data/sim_data.csv', index=False)
 
 # sorted_df = merged_df.sort_values(by=['j', 'i', 'k'])
 # sorted_usage = sorted_df.memory_usage(deep=True)
