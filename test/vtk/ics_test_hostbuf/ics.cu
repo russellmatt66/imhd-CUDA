@@ -132,11 +132,13 @@ int main(int argc, char* argv[]){
    // WriteGridBuffer<<<grid_dimensions, block_dimensions>>>(grid_data, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
-   float *h_rho;
+   float *h_rho, *h_rhovz;
 
    h_rho = (float*)malloc(sizeof(float)*Nx*Ny*Nz);
+   h_rhovz = (float*)malloc(sizeof(float)*Nx*Ny*Nz);
 
    cudaMemcpy(h_rho, rho, sizeof(float)*Nx*Ny*Nz, cudaMemcpyDeviceToHost);
+   cudaMemcpy(h_rhovz, rhov_z, sizeof(float)*Nx*Ny*Nz, cudaMemcpyDeviceToHost);
    checkCuda(cudaPeekAtLastError());
    checkCuda(cudaDeviceSynchronize());
 
@@ -146,7 +148,7 @@ int main(int argc, char* argv[]){
       fluidvar_files[i] = base_file + std::to_string(i) + ".csv";
    }  
 
-   writeFluidVars(fluidvar_files, h_rho, Nx, Ny, Nz);
+   writeFluidVars(fluidvar_files, h_rho, h_rhovz, Nx, Ny, Nz);
 
    std::cout << "Right before writing fluid data to storage" << std::endl;
    checkCuda(cudaMemGetInfo(&freePinned, &totalPinned));
@@ -176,5 +178,6 @@ int main(int argc, char* argv[]){
    free(h_ygrid);
    free(h_zgrid);
    free(h_rho);
+   free(h_rhovz);
    return 0;
 }

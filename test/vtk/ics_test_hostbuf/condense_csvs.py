@@ -6,9 +6,9 @@ import time
 
 '''
 Combine data files into a single one
-
-CLEAN UP 
 DOESN'T WORK FOR 304 x 304 x 592 (on RTX 2060 6 GB)
+
+Works for up to 256 x 256 x 256 (on RTX 2060 6 GB)
 '''
 pynvml.nvmlInit()
 handle = pynvml.nvmlDeviceGetHandleByIndex(0) # Need to specify GPU
@@ -41,24 +41,12 @@ fluid_df = cudf.concat(fluid_dfs, ignore_index=True)
 print(fluid_df.shape)
 print(fluid_df.head)
 
-# for partial_datafile in gridfile_list_sorted:
-#     os.remove(partial_datafile)
-
-# for partial_datafile in fluidvar_list_sorted:
-#     os.remove(partial_datafile)
-
-# grid_df.to_csv('./data/grid_data.csv')
-# fluid_df.to_csv('./data/fluid_data.csv')
-
 mem = pynvml.nvmlDeviceGetMemoryInfo(handle)
 
 print("Memory stats after concating fluid and grid: free, used, total\n")
 print(mem.free / 1024**3, mem.used / 1024**3, mem.total / 1024**3)
 
 merged_df = cudf.merge(grid_df, fluid_df, on=['i', 'j', 'k'])
-
-# del fluid_df # need to save memory
-# del grid_df 
 
 merged_usage = merged_df.memory_usage(deep=True)
 print(merged_usage / 1024 / 1024 / 1024)
@@ -67,14 +55,6 @@ merged_df = merged_df.sort_values(by=['j', 'i', 'k'])
 print("Memory stats before writing merged_df to storage\n")
 print(mem.free / 1024**3, mem.used / 1024**3, mem.total / 1024**3)
 
-# time.sleep(60) # time to use $ nvidia-smi
-
-h_df = merged_df.to_pandas() # ran into memory issues
+h_df = merged_df.to_pandas() # RTX 2060 6 GB doesn't have enough memory 
 
 h_df.to_csv('./data/sim_data.csv', index=False)
-
-# sorted_df = merged_df.sort_values(by=['j', 'i', 'k'])
-# sorted_usage = sorted_df.memory_usage(deep=True)
-# print(sorted_usage / 1024 / 1024 / 1024)
-
-# sorted_df.to_csv('./data/sim_data.csv', index=False)

@@ -40,7 +40,7 @@ __global__ void InitialConditions(float* rho, float* rhov_x, float* rhov_y, floa
                         rho[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0;
                         rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
                         rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
-                        rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)] = J0 / (q_e / m) * (1.0 - pow(r, 2) / pow(r_pinch, 2));
+                        rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)] = J0 * (1.0 - pow(r, 2) / pow(r_pinch, 2));
                         Bx[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
                         By[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
                         Bz[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0;
