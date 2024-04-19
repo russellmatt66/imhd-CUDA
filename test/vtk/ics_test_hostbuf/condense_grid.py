@@ -5,11 +5,13 @@ import pynvml
 import time
 
 '''
-Combine data files into a single one
+WIP
+Use with 304 x 304 x 592
+Combine grid datafiles into a single one
 
-CLEAN UP 
-DOESN'T WORK FOR 304 x 304 x 592 (on RTX 2060 6 GB)
+CLEAN UP
 '''
+pynvml.nvmlI
 pynvml.nvmlInit()
 handle = pynvml.nvmlDeviceGetHandleByIndex(0) # Need to specify GPU
 

@@ -74,6 +74,7 @@
         "complex": "cpp",
         "list": "cpp",
         "typeindex": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "*.txx": "cpp"
     }
 }

@@ -16,10 +16,15 @@
 #include <string>
 #include <iostream>
 
+/* 
+CLEAN UP
+*/
+
 void PrintTableContent(vtkSmartPointer<vtkTable> table);
+float CenterLineRadius(float x, float y);
 
 int main(int argc, char* argv[]){
-    std::string simdata_location = "../../data/sim_data.csv";
+    std::string simdata_location = "../../data/sim_data.csv"; /* THIS NEEDS TO BE SORTED IN ASCENDING ORDER */
     // std::string fluiddata_location = "../data/";
 
     vtkSmartPointer<vtkDelimitedTextReader> reader = vtkSmartPointer<vtkDelimitedTextReader>::New();
@@ -50,11 +55,6 @@ int main(int argc, char* argv[]){
     // vtkFloatArray* y = vtkFloatArray::SafeDownCast(simTable->GetColumn(1));
     // vtkFloatArray* z = vtkFloatArray::SafeDownCast(simTable->GetColumn(2));
     // vtkFloatArray* rho = vtkFloatArray::SafeDownCast(simTable->GetColumn(6));
-    
-    // vtkSmartPointer<vtkFloatArray> x = vtkSmartPointer<vtkFloatArray>::New();
-    // vtkSmartPointer<vtkFloatArray> y = vtkSmartPointer<vtkFloatArray>::New();
-    // vtkSmartPointer<vtkFloatArray> z = vtkSmartPointer<vtkFloatArray>::New();
-    // vtkSmartPointer<vtkFloatArray> rho = vtkSmartPointer<vtkFloatArray>::New();
 
     // vtkSmartPointer<vtkFloatArray> x = vtkFloatArray::SafeDownCast(simTable->GetColumn(0));
     // vtkSmartPointer<vtkFloatArray> y = vtkFloatArray::SafeDownCast(simTable->GetColumn(1));
@@ -67,11 +67,6 @@ int main(int argc, char* argv[]){
     vtkAbstractArray* rho_a = simTable->GetColumn(6);
 
     std::cout << x_a << std::endl;
-
-    // vtkFloatArray* x = vtkFloatArray::SafeDownCast(x_a);
-    // vtkFloatArray* y = vtkFloatArray::SafeDownCast(y_a);
-    // vtkFloatArray* z = vtkFloatArray::SafeDownCast(z_a);
-    // vtkFloatArray* rho = vtkFloatArray::SafeDownCast(rho_a);
 
     // std::cout << x << std::endl;
     // std::cout << x->GetNumberOfValues() << std::endl;
@@ -91,6 +86,32 @@ int main(int argc, char* argv[]){
     std::cout << "Is z_a numeric? " << z_a->IsNumeric() << std::endl;
     std::cout << "Is rho_a numeric? " << rho_a->IsNumeric() << std::endl;
 
+    /* NEITHER APPROACH SEEMS TO WORK */
+    // vtkSmartPointer<vtkFloatArray> x_f = vtkSmartPointer<vtkFloatArray>::New();
+    // vtkSmartPointer<vtkFloatArray> y_f = vtkSmartPointer<vtkFloatArray>::New();
+    // vtkSmartPointer<vtkFloatArray> z_f = vtkSmartPointer<vtkFloatArray>::New();
+    // vtkSmartPointer<vtkFloatArray> rho_f = vtkSmartPointer<vtkFloatArray>::New();
+
+    // x_f = vtkFloatArray::SafeDownCast(x_a);
+    // y_f = vtkFloatArray::SafeDownCast(y_a);
+    // z_f = vtkFloatArray::SafeDownCast(z_a);
+    // rho_f = vtkFloatArray::SafeDownCast(rho_a);
+
+    // vtkFloatArray* x_f = vtkFloatArray::SafeDownCast(x_a);
+    // vtkFloatArray* y_f = vtkFloatArray::SafeDownCast(y_a);
+    // vtkFloatArray* z_f = vtkFloatArray::SafeDownCast(z_a);
+    // vtkFloatArray* rho_f = vtkFloatArray::SafeDownCast(rho_a);
+
+    // if (!x_f || !y_f || !z_f || !rho_f)
+    // {
+    //     std::cout << "!x_f: " << !x_f << std::endl; 
+    //     std::cout << "!y_f: " << !y_f << std::endl; 
+    //     std::cout << "!z_f: " << !z_f << std::endl; 
+    //     std::cout << "!rho_f: " << !rho_f << std::endl; 
+    //     std::cerr << "Error: One or more columns not found in the table." << std::endl;
+    //     return EXIT_FAILURE;
+    // }
+
     vtkSmartPointer<vtkPoints> grid_points = vtkSmartPointer<vtkPoints>::New();
     vtkSmartPointer<vtkFloatArray> fluid_vals = vtkSmartPointer<vtkFloatArray>::New();
     fluid_vals->SetNumberOfComponents(1);
@@ -104,7 +125,9 @@ int main(int argc, char* argv[]){
     // }
     // std::cout << "Values inserted successfully" << std::endl;
 
-    float x, y, z, rho;
+    float x, y, z, rho, r_temp, r_max;
+
+    r_max = CenterLineRadius(x_a->GetVariantValue(x_a->GetNumberOfValues()-1).ToFloat(), y_a->GetVariantValue(y_a->GetNumberOfValues()-1).ToFloat()); // Assume simdata is sorted
 
     std::cout << "x_a first VariantValue " << x_a->GetVariantValue(0).ToFloat() << std::endl;
     std::cout << "y_a first VariantValue " << y_a->GetVariantValue(0) << std::endl;
@@ -122,8 +145,14 @@ int main(int argc, char* argv[]){
         y = y_a->GetVariantValue(l).ToFloat();
         z = z_a->GetVariantValue(l).ToFloat();
         rho = rho_a->GetVariantValue(l).ToFloat();
-        grid_points->InsertNextPoint(x, y, z);
-        fluid_vals->InsertNextValue(rho);
+
+        r_temp = CenterLineRadius(x, y);
+        if (r_temp < 0.25 * r_max) { // Want to only visualize the pinch
+            grid_points->InsertNextPoint(x, y, z);
+            fluid_vals->InsertNextValue(rho);
+        }
+        // rho = rho_a->GetVariantValue(l).ToFloat();
+        // grid_points->InsertNextPoint(x, y, z);
         // grid_points->InsertNextPoint(x_a->GetVariantValue(l).ToFloat(), y_a->GetVariantValue(l).ToFloat(), z_a->GetVariantValue(l).ToFloat());
         // fluid_vals->SetValue(l, rho_a->GetVariantValue(l).ToFloat());
     }
@@ -163,10 +192,6 @@ int main(int argc, char* argv[]){
     renderWindow->Render();
     renderWindowInteractor->Start();
 
-    // free(x_a);
-    // free(y_a);
-    // free(z_a);
-    // free(rho_a);
     return 0;
 }
 
@@ -176,4 +201,8 @@ void PrintTableContent(vtkSmartPointer<vtkTable> table){
 
     std::cout << "numRows: " << numRows << std::endl;
     std::cout << "numCols: " << numCols << std::endl;
+}
+
+float CenterLineRadius(float x, float y){
+    return sqrt(pow(x,2) + pow(y,2));
 }
