@@ -51,7 +51,7 @@ int main(int argc, char* argv[]){
    int num_blocks = 2 * numberOfSMs;
 
    dim3 grid_dimensions(num_blocks, num_blocks, num_blocks);
-   dim3 block_dimensions(32, 16, 2);
+   dim3 block_dimensions(1024, 1, 1);
 
    float *rho, *rhov_x, *rhov_y, *rhov_z, *Bx, *By, *Bz, *e;
    float *x_grid, *y_grid, *z_grid;
@@ -127,11 +127,22 @@ int main(int argc, char* argv[]){
    
    writeGrid(grid_files, h_xgrid, h_ygrid, h_zgrid, Nx, Ny, Nz);
 
+   cudaEvent_t start, stop;
+   cudaEventCreate(&start);
+   cudaEventCreate(&stop);
+
+   cudaEventRecord(start);
    InitialConditions<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 1.0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   cudaEventRecord(stop);
    checkCuda(cudaPeekAtLastError());
    // WriteGridBuffer<<<grid_dimensions, block_dimensions>>>(grid_data, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   checkCuda(cudaDeviceSynchronize());
+   // checkCuda(cudaDeviceSynchronize());
+   cudaEventSynchronize(stop);
+   float milliseconds = 0;
+   cudaEventElapsedTime(&milliseconds, start, stop);
 
+   std::cout << "Elapsed IC kernel time: " << milliseconds << " ms" << std::endl;
+   
    float *h_rho, *h_rhovz;
 
    h_rho = (float*)malloc(sizeof(float)*Nx*Ny*Nz);

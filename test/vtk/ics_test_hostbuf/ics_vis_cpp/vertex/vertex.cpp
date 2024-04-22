@@ -12,12 +12,14 @@
 #include <vtkTable.h>
 #include <vtkFloatArray.h>
 #include <vtkAbstractArray.h>
+#include <vtkScalarBarActor.h>
+#include <vtkLookupTable.h>
 
 #include <string>
 #include <iostream>
 
 /* 
-CLEAN UP
+I think this is the eol of this code, and it's time to move onto different visualization techniques for rendering point set
 */
 
 void PrintTableContent(vtkSmartPointer<vtkTable> table);
@@ -57,16 +59,6 @@ int main(int argc, char* argv[]){
         std::cout << "Column " << i << ": " << simTable->GetColumn(i) << std::endl;
     }
 
-    // vtkFloatArray* x = vtkFloatArray::SafeDownCast(simTable->GetColumn(0));
-    // vtkFloatArray* y = vtkFloatArray::SafeDownCast(simTable->GetColumn(1));
-    // vtkFloatArray* z = vtkFloatArray::SafeDownCast(simTable->GetColumn(2));
-    // vtkFloatArray* rho = vtkFloatArray::SafeDownCast(simTable->GetColumn(6));
-
-    // vtkSmartPointer<vtkFloatArray> x = vtkFloatArray::SafeDownCast(simTable->GetColumn(0));
-    // vtkSmartPointer<vtkFloatArray> y = vtkFloatArray::SafeDownCast(simTable->GetColumn(1));
-    // vtkSmartPointer<vtkFloatArray> z = vtkFloatArray::SafeDownCast(simTable->GetColumn(2));
-    // vtkSmartPointer<vtkFloatArray> rho = vtkFloatArray::SafeDownCast(simTable->GetColumn(6));
-
     vtkAbstractArray* x_a = simTable->GetColumn(0);
     vtkAbstractArray* y_a = simTable->GetColumn(1);
     vtkAbstractArray* z_a = simTable->GetColumn(2);
@@ -93,44 +85,9 @@ int main(int argc, char* argv[]){
     std::cout << "Is z_a numeric? " << z_a->IsNumeric() << std::endl;
     std::cout << "Is rho_a numeric? " << fluiddata_a->IsNumeric() << std::endl;
 
-    /* NEITHER APPROACH SEEMS TO WORK */
-    // vtkSmartPointer<vtkFloatArray> x_f = vtkSmartPointer<vtkFloatArray>::New();
-    // vtkSmartPointer<vtkFloatArray> y_f = vtkSmartPointer<vtkFloatArray>::New();
-    // vtkSmartPointer<vtkFloatArray> z_f = vtkSmartPointer<vtkFloatArray>::New();
-    // vtkSmartPointer<vtkFloatArray> rho_f = vtkSmartPointer<vtkFloatArray>::New();
-
-    // x_f = vtkFloatArray::SafeDownCast(x_a);
-    // y_f = vtkFloatArray::SafeDownCast(y_a);
-    // z_f = vtkFloatArray::SafeDownCast(z_a);
-    // rho_f = vtkFloatArray::SafeDownCast(rho_a);
-
-    // vtkFloatArray* x_f = vtkFloatArray::SafeDownCast(x_a);
-    // vtkFloatArray* y_f = vtkFloatArray::SafeDownCast(y_a);
-    // vtkFloatArray* z_f = vtkFloatArray::SafeDownCast(z_a);
-    // vtkFloatArray* rho_f = vtkFloatArray::SafeDownCast(rho_a);
-
-    // if (!x_f || !y_f || !z_f || !rho_f)
-    // {
-    //     std::cout << "!x_f: " << !x_f << std::endl; 
-    //     std::cout << "!y_f: " << !y_f << std::endl; 
-    //     std::cout << "!z_f: " << !z_f << std::endl; 
-    //     std::cout << "!rho_f: " << !rho_f << std::endl; 
-    //     std::cerr << "Error: One or more columns not found in the table." << std::endl;
-    //     return EXIT_FAILURE;
-    // }
-
     vtkSmartPointer<vtkPoints> grid_points = vtkSmartPointer<vtkPoints>::New();
     vtkSmartPointer<vtkFloatArray> fluid_vals = vtkSmartPointer<vtkFloatArray>::New();
     fluid_vals->SetNumberOfComponents(1);
-    // fluid_vals->SetName("rho");
-
-    // std::cout << "Inserting values " << std::endl;
-    // for (vtkIdType l = 0; l < rho_a->GetNumberOfTuples(); l++){
-    //     std::cout << "Inserting l = " << l << std::endl;
-    //     grid_points->InsertNextPoint(x->GetValue(l), y->GetValue(l), z->GetValue(l));
-    //     fluid_vals->SetValue(l, rho->GetValue(l));
-    // }
-    // std::cout << "Values inserted successfully" << std::endl;
 
     float x, y, z, fluid_val, r_temp, r_max;
 
@@ -158,10 +115,6 @@ int main(int argc, char* argv[]){
             grid_points->InsertNextPoint(x, y, z);
             fluid_vals->InsertNextValue(fluid_val);
         }
-        // rho = rho_a->GetVariantValue(l).ToFloat();
-        // grid_points->InsertNextPoint(x, y, z);
-        // grid_points->InsertNextPoint(x_a->GetVariantValue(l).ToFloat(), y_a->GetVariantValue(l).ToFloat(), z_a->GetVariantValue(l).ToFloat());
-        // fluid_vals->SetValue(l, rho_a->GetVariantValue(l).ToFloat());
     }
     std::cout << "Values inserted successfully" << std::endl;
 
@@ -179,9 +132,26 @@ int main(int argc, char* argv[]){
     vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
 
-        // Create renderer
+    vtkSmartPointer<vtkScalarBarActor> scalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
+    scalarBar->SetLookupTable(mapper->GetLookupTable());
+    scalarBar->SetTitle("Rho v_z");
+    scalarBar->SetNumberOfLabels(4);
+
+    // Create a lookup table to share between the mapper and the scalarbar.
+    vtkSmartPointer<vtkLookupTable> hueLut = vtkSmartPointer<vtkLookupTable>::New();
+    hueLut->SetTableRange(0, 1);
+    hueLut->SetHueRange(0, 1);
+    hueLut->SetSaturationRange(1, 1);
+    hueLut->SetValueRange(1, 1);
+    hueLut->Build();
+
+    mapper->SetLookupTable(hueLut);
+    scalarBar->SetLookupTable(hueLut);
+
+    // Create renderer
     vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
     renderer->AddActor(actor);
+    renderer->AddActor(scalarBar);
     renderer->SetBackground(1.0, 1.0, 1.0); // white background
 
     // Create render window

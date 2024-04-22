@@ -1,4 +1,11 @@
 # Overview
+points/
+- Visualizes simulation output as a point cloud using `vktPoints`
+- Data Volume (Plasma)
+-- 64 x 64 x 64 =
+-- 128 x 128 x 128 = 
+-- 256 x 256 x 256 =
+
 vertex/
 - Visualizes simulation output as a point cloud using `vtkVertexGlyphFilter`
 - Data Volume (Plasma)

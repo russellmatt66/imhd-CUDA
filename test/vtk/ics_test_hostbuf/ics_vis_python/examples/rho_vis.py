@@ -4,10 +4,11 @@ import os
 import sys
 
 '''
-Rendering of plasma and vacuum as a structured grid
-
 Next steps
-(1) Enable rendering of arbitrary plasma variable
+(1) Create different actors for plasma / vacuum
+    - Want to remove values below a certain threshold
+(2) Enable rendering of arbitrary plasma variable
+(3) Move different rendering methods to their own scripts
 '''
 
 gridfile_location = "../data/grid/"
