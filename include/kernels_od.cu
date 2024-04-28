@@ -104,6 +104,8 @@ __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1,
 Boundary Conditions are:
 (1) Rigid, Perfectly-Conducting wall
 (2) Periodic in z
+
+Currently O(N) wasted work in this section due to overlap b/w fixed-regions
 */
 __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
      const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
@@ -117,39 +119,66 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
         int ythreads = gridDim.y * blockDim.y;
         int zthreads = gridDim.z * blockDim.z;
 
-        /* B.Cs on (i, j, k = 0) */
+        /* 
+        Periodic B.Cs on (i, j, k = 0) 
+        FRONT 
+        (I)
+        */
         for (int i = tidx; i < Nx; i += xthreads){
             for (int j = tidy; j < Ny; j += ythreads){
                 /* IMPLEMENT */
             }
         }
-        /* B.Cs on (i, j, k = N-1) */
+        /* 
+        Periodic B.Cs on (i, j, k = N-1) 
+        BACK
+        (VI)
+        */
         for (int i = tidx; i < Nx; i += xthreads){
             for (int j = tidy; j < Ny; j += ythreads){
                 /* IMPLEMENT */
             }
         }
-        /* B.Cs on (i = 0, j, k) */
-        for (int k = tidz; k < Nz; k += zthreads){
+        
+        /* 
+        B.Cs on (i = 0, j, k) 
+        BOTTOM
+        (II)
+        */
+        for (int k = tidz + 1; k < Nz - 1; k += zthreads){ // Let the PBCs on the front and back face handle the corners
             for (int j = tidy; j < Ny; j += ythreads){
                 /* IMPLEMENT */
             }
         }
-        /* B.Cs on (i = N-1, j, k) */
-        for (int k = tidz; k < Nz; k += zthreads){
+        
+        /* 
+        B.Cs on (i = N-1, j, k) 
+        TOP
+        (IV)
+        */
+        for (int k = tidz + 1; k < Nz - 1; k += zthreads){
             for (int j = tidy; j < Ny; j += ythreads){
                 /* IMPLEMENT */
             }
         }
-        /* B.Cs on (i, j = 0, k) */
-        for (int k = tidz; k < Nz; k += zthreads){
-            for (int j = tidy; j < Ny; j += ythreads){
+        
+        /* 
+        B.Cs on (i, j = 0, k) 
+        LEFT
+        (V)
+        */
+        for (int k = tidz + 1; k < Nz - 1; k += zthreads){
+            for (int i = tidx; i < Nx; i += xthreads){
                 /* IMPLEMENT */
             }
         }
-        /* B.Cs on (i, j = N-1, k) */
-        for (int k = tidz; k < Nz; k += zthreads){
-            for (int j = tidy; j < Ny; j += ythreads){
+        /* 
+        B.Cs on (i, j = N-1, k) 
+        RIGHT
+        (III)
+        */
+        for (int k = tidz + 1; k < Nz - 1; k += zthreads){
+            for (int i = tidy; i < Nx; i += xthreads){
                 /* IMPLEMENT */
             }
         }
