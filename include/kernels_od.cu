@@ -102,10 +102,8 @@ __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1,
 
 /* 
 Boundary Conditions are:
-(1) Rigid, Perfectly-Conducting wall
+(1) Rigid, Perfectly-Conducting wall on top, bottom, and sides
 (2) Periodic in z
-
-Currently O(N) wasted work in this section due to overlap b/w fixed-regions
 */
 __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
      const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
@@ -122,21 +120,34 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
         /* 
         Periodic B.Cs on (i, j, k = 0) 
         FRONT 
-        (I)
+        (I) 
+        MIGHT DO BOTH FACES: (I) + (VI) HERE  
         */
-        for (int i = tidx; i < Nx; i += xthreads){
-            for (int j = tidy; j < Ny; j += ythreads){
+        for (int i = tidx + 1; i < Nx - 1; i += xthreads){
+            for (int j = tidy + 1; j < Ny - 1; j += ythreads){
                 /* IMPLEMENT */
+                /* NEED TO SOLVE IMHD EQUATIONS FIRST ON BOTH FACES, CONSIDERING PERIODICITY */
+                /* THEN, ACCUMULATE THE RESULTS ONTO ONE FACE, MAP AROUND TO THE OTHER, AND CONTINUE */
+
             }
         }
+
         /* 
         Periodic B.Cs on (i, j, k = N-1) 
         BACK
         (VI)
         */
-        for (int i = tidx; i < Nx; i += xthreads){
-            for (int j = tidy; j < Ny; j += ythreads){
+        for (int i = tidx + 1; i < Nx - 1; i += xthreads){
+            for (int j = tidy + 1; j < Ny - 1; j += ythreads){
                 /* IMPLEMENT */
+                // rho_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rho_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+                // rhovx_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rhovx_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+                // rhovy_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rhovy_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+                // rhovz_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rhovz_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+                // Bx_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = Bx_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+                // By_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = By_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+                // Bz_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = Bz_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+                // e_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = e_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
             }
         }
         
@@ -145,20 +156,36 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
         BOTTOM
         (II)
         */
-        for (int k = tidz + 1; k < Nz - 1; k += zthreads){ // Let the PBCs on the front and back face handle the corners
+        for (int k = tidz; k < Nz; k += zthreads){ 
             for (int j = tidy; j < Ny; j += ythreads){
                 /* IMPLEMENT */
+                rho_np1[IDX3D(0, j, k, Nx, Ny, Nz)] = 0.0001; /* Magic vacuum number, hopefully don't need to change */
+                rhovx_np1[IDX3D(0, j, k, Nx, Ny, Nz)] = 0.0; // Rigid wall
+                rhovy_np1[IDX3D(0, j, k, Nx, Ny, Nz)] = 0.0;
+                rhovz_np1[IDX3D(0, j, k, Nx, Ny, Nz)] = 0.0;
+                Bx_np1[IDX3D(0, j, k, Nx, Ny, Nz)] = 0.0; // Perfectly-conducting wall
+                By_np1[IDX3D(0, j, k, Nx, Ny, Nz)] = 0.0;
+                Bz_np1[IDX3D(0, j, k, Nx, Ny, Nz)] = 0.0;
+                e_np1[IDX3D(0, j, k, Nx, Ny, Nz)] = p(0, j, k, e, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
             }
         }
         
         /* 
-        B.Cs on (i = N-1, j, k) 
+        B.Cs on (i = Nx-1, j, k) 
         TOP
         (IV)
         */
-        for (int k = tidz + 1; k < Nz - 1; k += zthreads){
+        for (int k = tidz; k < Nz; k += zthreads){
             for (int j = tidy; j < Ny; j += ythreads){
                 /* IMPLEMENT */
+                rho_np1[IDX3D(Nx - 1, j, k, Nx, Ny, Nz)] = 0.0001; /* Magic vacuum number, hopefully don't need to change */
+                rhovx_np1[IDX3D(Nx - 1, j, k, Nx, Ny, Nz)] = 0.0; // Rigid wall
+                rhovy_np1[IDX3D(Nx - 1, j, k, Nx, Ny, Nz)] = 0.0;
+                rhovz_np1[IDX3D(Nx - 1, j, k, Nx, Ny, Nz)] = 0.0;
+                Bx_np1[IDX3D(Nx - 1, j, k, Nx, Ny, Nz)] = 0.0; // Perfectly-conducting wall
+                By_np1[IDX3D(Nx - 1, j, k, Nx, Ny, Nz)] = 0.0;
+                Bz_np1[IDX3D(Nx - 1, j, k, Nx, Ny, Nz)] = 0.0;
+                e_np1[IDX3D(Nx- 1, j, k, Nx, Ny, Nz)] = p(Nx - 1, j, k, e, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
             }
         }
         
@@ -167,9 +194,17 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
         LEFT
         (V)
         */
-        for (int k = tidz + 1; k < Nz - 1; k += zthreads){
-            for (int i = tidx; i < Nx; i += xthreads){
+        for (int k = tidz; k < Nz; k += zthreads){
+            for (int i = tidx + 1; i < Nx - 1; i += xthreads){
                 /* IMPLEMENT */
+                rho_np1[IDX3D(i, 0, k, Nx, Ny, Nz)] = 0.0001; /* Magic vacuum number, hopefully don't need to change */
+                rhovx_np1[IDX3D(i, 0, k, Nx, Ny, Nz)] = 0.0; // Rigid wall
+                rhovy_np1[IDX3D(i, 0, k, Nx, Ny, Nz)] = 0.0;
+                rhovz_np1[IDX3D(i, 0, k, Nx, Ny, Nz)] = 0.0;
+                Bx_np1[IDX3D(i, 0, k, Nx, Ny, Nz)] = 0.0; // Perfectly-conducting wall
+                By_np1[IDX3D(i, 0, k, Nx, Ny, Nz)] = 0.0;
+                Bz_np1[IDX3D(i, 0, k, Nx, Ny, Nz)] = 0.0;
+                e_np1[IDX3D(i, 0, k, Nx, Ny, Nz)] = p(i, 0, k, e, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
             }
         }
         /* 
@@ -177,9 +212,17 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
         RIGHT
         (III)
         */
-        for (int k = tidz + 1; k < Nz - 1; k += zthreads){
-            for (int i = tidy; i < Nx; i += xthreads){
+        for (int k = tidz; k < Nz; k += zthreads){
+            for (int i = tidy + 1; i < Nx - 1; i += xthreads){
                 /* IMPLEMENT */
+                rho_np1[IDX3D(i, Ny - 1, k, Nx, Ny, Nz)] = 0.0001; /* Magic vacuum number, hopefully don't need to change */
+                rhovx_np1[IDX3D(i, Ny - 1, k, Nx, Ny, Nz)] = 0.0; // Rigid wall
+                rhovy_np1[IDX3D(i, Ny - 1, k, Nx, Ny, Nz)] = 0.0;
+                rhovz_np1[IDX3D(i, Ny - 1, k, Nx, Ny, Nz)] = 0.0;
+                Bx_np1[IDX3D(i, Ny - 1, k, Nx, Ny, Nz)] = 0.0; // Perfectly-conducting wall
+                By_np1[IDX3D(i, Ny - 1, k, Nx, Ny, Nz)] = 0.0;
+                Bz_np1[IDX3D(i, Ny - 1, k, Nx, Ny, Nz)] = 0.0;
+                e_np1[IDX3D(i, Ny - 1, k, Nx, Ny, Nz)] = p(i, Ny - 1, k, e, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
             }
         }
         return;
@@ -813,7 +856,8 @@ __device__ float B_sq(const int i, const int j, const int k, const float* Bx, co
         return pow(Bx[IDX3D(i, j, k, Nx, Ny, Nz)], 2) + pow(By[IDX3D(i, j, k, Nx, Ny, Nz)], 2) + pow(Bz[IDX3D(i, j, k, Nx, Ny, Nz)], 2);
     }
 
-__device__ float p(const int i, const int j, const int k, const float* e, const float B_sq, const float KE, 
+__device__ float p(const int i, const int j, const int k, 
+    const float* e, const float B_sq, const float KE, 
     const int Nx, const int Ny, const int Nz)
     {
         return (gamma - 1.0) * (e[IDX3D(i, j, k, Nx, Ny, Nz)] - KE - B_sq / 2.0);

@@ -317,7 +317,9 @@ __device__ float intE(const int i, const int j, const int k,
 __device__ float B_sq(int i, int j, int k, const float* Bx, const float* By, const float* Bz, 
      const int Nx, const int Ny, const int Nz); // B / \sqrt{\mu_{0}} -> B 
 
-__device__ float p(int i, int j, int k, const float* e, const float B_sq, const float KE, const int Nx, const int Ny, const int Nz);
+__device__ float p(int i, int j, int k, 
+     const float* e, const float B_sq, const float KE, 
+     const int Nx, const int Ny, const int Nz);
 
 __device__ float KE(int i, int j, int k, const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
      const int Nx, const int Ny, const int Nz); // \rho * \vec{u}\cdot\vec{u} * 0.5
