@@ -12,4 +12,4 @@ utils.hpp/
 - Header file for `utils.cpp`, containing function declarations
 
 # Current Tasks:
-(1) Visualize ICs
+(1) Connect simulation together

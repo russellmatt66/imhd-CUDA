@@ -2,9 +2,7 @@
 Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD system.
 
 # Current Tasks
-(1) Visualize initial conditions
-- `test/vtk/ics_test_hostbuf` 
-- `test/vtk/ics_test_gds`
+(1) Run kernel and visualize results
 
 (2) Figure out how to change the maximum amount of device pinned memory
 - `test/gds/max_pinned` 
@@ -24,7 +22,9 @@ Why not pick a problem size that can be handled without all of this memory migra
 The goal is to design the simulation according to a data volume of 5 GB. For the RTX2060 architecture which this application is targeted at, this gives a nice headroom of ~1 GB to handle tasks like display while the algorithm is running, as well as store small amounts of additional data, like the cartesian basis of the simulation mesh, which is `O(max(Nx,Ny,Nz))`, instead of `O(NxNyNz)`. 
 
 ## Dimensionless variables
-Numerical simulations of physical systems are best implemented in `non-dimensional` form. 
+Numerical simulations of physical systems are best implemented in `non-dimensional` form. Essentially, this kind of way of writing a system of equations normalizes them in such a way that a set of numbers, e.g., Mach, Euler, Frobenius, etc., representing physical constants, are left behind.
+
+Fortunately, the Ideal MHD system is already written in such a way, with the only physical constant left behind being the adiabatic index, which is related to the number of degrees of freedom that the plasma particles possess. 
 
 ## Initial and Boundary Conditions
 WIP
