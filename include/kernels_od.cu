@@ -130,7 +130,210 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                 /* IMPLEMENT */
                 /* NEED TO SOLVE IMHD EQUATIONS FIRST ON BOTH FACES, CONSIDERING PERIODICITY */
                 // (1) Calculate Intermediate Variables at the relevant locations
+                // k = 0
+                rho_int[IDX3D(i, j, 0, Nx, Ny, Nz)] = rho[IDX3D(i, j, 0, Nx, Ny, Nz)] 
+                                                        - (dt / dx) * (XFluxRho(i, j, 0, rhov_x, Nx, Ny, Nz) - XFluxRho(i - 1, j, 0, rhov_x, Nx, Ny, Nz))
+                                                        - (dt / dy) * (YFluxRho(i, j, 0, rhov_y, Nx, Ny, Nz) - YFluxRho(i, j - 1, 0, rhov_y, Nx, Ny, Nz))
+                                                        - (dt / dz) * (ZFluxRho(i, j, 0, rhov_z, Nx, Ny, Nz) - ZFluxRho(i, j, Nz - 2, rhov_z, Nx, Ny, Nz));
+                
+                rhovx_int[IDX3D(i, j, 0, Nx, Ny, Nz)] = rhov_x[IDX3D(i, j, 0, Nx, Ny, Nz)]
+                                                        - (dt / dx) * (
+                                                            XFluxRhoVX(i, j, 0, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                            - XFluxRhoVX(i - 1, j, 0, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                            )
+                                                        - (dt / dy) * (
+                                                            YFluxRhoVX(i, j, 0, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                            - YFluxRhoVX(i, j - 1, 0, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dz) * (
+                                                            ZFluxRhoVX(i, j, 0, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                            - ZFluxRhoVX(i, j, Nz - 2, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                        );
+                
+                rhovy_int[IDX3D(i, j, 0, Nx, Ny, Nz)] = rhov_y[IDX3D(i, j, 0, Nx, Ny, Nz)]
+                                                        - (dt / dx) * (
+                                                            XFluxRhoVY(i, j, 0, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                            - XFluxRhoVY(i - 1, j, 0, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dy) * (
+                                                            YFluxRhoVY(i, j, 0, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                            - YFluxRhoVY(i, j - 1, 0, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dz) * (
+                                                            ZFluxRhoVY(i, j, 0, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                            - ZFluxRhoVY(i, j, Nz - 2, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                        );
+
+                rhovz_int[IDX3D(i, j, 0, Nx, Ny, Nz)] = rhov_z[IDX3D(i, j, 0, Nx, Ny, Nz)]
+                                                        - (dt / dx) * (
+                                                            XFluxRhoVZ(i, j, 0, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                            - XFluxRhoVZ(i - 1, j, 0, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dy) * (
+                                                            YFluxRhoVZ(i, j, 0, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                            - YFluxRhoVZ(i, j - 1, 0, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dz) * (
+                                                            ZFluxRhoVZ(i, j, 0, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                            - ZFluxRhoVZ(i, j, Nz - 2, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                        );
+
+                Bx_int[IDX3D(i, j, 0, Nx, Ny, Nz)] = Bx[IDX3D(i, j, 0, Nx, Ny, Nz)]
+                                                        - (dt / dx) * (
+                                                            XFluxBX() - XFluxBX()
+                                                        )
+                                                        - (dt / dy) * (
+                                                            YFluxBX(i, j, 0, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                            - YFluxBX(i, j - 1, 0, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dz) * (
+                                                            ZFluxBX(i, j, 0, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                            - ZFluxBX(i, j, Nz - 2, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                        );
+
+                By_int[IDX3D(i, j, 0, Nx, Ny, Nz)] = By[IDX3D(i, j, 0, Nx, Ny, Nz)]
+                                                        - (dt / dx) * (
+                                                            XFluxBY(i, j, 0, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                            - XFluxBY(i - 1, j, 0, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dy) * (
+                                                            YFluxBY() - YFluxBY()
+                                                        )
+                                                        - (dt / dz) * (
+                                                            ZFluxBY(i, j, 0, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                            - ZFluxBY(i, j, Nz - 2, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                        );
+
+                Bz_int[IDX3D(i, j, 0, Nx, Ny, Nz)] = Bz[IDX3D(i, j, 0, Nx, Ny, Nz)]
+                                                        - (dt / dx) * (
+                                                            XFluxBZ(i, j, 0, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                            - XFluxBZ(i - 1, j, 0, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dy) * (
+                                                            YFluxBZ(i, j, 0, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                            - YFluxBZ(i, j - 1, 0, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dz) * (
+                                                            ZFluxBZ() - ZFluxBZ()
+                                                        );
+
+                e_int[IDX3D(i, j, 0, Nx, Ny, Nz)] = e[IDX3D(i, j, 0, Nx, Ny, Nz)]
+                                                        - (dt / dx) * (
+                                                            XFluxE(i, j, 0, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                            - XFluxE(i - 1, j, 0, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dy) * (
+                                                            YFluxE(i, j, 0, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                            - YFluxE(i, j - 1, 0, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dz) * (
+                                                            ZFluxE(i, j, 0, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                            - ZFluxE(i, j, Nz - 2, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                        );
+                
+                // k = Nz - 1
+                rho_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rho[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] 
+                                                        - (dt / dx) * (XFluxRho(i, j, Nz - 1, rhov_x, Nx, Ny, Nz) - XFluxRho(i - 1, j, Nz - 1, rhov_x, Nx, Ny, Nz))
+                                                        - (dt / dy) * (YFluxRho(i, j, Nz - 1, rhov_y, Nx, Ny, Nz) - YFluxRho(i, j - 1, Nz - 1, rhov_y, Nx, Ny, Nz))
+                                                        - (dt / dz) * (ZFluxRho(i, j, Nz - 1, rhov_z, Nx, Ny, Nz) - ZFluxRho(i, j, Nz - 2, rhov_z, Nx, Ny, Nz));
+                
+                rhovx_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rhov_x[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)]
+                                                        - (dt / dx) * (
+                                                            XFluxRhoVX(i, j, Nz - 1, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                            - XFluxRhoVX(i - 1, j, Nz - 1, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                            )
+                                                        - (dt / dy) * (
+                                                            YFluxRhoVX(i, j, Nz - 1, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                            - YFluxRhoVX(i, j - 1, Nz - 1, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dz) * (
+                                                            ZFluxRhoVX(i, j, Nz - 1, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                            - ZFluxRhoVX(i, j, Nz - 2, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                        );
+                
+                rhovy_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rhov_y[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)]
+                                                        - (dt / dx) * (
+                                                            XFluxRhoVY(i, j, Nz - 1, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                            - XFluxRhoVY(i - 1, j, Nz - 1, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dy) * (
+                                                            YFluxRhoVY(i, j, Nz - 1, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                            - YFluxRhoVY(i, j - 1, Nz - 1, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dz) * (
+                                                            ZFluxRhoVY(i, j, Nz - 1, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                            - ZFluxRhoVY(i, j, Nz - 2, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                        );
+
+                rhovz_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rhov_z[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)]
+                                                        - (dt / dx) * (
+                                                            XFluxRhoVZ(i, j, Nz - 1, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                            - XFluxRhoVZ(i - 1, j, Nz - 1, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dy) * (
+                                                            YFluxRhoVZ(i, j, Nz - 1, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                            - YFluxRhoVZ(i, j - 1, Nz - 1, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dz) * (
+                                                            ZFluxRhoVZ(i, j, Nz - 1, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                            - ZFluxRhoVZ(i, j, Nz - 2, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                        );
+
+                Bx_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = Bx[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)]
+                                                        - (dt / dx) * (
+                                                            XFluxBX() - XFluxBX()
+                                                        )
+                                                        - (dt / dy) * (
+                                                            YFluxBX(i, j, Nz - 1, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                            - YFluxBX(i, j - 1, Nz - 1, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dz) * (
+                                                            ZFluxBX(i, j, Nz - 1, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                            - ZFluxBX(i, j, Nz - 2, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                        );
+
+                By_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = By[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)]
+                                                        - (dt / dx) * (
+                                                            XFluxBY(i, j, Nz - 1, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                            - XFluxBY(i - 1, j, Nz - 1, rho, rhov_x, rhov_y, Bx, By, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dy) * (
+                                                            YFluxBY() - YFluxBY()
+                                                        )
+                                                        - (dt / dz) * (
+                                                            ZFluxBY(i, j, Nz - 1, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                            - ZFluxBY(i, j, Nz - 2, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                        );
+
+                Bz_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = Bz[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)]
+                                                        - (dt / dx) * (
+                                                            XFluxBZ(i, j, Nz - 1, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                            - XFluxBZ(i - 1, j, Nz - 1, rho, rhov_x, rhov_z, Bx, Bz, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dy) * (
+                                                            YFluxBZ(i, j, Nz - 1, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                            - YFluxBZ(i, j - 1, Nz - 1, rho, rhov_y, rhov_z, By, Bz, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dz) * (
+                                                            ZFluxBZ() - ZFluxBZ()
+                                                        );
+
+                e_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = e[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)]
+                                                        - (dt / dx) * (
+                                                            XFluxE(i, j, Nz - 1, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                            - XFluxE(i - 1, j, Nz - 1, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dy) * (
+                                                            YFluxE(i, j, Nz - 1, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                            - YFluxE(i, j - 1, Nz - 1, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                        )
+                                                        - (dt / dz) * (
+                                                            ZFluxE(i, j, Nz - 1, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                            - ZFluxE(i, j, Nz - 2, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx, Ny, Nz)
+                                                        );  
+
                 // (2) Compute the necessary Intermediate Fluxes
+
                 // (3) Calculate the updated state of the plasma at the given location  
 
                 /* THEN, ACCUMULATE THE RESULTS ONTO ONE FACE, MAP AROUND TO THE OTHER, AND CONTINUE */
