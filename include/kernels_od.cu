@@ -106,9 +106,11 @@ Boundary Conditions are:
 (2) Periodic in z
 */
 __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
-     const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
-     const int Nx, const int Ny, const int Nz)
-     {
+    const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
+    float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
+    const float D, const float dt, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz)
+    {
         // Execution configuration boilerplate
         int tidx = threadIdx.x + blockDim.x * blockIdx.x; 
         int tidy = threadIdx.y + blockDim.y * blockIdx.y;
@@ -118,38 +120,43 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
         int zthreads = gridDim.z * blockDim.z;
 
         /* 
-        Periodic B.Cs on (i, j, k = 0) 
-        FRONT 
-        (I) 
+        Periodic B.Cs on (i, j, k = 0) and (i, j, k = N - 1)
+        FRONT (I)
+        BACK (VI) 
         MIGHT DO BOTH FACES: (I) + (VI) HERE  
         */
         for (int i = tidx + 1; i < Nx - 1; i += xthreads){
             for (int j = tidy + 1; j < Ny - 1; j += ythreads){
                 /* IMPLEMENT */
                 /* NEED TO SOLVE IMHD EQUATIONS FIRST ON BOTH FACES, CONSIDERING PERIODICITY */
+                // (1) Calculate Intermediate Variables at the relevant locations
+                // (2) Compute the necessary Intermediate Fluxes
+                // (3) Calculate the updated state of the plasma at the given location  
+
                 /* THEN, ACCUMULATE THE RESULTS ONTO ONE FACE, MAP AROUND TO THE OTHER, AND CONTINUE */
 
             }
         }
 
-        /* 
-        Periodic B.Cs on (i, j, k = N-1) 
-        BACK
-        (VI)
-        */
-        for (int i = tidx + 1; i < Nx - 1; i += xthreads){
-            for (int j = tidy + 1; j < Ny - 1; j += ythreads){
-                /* IMPLEMENT */
-                // rho_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rho_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
-                // rhovx_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rhovx_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
-                // rhovy_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rhovy_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
-                // rhovz_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rhovz_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
-                // Bx_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = Bx_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
-                // By_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = By_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
-                // Bz_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = Bz_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
-                // e_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = e_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
-            }
-        }
+        // /* 
+        // DOING BOTH AT ONCE
+        // Periodic B.Cs on (i, j, k = N-1) 
+        // BACK
+        // (VI)
+        // */
+        // for (int i = tidx + 1; i < Nx - 1; i += xthreads){
+        //     for (int j = tidy + 1; j < Ny - 1; j += ythreads){
+        //         /* IMPLEMENT */
+        //         // rho_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rho_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+        //         // rhovx_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rhovx_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+        //         // rhovy_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rhovy_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+        //         // rhovz_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = rhovz_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+        //         // Bx_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = Bx_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+        //         // By_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = By_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+        //         // Bz_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = Bz_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+        //         // e_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = e_np1[IDX3D(i, j, 0, Nx, Ny, Nz)];
+        //     }
+        // }
         
         /* 
         B.Cs on (i = 0, j, k) 
