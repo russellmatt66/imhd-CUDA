@@ -50,49 +50,49 @@ __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1,
                     rho_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRho(i, j, k, rho, 
                                                             rho_int, rhovx_int, rhovy_int, rhovz_int,
                                                             dt, dx, dy, dz, Nx, Ny, Nz)
-                                                        + numericalDiffusion(i, j, k, rho, D, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, rho, D, dx, dy, dz, Nx, Ny, Nz);
 
                     rhovx_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRhoVX(i, j, k, rhov_x, 
                                                                 rho_int, rhovx_int, rhovy_int, rhovz_int, 
                                                                 Bx_int, By_int, Bz_int, e_int, 
                                                                 dt, dx, dy, dz, Nx, Ny, Nz)
-                                                        + numericalDiffusion(i, j, k, rhov_x, D, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, rhov_x, D, dx, dy, dz, Nx, Ny, Nz);
 
                     rhovy_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRhoVY(i, j, k, rhov_y, 
                                                                 rho_int, rhovx_int, rhovy_int, rhovz_int,
                                                                 Bx_int, By_int, Bz_int, e_int, 
                                                                 dt, dx, dy, dz, Nx, Ny, Nz)
-                                                        + numericalDiffusion(i, j, k, rhov_y, D, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, rhov_y, D, dx, dy, dz, Nx, Ny, Nz);
 
                     rhovz_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRhoVZ(i, j, k, rhov_z, 
                                                                 rho_int, rhovx_int, rhovy_int, rhovz_int,
                                                                 Bx_int, By_int, Bz_int, e_int, 
                                                                 dt, dx, dy, dz, Nx, Ny, Nz)
-                                                        + numericalDiffusion(i, j, k, rhov_z, D, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, rhov_z, D, dx, dy, dz, Nx, Ny, Nz);
 
                     Bx_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvBX(i, j, k, Bx, 
                                                                 rho_int, rhovx_int, rhovy_int, rhovz_int, 
                                                                 Bx_int, By_int, Bz_int, 
                                                                 dt, dx, dy, dz, Nx, Ny, Nz)
-                                                        + numericalDiffusion(i, j, k, Bx, D, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, Bx, D, dx, dy, dz, Nx, Ny, Nz);
 
                     By_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvBY(i, j, k, By, 
                                                                 rho_int, rhovx_int, rhovy_int, rhovz_int, 
                                                                 Bx_int, By_int, Bz_int,
                                                                 dt, dx, dy, dz, Nx, Ny, Nz)
-                                                        + numericalDiffusion(i, j, k, By, D, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, By, D, dx, dy, dz, Nx, Ny, Nz);
 
                     Bz_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvBZ(i, j, k, Bz,
                                                                 rho_int, rhovx_int, rhovy_int, rhovz_int,
                                                                 Bx_int, By_int, Bz_int, 
                                                                 dt, dx, dy, dz, Nx, Ny, Nz)
-                                                        + numericalDiffusion(i, j, k, Bz, D, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, Bz, D, dx, dy, dz, Nx, Ny, Nz);
 
                     e_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvE(i, j, k, e, 
                                                                 rho_int, rhovx_int, rhovy_int, rhovz_int, 
                                                                 Bx_int, By_int, Bz_int, e_int, 
                                                                 dt, dx, dy, dz, Nx, Ny, Nz)
-                                                        + numericalDiffusion(i, j, k, e, D, Nx, Ny, Nz);
+                                                        + numericalDiffusion(i, j, k, e, D, dx, dy, dz, Nx, Ny, Nz);
 
                 }
             }
@@ -105,8 +105,10 @@ Boundary Conditions are:
 (1) Rigid, Perfectly-Conducting wall on top, bottom, and sides
 (2) Periodic in z
 */
-__global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
-    const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
+__global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, 
+    float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
+    const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, 
+    const float* Bx, const float* By, const float* Bz, const float* e, 
     float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
     const float D, const float dt, const float dx, const float dy, const float dz, 
     const int Nx, const int Ny, const int Nz)
@@ -675,6 +677,37 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
         }
         return;
      }
+
+// Swap buffer to avoid race conditions
+__global__ void SwapSimData(float* rho, float* rhov_x, float* rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e,
+    const float* rho_np1, const float* rhovx_np1, const float* rhovy_np1, const float* rhovz_np1, 
+    const float* Bx_np1, const float* By_np1, const float* Bz_np1, const float* e_np1,
+    const int Nx, const int Ny, const int Nz)
+    {
+        int tidx = threadIdx.x + blockDim.x * blockIdx.x;
+        int tidy = threadIdx.y + blockDim.y * blockIdx.y;
+        int tidz = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int xthreads = blockDim.x * gridDim.x;
+        int ythreads = blockDim.y * gridDim.y;
+        int zthreads = blockDim.z * gridDim.z;
+
+        for (int k = tidz; k < Nz; k += zthreads){
+            for (int i = tidx; i < Nx; i += xthreads){
+                for (int j = tidy; j < Ny; j += ythreads){
+                    rho[IDX3D(i, j, k, Nx, Ny, Nz)] = rho_np1[IDX3D(i, j, k, Nx, Ny, Nz)];
+                    rhov_x[IDX3D(i, j, k, Nx, Ny, Nz)] = rhovx_np1[IDX3D(i, j, k, Nx, Ny, Nz)];
+                    rhov_y[IDX3D(i, j, k, Nx, Ny, Nz)] = rhovy_np1[IDX3D(i, j, k, Nx, Ny, Nz)];
+                    rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)] = rhovz_np1[IDX3D(i, j, k, Nx, Ny, Nz)];
+                    Bx[IDX3D(i, j, k, Nx, Ny, Nz)] = Bx_np1[IDX3D(i, j, k, Nx, Ny, Nz)];
+                    By[IDX3D(i, j, k, Nx, Ny, Nz)] = By_np1[IDX3D(i, j, k, Nx, Ny, Nz)];
+                    Bz[IDX3D(i, j, k, Nx, Ny, Nz)] = Bz_np1[IDX3D(i, j, k, Nx, Ny, Nz)];
+                    e[IDX3D(i, j, k, Nx, Ny, Nz)] = e_np1[IDX3D(i, j, k, Nx, Ny, Nz)];
+                }
+            }
+        }
+        return;
+    } 
 
 /* LAX WENDROFF ADVANCES */
 __device__ float LaxWendroffAdvRho(const int i, const int j, const int k, 
@@ -1342,75 +1375,5 @@ __device__ float numericalDiffusion(const int i, const int j, const int k, const
             );
         return num_diff;
     }
-
-/* UNCERTAIN IF BELOW IS NECESSARY */
-// __global__ void IntermediateVarsInterior(const float* rho, 
-//     const float* rhov_x, const float* rhov_y, const float* rhov_z, 
-//     const float* Bx, const float* By, const float* Bz, const float* e,
-//     float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int,
-//     float* Bx_int, float* By_int, float* Bz_int, float* e_int, 
-//     const float dt, const float dx, const float dy, const float dz,
-//     const int Nx, const int Ny, const int Nz)
-//     {
-//         int tidx = threadIdx.x + blockDim.x * blockIdx.x; 
-//         int tidy = threadIdx.y + blockDim.y * blockIdx.y;
-//         int tidz = threadIdx.z + blockDim.z * blockIdx.z;
-//         int xthreads = gridDim.x * blockDim.x;
-//         int ythreads = gridDim.y * blockDim.y;
-//         int zthreads = gridDim.z * blockDim.z;
-
-//         for (int k = tidz + 1; k < Nz; k += zthreads){ // This nested loop order implements contiguous memory access
-//             for (int i = tidx + 1; i < Nx; i += xthreads){
-//                 for (int j = tidy + 1; j < Ny; j += ythreads){
-//                     /* IMPLEMENT INTERMEDIATE VARIABLE CALCULATION */
-//                     rho_int[IDX3D(i, j, k, Nx, Ny, Nz)] = intRho(i, j, k, rho, rhov_x, rhov_y, rhov_z,
-//                                                             dt, dx, dy, dz, Nx, Ny, Nz);
-//                     rhovx_int[IDX3D(i, j, k, Nx, Ny, Nz)] = intRhoVX(i, j, k, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e,
-//                                                             dt, dx, dy, dz, Nx, Ny, Nz);
-//                     rhovy_int[IDX3D(i, j, k, Nx, Ny, Nz)] = intRhoVY(i, j, k, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e,
-//                                                             dt, dx, dy, dz, Nx, Ny, Nz);
-//                     rhovz_int[IDX3D(i, j, k, Nx, Ny, Nz)] = intRhoVZ(i, j, k, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e,
-//                                                             dt, dx, dy, dz, Nx, Ny, Nz);
-//                     Bx_int[IDX3D(i, j, k, Nx, Ny, Nz)] = intBx(i, j, k, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, 
-//                                                             dt, dx, dy, dz, Nx, Ny, Nz);
-//                     By_int[IDX3D(i, j, k, Nx, Ny, Nz)] = intBy(i, j, k, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, 
-//                                                             dt, dx, dy, dz, Nx, Ny, Nz);
-//                     Bz_int[IDX3D(i, j, k, Nx, Ny, Nz)] = intBz(i, j, k, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, 
-//                                                             dt, dx, dy, dz, Nx, Ny, Nz);                
-//                     e_int[IDX3D(i, j, k, Nx, Ny, Nz)] = intE(i, j, k, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
-//                                                             dt, dx, dy, dz, Nx, Ny, Nz);                
-//                 }
-//             }
-//         }
-//     }
-
-// __global__ void IntermediateVarsBoundary(const float* rho, 
-//     const float* rhov_x, const float* rhov_y, const float* rhov_z, 
-//     const float* Bx, const float* By, const float* Bz, const float* e,
-//     float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int,
-//     float* Bx_int, float* By_int, float* Bz_int, float* e_int, 
-//     const float dt, const float dx, const float dy, const float dz,
-//     const int Nx, const int Ny, const int Nz)
-//     {
-//         // Execution configuration boilerplate
-//         int tidx = threadIdx.x + blockDim.x * blockIdx.x; 
-//         int tidy = threadIdx.y + blockDim.y * blockIdx.y;
-//         int tidz = threadIdx.z + blockDim.z * blockIdx.z;
-//         int xthreads = gridDim.x * blockDim.x;
-//         int ythreads = gridDim.y * blockDim.y;
-//         int zthreads = gridDim.z * blockDim.z;
-
-//         /* B.Cs on (i, j, k = 0) */
-
-//         /* B.Cs on (i, j, k = N-1) */
-
-//         /* B.Cs on (i = 0, j, k) */
-        
-//         /* B.Cs on (i = N-1, j, k) */
-
-//         /* B.Cs on (i, j = 0, k) */
-
-//         /* B.Cs on (i, j = N-1, k) */
-//     }
 
 #endif

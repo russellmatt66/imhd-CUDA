@@ -83,4 +83,43 @@ __global__ void InitializeGrid(const float x_min, const float x_max, const float
 
         return;
     }
+
+__global__ void InitializeIntAndSwap(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, 
+     float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
+     float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
+     const int Nx, const int Ny, const int Nz)
+     {
+        int tidx = threadIdx.x + blockDim.x * blockIdx.x;
+        int tidy = threadIdx.y + blockDim.y * blockIdx.y;
+        int tidz = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int xthreads = blockDim.x * gridDim.x;
+        int ythreads = blockDim.y * gridDim.y;
+        int zthreads = blockDim.z * gridDim.z;
+
+        for (int k = tidz; k < Nz; k += zthreads){
+            for (int i = tidx; i < Nx; i += xthreads){
+                for (int j = tidy; j < Ny; j += ythreads){
+                    rho_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    rhovx_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    rhovy_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    rhovz_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    Bx_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    By_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    Bz_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    e_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+
+                    rho_int[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    rhovx_int[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    rhovy_int[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    rhovz_int[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    Bx_int[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    By_int[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    Bz_int[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    e_int[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                }
+            }
+        }
+        return;
+     }
 #endif

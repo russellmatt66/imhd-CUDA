@@ -1,3 +1,12 @@
+# HIDING BUILD CMAKE FILES AND BINARY
+/build/CMakeFiles/*
+/build/Makefile
+/build/*.cmake
+/build/*.a
+/build/CMakeCache.txt
+/build/imhd_cuda
+
+# HIDING TEST CMAKE FILES 
 /test/library_test/CMakeFiles/*
 /test/library_test/*.cmake
 /test/library_test/Makefile

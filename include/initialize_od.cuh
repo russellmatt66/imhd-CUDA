@@ -14,4 +14,9 @@ __global__ void InitialConditions(float* rho, float* rhov_x, float* rhov_y, floa
     const float J0, const float* grid_x, const float* grid_y, const float* grid_z,
     const int Nx, const int Ny, const int Nz);
 
+__global__ void InitializeIntAndSwap(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, 
+     float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
+     float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
+     const int Nx, const int Ny, const int Nz);
+
 #endif

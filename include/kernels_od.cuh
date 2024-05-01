@@ -18,10 +18,24 @@ partitioned into two sets:
 #define m 1.67 * pow(10, -27) // [kg]
 
 /* DONT FORGET NUMERICAL DIFFUSION */
+__global__ void SwapSimData(float* rho, float* rhov_x, float* rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e,
+     const float* rho_np1, const float* rhovx_np1, const float* rhovy_np1, const float* rhovz_np1, 
+     const float* Bx_np1, const float* By_np1, const float* Bz_np1, const float* e_np1,
+     const int Nx, const int Ny, const int Nz); 
+
 __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
      const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
      float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
      const float D, const float dt, const float dx, const float dy, const float dz, 
+     const int Nx, const int Ny, const int Nz);
+
+/* DONT FORGET NUMERICAL DIFFUSION */
+__global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, 
+     float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
+     const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz, const float* e, 
+     float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
+     const float D, const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);
 
 __device__ float LaxWendroffAdvRho(const int i, const int j, const int k, 
@@ -77,14 +91,6 @@ __device__ float LaxWendroffAdvE(const int i, const int j, const int k,
      const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,
      const float* Bx_int, const float* By_int, const float* Bz_int, const float* e_int, 
      const float dt, const float dx, const float dy, const float dz,
-     const int Nx, const int Ny, const int Nz);
-     
-/* DONT FORGET NUMERICAL DIFFUSION */
-__global__ void BoundaryConditions(
-     float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, 
-     float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
-     const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, 
-     const float* Bx, const float* By, const float* Bz, const float* e, 
      const int Nx, const int Ny, const int Nz);
 
 // FLUX FUNCTIONS - Overloaded b/c of intermediate variable calculation
@@ -214,23 +220,7 @@ __device__ float ZFluxE(const int i, const int j, const int k,
      const float* Bx, const float* By, const float* Bz, const float* e, 
      const int Nx, const int Ny, const int Nz);
 
-/* INTERMEDIATE VARIABLES */
-// __global__ void IntermediateVarsInterior(const float* rho, 
-//     const float* rhov_x, const float* rhov_y, const float* rhov_z, 
-//     const float* Bx, const float* By, const float* Bz, const float* e,
-//     float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int,
-//     float* Bx_int, float* By_int, float* Bz_int, float* e_int, 
-//     const float dt, const float dx, const float dy, const float dz,
-//     const float Nx, const float Ny, const float Nz);
-
-// __global__ void IntermediateVarsBoundary(const float* rho, 
-//     const float* rhov_x, const float* rhov_y, const float* rhov_z, 
-//     const float* Bx, const float* By, const float* Bz, const float* e,
-//     float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int,
-//     float* Bx_int, float* By_int, float* Bz_int, float* e_int, 
-//     const float dt, const float dx, const float dy, const float dz,
-//     const float Nx, const float Ny, const float Nz);
-
+// Intermediate Variables
 __device__ float intRho(const int i, const int j, const int k, 
     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
     const float dt, const float dx, const float dy, const float dz, 
@@ -278,41 +268,6 @@ __device__ float intE(const int i, const int j, const int k,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
-// Intermediate flux functions
-// These should all be consts - fixing as I go
-/* Aren't these just regular flux functions with intermediate variables as arguments? */
-// __device__ float INTXFluxRho(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTYFluxRho(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTZFluxRho(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-
-// __device__ float INTXFluxRhoVX(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTYFluxRhoVX(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTZFluxRhoVX(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-
-// __device__ float INTXFluxRhoVY(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTYFluxRhoVY(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTZFluxRhoVY(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-
-// __device__ float INTXFluxRhoVZ(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTYFluxRhoVZ(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTZFluxRhoVZ(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-
-// __device__ float INTXFluxBX(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTYFluxBX(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTZFluxBX(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-
-// __device__ float INTXFluxBY(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTYFluxBY(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTZFluxBY(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-
-// __device__ float INTXFluxBZ(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTYFluxBZ(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTZFluxBZ(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-
-// __device__ float INTXFluxE(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTYFluxE(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-// __device__ float INTZFluxE(int i, int j, int k, float* rho, float* rhov_x, float *rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e, int N);
-
 // Helper Functions
 __device__ float B_sq(int i, int j, int k, const float* Bx, const float* By, const float* Bz, 
      const int Nx, const int Ny, const int Nz); // B / \sqrt{\mu_{0}} -> B 
@@ -328,5 +283,7 @@ __device__ float B_dot_u(int i, int j, int k, const float* rho, const float* rho
      const float* Bx, const float* By, const float* Bz, const int Nx, const int Ny, const int Nz);
 
 __device__ float numericalDiffusion(const int i, const int j, const int k, const float* fluid_var, 
-    const float D, const int Nx, const int Ny, const int Nz);
+    const float D, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz);
+
 #endif
