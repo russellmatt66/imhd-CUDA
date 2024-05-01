@@ -7,5 +7,5 @@ Build folder for `imhd-CUDA`
 - `$ make`
 
 # Run Instructions
-- `$ imhdLauncher.py`
+- `$ python3 imhdLauncher.py`
     - Make sure `imhd-CUDA.inp` is in the same folder

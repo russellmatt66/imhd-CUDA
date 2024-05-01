@@ -12,4 +12,4 @@ utils.hpp/
 - Header file for `utils.cpp`, containing function declarations
 
 # Current Tasks:
-(1) Connect simulation together
+(1) Add numerical diffusion at boundaries

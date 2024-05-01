@@ -105,9 +105,13 @@ int main(int argc, char* argv[]){
 
 	/* Simulation loop */
 	for (int it = 0; it < Nt; it++){
+		std::cout << "Starting iteration " << it << std::endl;
+
 		/* Write data out - use GPUDirect Storage (GDS) */
+		std::cout << "Writing data out with GDS" << std::endl;
 
 		/* Compute interior and boundaries*/
+		std::cout << "Evolving fluid interior and boundary" << std::endl; 
 		FluidAdvance<<<grid_dimensions, block_dimensions>>>(rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1, 
 																rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
 																rho_int, rhovx_int, rhovy_int, rhovz_int, Bx_int, By_int, Bz_int, e_int, 
@@ -119,6 +123,7 @@ int main(int argc, char* argv[]){
 		checkCuda(cudaDeviceSynchronize());
 		
 		/* Transfer future timestep data to current timestep in order to avoid race conditions */
+		std::cout << "Swapping future timestep to current" << std::endl;
 		SwapSimData<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
 															rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1,
 															Nx, Ny, Nz);

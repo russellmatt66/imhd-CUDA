@@ -1,7 +1,7 @@
-Nt=5000
-Nx=64
-Ny=64
-Nz=64
+Nt=500
+Nx=304
+Ny=304
+Nz=592
 SM_mult_x=1
 SM_mult_y=1
 SM_mult_z=1

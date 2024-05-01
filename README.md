@@ -3,10 +3,16 @@ Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD sys
 
 # Current Tasks
 (1) Run kernel and visualize results
+- Add Numerical Diffusion to PBCs
+- Write data out
 
 (2) Figure out how to change the maximum amount of device pinned memory
 - `test/gds/max_pinned` 
 
+(3) Benchmark
+- Kernel
+- BCs
+- Swap buffer
 
 # Design
 ## On-Device or Host-Device?

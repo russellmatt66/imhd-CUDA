@@ -4,5 +4,6 @@ Source directory
 # Directory Structure
 
 # Current Tasks
-(1) Visualize Initial Conditions
-- `imhd-CUDA/test/vtk/`
+(1) Add numerical diffusion at boundaries
+
+(2) Write the data out with GDS
