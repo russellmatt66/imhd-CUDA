@@ -5,6 +5,7 @@
 
 #include "../include/kernels_od.cuh"
 #include "../include/initialize_od.cuh"
+#include "../include/gds.cuh"
 
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define checkCuda(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -55,7 +56,7 @@ int main(int argc, char* argv[]){
 	float *rho_int, *rhovx_int, *rhovy_int, *rhovz_int, *Bx_int, *By_int, *Bz_int, *e_int;
 	float *grid_x, *grid_y, *grid_z;
 
-	uint64_t fluid_data_size = sizeof(float) * Nx * Ny * Nz;
+	int fluid_data_size = sizeof(float) * Nx * Ny * Nz;
 
 	/* MALLOC TO DEVICE */
 	checkCuda(cudaMalloc(&rho, fluid_data_size));
@@ -104,11 +105,12 @@ int main(int argc, char* argv[]){
 	checkCuda(cudaDeviceSynchronize());
 
 	/* Simulation loop */
-	for (int it = 0; it < Nt; it++){
+	for (size_t it = 0; it < Nt; it++){
 		std::cout << "Starting iteration " << it << std::endl;
 
 		/* Write data out - use GPUDirect Storage (GDS) */
 		std::cout << "Writing data out with GDS" << std::endl;
+		writeFluidDataGDS(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx * Ny * Nz, it);
 
 		/* Compute interior and boundaries*/
 		std::cout << "Evolving fluid interior and boundary" << std::endl; 

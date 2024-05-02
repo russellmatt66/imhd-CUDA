@@ -5,8 +5,19 @@
 /build/*.a
 /build/CMakeCache.txt
 /build/imhd_cuda
+/build/*.log
 
-# HIDING TEST CMAKE FILES 
+# HIDING DATA FILES
+/data/rho/*
+/data/rhovx/*
+/data/rhovy/*
+/data/rhovz/*
+/data/Bx/*
+/data/By/*
+/data/Bz/*
+/data/e/*
+
+# HIDING CMAKE AND DATA FILES from `/test/` 
 /test/library_test/CMakeFiles/*
 /test/library_test/*.cmake
 /test/library_test/Makefile

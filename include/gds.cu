@@ -72,6 +72,37 @@ void writeDataGDS(const char* filename, const float* data, const int size){
     return;
 }
 
+void writeFluidDataGDS(const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+    const float* Bx, const float* By, const float* Bz, const float* e, 
+    const int size, const int nt)
+    {
+        std::string filename = "../data/rho/rho_" + std::to_string(nt) + ".dat";
+        writeDataGDS(filename.data(), rho, size);
+
+        filename = "../data/rhovx/rhovx_" + std::to_string(nt) + ".dat";
+        writeDataGDS(filename.data(), rhov_x, size);
+
+        filename = "../data/rhovy/rhovy_" + std::to_string(nt) + ".dat";
+        writeDataGDS(filename.data(), rhov_y, size);
+
+        filename = "../data/rhovz/rhovz_" + std::to_string(nt) + ".dat";
+        writeDataGDS(filename.data(), rhov_z, size);
+
+        filename = "../data/Bx/Bx_" + std::to_string(nt) + ".dat";
+        writeDataGDS(filename.data(), Bx, size);
+
+        filename = "../data/By/By_" + std::to_string(nt) + ".dat";
+        writeDataGDS(filename.data(), By, size);
+
+        filename = "../data/Bz/Bz_" + std::to_string(nt) + ".dat";
+        writeDataGDS(filename.data(), Bz, size);
+
+        filename = "../data/e/e_" + std::to_string(nt) + ".dat";
+        writeDataGDS(filename.data(), e, size);
+
+        std::cout << "Data successfully written out with GDS" << std::endl;
+    }
+
 // write x0 x1 ... xN-1 y0 y1 ... yN-1 z0 z1 ... zN-1
 void writeGridBasisGDS(const char* filename, const float* x_grid, const float* y_grid, const float* z_grid, const int Nx, const int Ny, const int Nz){
     int fd = -1;

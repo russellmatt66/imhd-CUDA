@@ -125,11 +125,9 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
         Periodic B.Cs on (i, j, k = 0) and (i, j, k = N - 1)
         FRONT (I)
         BACK (VI) 
-        MIGHT DO BOTH FACES: (I) + (VI) HERE  
         */
         for (int i = tidx + 1; i < Nx - 1; i += xthreads){
             for (int j = tidy + 1; j < Ny - 1; j += ythreads){
-                /* IMPLEMENT */
                 /* NEED TO SOLVE IMHD EQUATIONS FIRST ON BOTH FACES, CONSIDERING PERIODICITY */
                 // (1) Calculate Intermediate Variables at the relevant locations
                 // k = 0
@@ -348,7 +346,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                         - 0.5 * (dt / dz) * (
                                                             ZFluxRho(i, j, 1, rhovz_int, Nx, Ny, Nz)
                                                             - ZFluxRho(i, j, 0, rhovz_int, Nx, Ny, Nz)
-                                                        );
+                                                        )
+                                                        - numericalDiffusionFront(i, j, rho, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions
                 
                 rhovx_np1[IDX3D(i, j, 0, Nx, Ny, Nz)] = 0.5 * (rhov_x[IDX3D(i, j, 0, Nx, Ny, Nz)] + rhovx_int[IDX3D(i, j, 0, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (
@@ -364,7 +363,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                         - 0.5 * (dt / dz) * (
                                                             ZFluxRhoVX(i, j, 1, rho_int, rhovx_int, rhovz_int, Bx_int, Bz_int, Nx, Ny, Nz)
                                                             - ZFluxRhoVX(i, j, 0, rho_int, rhovx_int, rhovz_int, Bx_int, Bz_int, Nx, Ny, Nz)
-                                                        );
+                                                        )
+                                                        - numericalDiffusionFront(i, j, rhov_x, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions
                 
                 rhovy_np1[IDX3D(i, j, 0, Nx, Ny, Nz)] = 0.5 * (rhov_y[IDX3D(i, j, 0, Nx, Ny, Nz)] + rhovy_int[IDX3D(i, j, 0, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (
@@ -380,7 +380,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                         - 0.5 * (dt / dz) * (
                                                             ZFluxRhoVY(i, j, 1, rho_int, rhovy_int, rhovz_int, By_int, Bz_int, Nx, Ny, Nz)
                                                             - ZFluxRhoVY(i, j, 0, rho_int, rhovy_int, rhovz_int, By_int, Bz_int, Nx, Ny, Nz)
-                                                        );
+                                                        )
+                                                        - numericalDiffusionFront(i, j, rhov_y, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions
 
                 rhovz_np1[IDX3D(i, j, 0, Nx, Ny, Nz)] = 0.5 * (rhov_z[IDX3D(i, j, 0, Nx, Ny, Nz)] + rhovz_int[IDX3D(i, j, 0, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (
@@ -396,7 +397,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                                 Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz)
                                                             - ZFluxRhoVZ(i, j, 0, rho_int, rhovx_int, rhovy_int, rhovz_int, 
                                                                 Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz)
-                                                        );
+                                                        )
+                                                        - numericalDiffusionFront(i, j, rhov_z, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions
 
                 Bx_np1[IDX3D(i, j, 0, Nx, Ny, Nz)] = 0.5 * (Bx[IDX3D(i, j, 0, Nx, Ny, Nz)] + Bx_int[IDX3D(i, j, 0, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (
@@ -409,7 +411,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                         - 0.5 * (dt / dz) * (
                                                             ZFluxBX(i, j, 1, rho_int, rhovx_int, rhovz_int, Bx_int, Bz_int, Nx, Ny, Nz)
                                                             - ZFluxBX(i, j, 0, rho_int, rhovx_int, rhovz_int, Bx_int, Bz_int, Nx, Ny, Nz)
-                                                        );
+                                                        )
+                                                        - numericalDiffusionFront(i, j, Bx, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions
 
                 By_np1[IDX3D(i, j, 0, Nx, Ny, Nz)] = 0.5 * (By[IDX3D(i, j, 0, Nx, Ny, Nz)] + By_int[IDX3D(i, j, 0, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (
@@ -422,7 +425,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                         - 0.5 * (dt / dz) * (
                                                             ZFluxBY(i, j, 1, rho_int, rhovy_int, rhovz_int, By_int, Bz_int, Nx, Ny, Nz)
                                                             - ZFluxBY(i, j, 0, rho_int, rhovy_int, rhovz_int, By_int, Bz_int, Nx, Ny, Nz)
-                                                        );
+                                                        )
+                                                        - numericalDiffusionFront(i, j, By, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions
 
                 Bz_np1[IDX3D(i, j, 0, Nx, Ny, Nz)] = 0.5 * (Bz[IDX3D(i, j, 0, Nx, Ny, Nz)] + Bz_int[IDX3D(i, j, 0, Nx, Ny, Nz)]) 
                                                         - 0.5 * (dt / dx) * (
@@ -435,7 +439,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                         )
                                                         - 0.5 * (dt / dz) * (
                                                             ZFluxBZ() - ZFluxBZ()
-                                                        );
+                                                        )
+                                                        - numericalDiffusionFront(i, j, Bz, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions
 
                 e_np1[IDX3D(i, j, 0, Nx, Ny, Nz)] = 0.5 * (e[IDX3D(i, j, 0, Nx, Ny, Nz)] + e_int[IDX3D(i, j, 0, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (
@@ -455,7 +460,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                                 Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz)
                                                             - ZFluxE(i, j, 0, rho_int, rhovx_int, rhovy_int, rhovz_int, 
                                                                 Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz)
-                                                        );
+                                                        )
+                                                        - numericalDiffusionFront(i, j, e, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions;
 
                 // k = Nz - 1
                 rho_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = 0.5 * (rho[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] + rho_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)])
@@ -470,7 +476,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                         - 0.5 * (dt / dz) * (
                                                             ZFluxRho(i, j, 1, rhovz_int, Nx, Ny, Nz)
                                                             - ZFluxRho(i, j, Nz - 1, rhovz_int, Nx, Ny, Nz)
-                                                        );
+                                                        )
+                                                        - numericalDiffusionBack(i, j, rho, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions
                 
                 rhovx_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = 0.5 * (rhov_x[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] + rhovx_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (
@@ -486,7 +493,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                         - 0.5 * (dt / dz) * (
                                                             ZFluxRhoVX(i, j, 1, rho_int, rhovx_int, rhovz_int, Bx_int, Bz_int, Nx, Ny, Nz)
                                                             - ZFluxRhoVX(i, j, Nz - 1, rho_int, rhovx_int, rhovz_int, Bx_int, Bz_int, Nx, Ny, Nz)
-                                                        );
+                                                        )
+                                                        - numericalDiffusionBack(i, j, rhov_x, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions
                 
                 rhovy_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = 0.5 * (rhov_y[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] + rhovy_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (
@@ -502,7 +510,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                         - 0.5 * (dt / dz) * (
                                                             ZFluxRhoVY(i, j, 1, rho_int, rhovy_int, rhovz_int, By_int, Bz_int, Nx, Ny, Nz)
                                                             - ZFluxRhoVY(i, j, Nz - 1, rho_int, rhovy_int, rhovz_int, By_int, Bz_int, Nx, Ny, Nz)
-                                                        );
+                                                        )
+                                                        - numericalDiffusionBack(i, j, rhov_y, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions
 
                 rhovz_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = 0.5 * (rhov_z[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] + rhovz_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (
@@ -518,7 +527,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                                 Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz)
                                                             - ZFluxRhoVZ(i, j, Nz - 1, rho_int, rhovx_int, rhovy_int, rhovz_int, 
                                                                 Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz)
-                                                        );
+                                                        )
+                                                        - numericalDiffusionBack(i, j, rhov_z, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions
 
 
                 Bx_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = 0.5 * (Bx[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] + Bx_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)])
@@ -532,7 +542,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                         - 0.5 * (dt / dz) * (
                                                             ZFluxBX(i, j, 1, rho_int, rhovx_int, rhovz_int, Bx_int, Bz_int, Nx, Ny, Nz)
                                                             - ZFluxBX(i, j, Nz - 1, rho_int, rhovx_int, rhovz_int, Bx_int, Bz_int, Nx, Ny, Nz)
-                                                        );
+                                                        )
+                                                        - numericalDiffusionBack(i, j, Bx, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions
 
                 By_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = 0.5 * (By[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] + By_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (
@@ -545,7 +556,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                         - 0.5 * (dt / dz) * (
                                                             ZFluxBY(i, j, 1, rho_int, rhovy_int, rhovz_int, By_int, Bz_int, Nx, Ny, Nz)
                                                             - ZFluxBY(i, j, Nz - 1, rho_int, rhovy_int, rhovz_int, By_int, Bz_int, Nx, Ny, Nz)
-                                                        );
+                                                        )
+                                                        - numericalDiffusionBack(i, j, By, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions
 
                 Bz_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = 0.5 * (Bz[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] + Bz_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (
@@ -558,7 +570,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                         )
                                                         - 0.5 * (dt / dz) * (
                                                             ZFluxBZ() - ZFluxBZ()
-                                                        );
+                                                        )
+                                                        - numericalDiffusionBack(i, j, Bz, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions
 
                 e_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] = 0.5 * (e[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] + e_int[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (
@@ -578,7 +591,8 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
                                                                 Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz)
                                                             - ZFluxE(i, j, Nz - 1, rho_int, rhovx_int, rhovy_int, rhovz_int,
                                                                 Bx_int, By_int, Bz_int, e_int, Nx, Ny, Nz)
-                                                        );
+                                                        )
+                                                        - numericalDiffusionBack(i, j, e, D, dx, dy, dz, Nx, Ny, Nz); // Periodic boundary conditions 
 
                 /* THEN, ACCUMULATE THE RESULTS ONTO ONE FACE, MAP AROUND TO THE OTHER, AND CONTINUE */
                 rho_np1[IDX3D(i, j, 0, Nx, Ny, Nz)] += rho_np1[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)];
@@ -1372,6 +1386,38 @@ __device__ float numericalDiffusion(const int i, const int j, const int k, const
             (1.0 / pow(dx, 2)) * (fluid_var[IDX3D(i+1, j, k, Nx, Ny, Nz)] - 2.0*fluid_var[IDX3D(i, j, k, Nx, Ny, Nz)] + fluid_var[IDX3D(i-1, j, k, Nx, Ny, Nz)])
             + (1.0 / pow(dy, 2)) * (fluid_var[IDX3D(i, j+1, k, Nx, Ny, Nz)] - 2.0*fluid_var[IDX3D(i, j, k, Nx, Ny, Nz)] + fluid_var[IDX3D(i, j-1, k, Nx, Ny, Nz)])
             + (1.0 / pow(dz, 2)) * (fluid_var[IDX3D(i, j, k+1, Nx, Ny, Nz)] - 2.0*fluid_var[IDX3D(i, j, k, Nx, Ny, Nz)] + fluid_var[IDX3D(i, j, k-1, Nx, Ny, Nz)])
+            );
+        return num_diff;
+    }
+
+// Implements numerical diffusion on the front plane of the simulation grid (k = 0)
+// Periodic boundary conditions are the reason
+// 2nd-order central difference
+__device__ float numericalDiffusionFront(const int i, const int j, const float* fluid_var, 
+    const float D, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz)
+    {
+        float num_diff = 0.0;
+        num_diff = D * (
+            (1.0 / pow(dx, 2)) * (fluid_var[IDX3D(i+1, j, 0, Nx, Ny, Nz)] - 2.0*fluid_var[IDX3D(i, j, 0, Nx, Ny, Nz)] + fluid_var[IDX3D(i-1, j, 0, Nx, Ny, Nz)])
+            + (1.0 / pow(dy, 2)) * (fluid_var[IDX3D(i, j+1, 0, Nx, Ny, Nz)] - 2.0*fluid_var[IDX3D(i, j, 0, Nx, Ny, Nz)] + fluid_var[IDX3D(i, j-1, 0, Nx, Ny, Nz)])
+            + (1.0 / pow(dz, 2)) * (fluid_var[IDX3D(i, j, 1, Nx, Ny, Nz)] - 2.0*fluid_var[IDX3D(i, j, 0, Nx, Ny, Nz)] + fluid_var[IDX3D(i, j, Nz - 2, Nx, Ny, Nz)])
+            );
+        return num_diff;
+    }
+
+// Implements numerical diffusion on the back plane of the simulation grid (k = Nz - 1)
+// Periodic boundary conditions are the reason
+// 2nd-order central difference
+__device__ float numericalDiffusionBack(const int i, const int j, const float* fluid_var, 
+    const float D, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz)
+    {
+        float num_diff = 0.0;
+        num_diff = D * (
+            (1.0 / pow(dx, 2)) * (fluid_var[IDX3D(i+1, j, Nz - 1, Nx, Ny, Nz)] - 2.0*fluid_var[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] + fluid_var[IDX3D(i-1, j, Nz - 1, Nx, Ny, Nz)])
+            + (1.0 / pow(dy, 2)) * (fluid_var[IDX3D(i, j+1, Nz - 1, Nx, Ny, Nz)] - 2.0*fluid_var[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] + fluid_var[IDX3D(i, j-1, Nz - 1, Nx, Ny, Nz)])
+            + (1.0 / pow(dz, 2)) * (fluid_var[IDX3D(i, j, 1, Nx, Ny, Nz)] - 2.0*fluid_var[IDX3D(i, j, Nz - 1, Nx, Ny, Nz)] + fluid_var[IDX3D(i, j, Nz - 2, Nx, Ny, Nz)])
             );
         return num_diff;
     }

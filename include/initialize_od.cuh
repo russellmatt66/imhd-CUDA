@@ -3,8 +3,8 @@
 
 // physical constants
 #define gamma 5.0 / 3.0
-#define q_e 1.6 * pow(10, -19) // [C]
-#define m 1.67 * pow(10, -27) // [kg]
+// #define q_e 1.6 * pow(10, -19) // [C]
+// #define m 1.67 * pow(10, -27) // [kg]
 
 __global__ void InitializeGrid(const float x_min, const float x_max, const float y_min, const float y_max, const float z_min, const float z_max, 
     const float dx, const float dy, const float dz, float* grid_x, float* grid_y, float* grid_z, 

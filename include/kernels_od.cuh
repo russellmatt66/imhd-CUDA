@@ -14,8 +14,8 @@ partitioned into two sets:
 
 // physical constants
 #define gamma 5.0 / 3.0
-#define q_e 1.6 * pow(10,-19) // [C]
-#define m 1.67 * pow(10, -27) // [kg]
+// #define q_e 1.6 * pow(10,-19) // [C]
+// #define m 1.67 * pow(10, -27) // [kg]
 
 /* DONT FORGET NUMERICAL DIFFUSION */
 __global__ void SwapSimData(float* rho, float* rhov_x, float* rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e,
@@ -286,4 +286,11 @@ __device__ float numericalDiffusion(const int i, const int j, const int k, const
     const float D, const float dx, const float dy, const float dz, 
     const int Nx, const int Ny, const int Nz);
 
+__device__ float numericalDiffusionFront(const int i, const int j, const float* fluid_var, 
+    const float D, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz);
+
+__device__ float numericalDiffusionBack(const int i, const int j, const float* fluid_var, 
+    const float D, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz);
 #endif
