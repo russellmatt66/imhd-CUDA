@@ -17,6 +17,14 @@
 /data/Bz/*
 /data/e/*
 
+# HIDING CMAKE FILES FROM `/benchmarking/`
+/benchmarking/build/CMakeFiles/*
+/benchmarking/build/*.cmake
+/benchmarking/build/Makefile
+/benchmarking/build/*.a
+/benchmarking/build/imhd-cuda_bench
+/benchmarking/build/CMakeCache.txt
+
 # HIDING CMAKE AND DATA FILES from `/test/` 
 /test/library_test/CMakeFiles/*
 /test/library_test/*.cmake
