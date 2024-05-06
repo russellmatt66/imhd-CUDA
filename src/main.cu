@@ -39,6 +39,14 @@ int main(int argc, char* argv[]){
 	float z_min = atof(argv[17]);
 	float z_max = atof(argv[18]);
 	float dt = atof(argv[19]);
+	// int write_rho = atoi(argv[20]); // Data volume gets very large
+	// int write_rhovx = atoi(argv[21]);
+	// int write_rhovy = atoi(argv[22]);
+	// int write_rhovz = atoi(argv[23]);
+	// int write_Bx = atoi(argv[24]);
+	// int write_By = atoi(argv[25]);
+	// int write_Bz = atoi(argv[26]);
+	// int write_e = atoi(argv[27]);
 
 	float dx = (x_max - x_min) / (Nx - 1);
 	float dy = (y_max - y_min) / (Ny - 1);
@@ -50,6 +58,13 @@ int main(int argc, char* argv[]){
 
 	cudaGetDevice(&deviceId);
 	cudaDeviceGetAttribute(&numberOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
+
+	int* to_write_or_not;
+	to_write_or_not = (int*)malloc(8 * sizeof(int));
+
+	for (int i = 0; i < 8; i++){
+		to_write_or_not[i] = atoi(argv[20 + i]);
+	}
 
 	float *rho, *rhov_x, *rhov_y, *rhov_z, *Bx, *By, *Bz, *e;
 	float *rho_np1, *rhovx_np1, *rhovy_np1, *rhovz_np1, *Bx_np1, *By_np1, *Bz_np1, *e_np1;
@@ -104,13 +119,15 @@ int main(int argc, char* argv[]){
 																Nx, Ny, Nz); // All 0.0
 	checkCuda(cudaDeviceSynchronize());
 
+	writeGridBasisGDS("../data/grid_basis.dat", grid_x, grid_y, grid_z, Nx, Ny, Nz);
+
 	/* Simulation loop */
 	for (size_t it = 0; it < Nt; it++){
 		std::cout << "Starting iteration " << it << std::endl;
 
 		/* Write data out - use GPUDirect Storage (GDS) */
 		std::cout << "Writing data out with GDS" << std::endl;
-		writeFluidDataGDS(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx * Ny * Nz, it);
+		writeFluidDataGDS(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx * Ny * Nz, it, to_write_or_not);
 
 		/* Compute interior and boundaries*/
 		std::cout << "Evolving fluid interior and boundary" << std::endl; 
@@ -160,5 +177,7 @@ int main(int argc, char* argv[]){
 	checkCuda(cudaFree(Bz_int));
 	checkCuda(cudaFree(e_int));
 
+	/* Free host data */
+	free(to_write_or_not);
 	return 0;
 }

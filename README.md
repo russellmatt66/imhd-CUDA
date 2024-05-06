@@ -8,6 +8,7 @@ Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD sys
 
 (2) Figure out how to change the maximum amount of device pinned memory
 - `test/gds/max_pinned` 
+- Is this resolved?
 
 (3) Benchmark
 - Kernel

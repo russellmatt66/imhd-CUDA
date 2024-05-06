@@ -12,4 +12,5 @@ utils.hpp/
 - Header file for `utils.cpp`, containing function declarations
 
 # Current Tasks:
-(1) Add numerical diffusion at boundaries
+(1) Count number of floating point operations occurring in the kernels
+(2) Complete README

@@ -74,31 +74,47 @@ void writeDataGDS(const char* filename, const float* data, const int size){
 
 void writeFluidDataGDS(const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
     const float* Bx, const float* By, const float* Bz, const float* e, 
-    const int size, const int nt)
+    const int size, const int nt, const int *write_or_not)
     {
         std::string filename = "../data/rho/rho_" + std::to_string(nt) + ".dat";
-        writeDataGDS(filename.data(), rho, size);
+        if (write_or_not[0]){ // Data volume gets very large for a 512GB SSD
+            writeDataGDS(filename.data(), rho, size);
+        }
 
         filename = "../data/rhovx/rhovx_" + std::to_string(nt) + ".dat";
-        writeDataGDS(filename.data(), rhov_x, size);
+        if (write_or_not[1]){
+            writeDataGDS(filename.data(), rhov_x, size);
+        }
 
         filename = "../data/rhovy/rhovy_" + std::to_string(nt) + ".dat";
-        writeDataGDS(filename.data(), rhov_y, size);
+        if (write_or_not[2]){
+            writeDataGDS(filename.data(), rhov_y, size);     
+        }
 
         filename = "../data/rhovz/rhovz_" + std::to_string(nt) + ".dat";
-        writeDataGDS(filename.data(), rhov_z, size);
+        if (write_or_not[3]){
+            writeDataGDS(filename.data(), rhov_z, size);   
+        }
 
         filename = "../data/Bx/Bx_" + std::to_string(nt) + ".dat";
-        writeDataGDS(filename.data(), Bx, size);
+        if (write_or_not[4]){
+            writeDataGDS(filename.data(), Bx, size);            
+        }
 
         filename = "../data/By/By_" + std::to_string(nt) + ".dat";
-        writeDataGDS(filename.data(), By, size);
+        if (write_or_not[5]){
+            writeDataGDS(filename.data(), By, size);
+        }
 
         filename = "../data/Bz/Bz_" + std::to_string(nt) + ".dat";
-        writeDataGDS(filename.data(), Bz, size);
+        if (write_or_not[6]){
+            writeDataGDS(filename.data(), Bz, size);            
+        }
 
         filename = "../data/e/e_" + std::to_string(nt) + ".dat";
-        writeDataGDS(filename.data(), e, size);
+        if (write_or_not[7]){
+            writeDataGDS(filename.data(), e, size);
+        }
 
         std::cout << "Data successfully written out with GDS" << std::endl;
     }

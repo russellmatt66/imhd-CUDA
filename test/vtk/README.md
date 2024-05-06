@@ -13,7 +13,3 @@ ics_test_gds/
 - Figure out max pinned memory problem
 - Visualize `rho_ics.dat`
 
-(2) Complete `ics_test_hostbuf`
-- Working on VTK visualization scripts
--- Python prototype: `ics_vis/rho_vis.py`
-

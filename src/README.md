@@ -5,5 +5,4 @@ Source directory
 
 # Current Tasks
 (1) Write the data out with GDS
-- Implement functionality to choose which data to write out for a given run
-- Also, maybe only write out data every hundred timesteps or so
+- Implement feature to write out data every given number of timesteps or so
