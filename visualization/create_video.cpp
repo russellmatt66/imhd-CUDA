@@ -14,15 +14,18 @@
 #include <vtkAbstractArray.h>
 #include <vtkScalarBarActor.h>
 #include <vtkLookupTable.h>
+#include <vtkFFMPEGWriter.h>
 
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <cstring>
+#include <filesystem>
+namespace fs = std::filesystem;
 
 int fillImageBuffer(const std::string data_file, std::vector<float>& image_data);
-void renderFrame(const std::string fluid_data_filename, const vtkSmartPointer<vtkPoints> grid_points, const int Nx, const int Ny, const int Nz);
+// void renderFrame(const std::string fluid_data_filename, const vtkSmartPointer<vtkPoints> grid_points, const int Nx, const int Ny, const int Nz);
 
 /* CREATE AN ANIMATION OUT OF THE DATA FILES IN A GIVEN DIRECTORY */
 int main(int argc, char* argv[]){
@@ -66,7 +69,7 @@ int main(int argc, char* argv[]){
 
     std::vector<float> x_grid, y_grid, z_grid, grid_data;
 
-    Ng = fillImageBuffer("../data/grid_basis.dat", grid_data); // returns number of points
+    Ng = fillImageBuffer("../../data/grid_basis.dat", grid_data); // returns number of points
     for (int l = 0; l < Ng; l++){
         if (l < Nx){ x_grid.push_back(grid_data[l]); } // Look inside "../include/gds.cu: `WriteGridBasisGDS()`" for structure of grid data
         else if (l < Nx + Ny) { y_grid.push_back(grid_data[l]); }
@@ -84,10 +87,20 @@ int main(int argc, char* argv[]){
         }
     }
 
+    vtkSmartPointer<vtkFFMPEGWriter> avi_writer = vtkSmartPointer<vtkFFMPEGWriter>::New();
+    avi_writer->SetFileName("imhd_video.avi");
+
+    std::vector<std::string> imhd_datafiles;
+    for (const auto & data_file : fs::directory_iterator(data_directory)){
+        std::cout << data_file.path() << std::endl;
+        imhd_datafiles.push_back(data_file.path());
+    }
+
     return 0;
 }
 
 int fillImageBuffer(const std::string data_file, std::vector<float>& image_data){
+    std::cout << "Data file is: " << data_file << std::endl;
     std::ifstream infile(data_file, std::ios::binary);
     if (!infile) {
         std::cerr << "Error opening file." << std::endl;
@@ -100,6 +113,7 @@ int fillImageBuffer(const std::string data_file, std::vector<float>& image_data)
     
     for (size_t l = 0; l < num_points; l++){
         std::memcpy(&temp, &buffer[l * sizeof(float)], sizeof(float));
+        std::cout << "l = " << l << ", temp = " << std::endl;
         image_data.push_back(temp);
     }
     infile.close();
@@ -108,7 +122,8 @@ int fillImageBuffer(const std::string data_file, std::vector<float>& image_data)
     return num_points;
 }
 
-void renderFrame(const std::string fluid_data_filename, const vtkSmartPointer<vtkPoints> grid_points, const int Nx, const int Ny, const int Nz){
-    /* GO THROUGH VISUALIZATION PIPELINE BUT RENDER TO AN IMAGE INSTEAD */
-    return;
-}
+/* DONT NEED THIS, CAN USE vtkFFMPEGWRITER INSTEAD */
+// void renderFrame(const std::string fluid_data_filename, const vtkSmartPointer<vtkPoints> grid_points, const int Nx, const int Ny, const int Nz){
+//     /* GO THROUGH VISUALIZATION PIPELINE BUT RENDER TO AN IMAGE INSTEAD */
+//     return;
+// }

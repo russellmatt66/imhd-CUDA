@@ -69,7 +69,7 @@ int main(int argc, char* argv[]){
 	float *rho, *rhov_x, *rhov_y, *rhov_z, *Bx, *By, *Bz, *e;
 	float *rho_np1, *rhovx_np1, *rhovy_np1, *rhovz_np1, *Bx_np1, *By_np1, *Bz_np1, *e_np1;
 	float *rho_int, *rhovx_int, *rhovy_int, *rhovz_int, *Bx_int, *By_int, *Bz_int, *e_int;
-	float *grid_x, *grid_y, *grid_z;
+	float *grid_x, *grid_y, *grid_z, *grid_buffer;
 
 	int fluid_data_size = sizeof(float) * Nx * Ny * Nz;
 
@@ -118,8 +118,6 @@ int main(int argc, char* argv[]){
 																rho_int, rhovx_int, rhovy_int, rhovz_int, Bx_int, By_int, Bz_int, e_int, 
 																Nx, Ny, Nz); // All 0.0
 	checkCuda(cudaDeviceSynchronize());
-
-	writeGridBasisGDS("../data/grid_basis.dat", grid_x, grid_y, grid_z, Nx, Ny, Nz);
 
 	/* Simulation loop */
 	for (size_t it = 0; it < Nt; it++){
@@ -176,6 +174,10 @@ int main(int argc, char* argv[]){
 	checkCuda(cudaFree(By_int));
 	checkCuda(cudaFree(Bz_int));
 	checkCuda(cudaFree(e_int));
+
+	checkCuda(cudaFree(grid_x));
+	checkCuda(cudaFree(grid_y));
+	checkCuda(cudaFree(grid_z));
 
 	/* Free host data */
 	free(to_write_or_not);

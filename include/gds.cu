@@ -214,6 +214,7 @@ void writeGridBasisGDS(const char* filename, const float* x_grid, const float* y
 }
 
 // Write x0 y0 z0 x0 y1 z0 x0 y2 z0 ... x1 y0 z0 x1 y1 z0 ... xN-1 yN-1 z0 x0 y0 z1 x0 y1 z1 ... xN-1 yN-1 zN-1
+// `grid_data` is written by `writeGridBuffer()`
 void writeGridGDS(const char* filename, const float* grid_data, const int Nx, const int Ny, const int Nz){
     int fd = -1;
     ssize_t ret = -1;
@@ -287,19 +288,12 @@ __global__ void WriteGridBuffer(float* buffer, const float* x_grid, const float*
     int zthreads = gridDim.z * blockDim.z;
 
     // buffer looks like: x0 y0 z0 x0 y1 z0 ... x0 yN-1 z0 x1 y0 z0 x1 y1 z0 ... xN-1 yN-1 z0 x0 y0 z1 x0 y1 z1 ... xN-1 yN-1 zN-1 
-    // FIX: Not writing the correct pattern
-    //  - Basic problem is IDX3D(...) doesn't compute the correct location for this
-    // FIXED
     for (int k = tidz; k < Nz; k += zthreads){
         for (int i = tidx; i < Nx; i += xthreads){
             for (int j = tidy; j < Ny; j += ythreads){
                 buffer[3 * IDX3D(i, j, k, Nx, Ny, Nz)] = x_grid[i];
                 buffer[3 * IDX3D(i, j, k, Nx, Ny, Nz) + 1] = y_grid[j];
                 buffer[3 * IDX3D(i, j, k, Nx, Ny, Nz) + 2] = z_grid[k];
-                // buffer[IDXGRID(i, j, k, *num_points, Nx, Ny, Nz)] = x_grid[i];
-                // buffer[IDXGRID(i, j, k, *num_points, Nx, Ny, Nz) + 1] = y_grid[j];
-                // buffer[IDXGRID(i, j, k, *num_points, Nx, Ny, Nz) + 2] = z_grid[k]; 
-                // *num_points++;
             }
         }
     }

@@ -25,6 +25,10 @@
 /benchmarking/build/imhd-cuda_bench
 /benchmarking/build/CMakeCache.txt
 
+# HIDING CMAKE FILES FROM `./visualization/`
+/visualization/build/*
+!/visualization/README.md
+
 # HIDING CMAKE AND DATA FILES from `/test/` 
 /test/library_test/CMakeFiles/*
 /test/library_test/*.cmake

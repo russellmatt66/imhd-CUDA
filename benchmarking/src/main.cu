@@ -126,6 +126,7 @@ int main(int argc, char* argv[]){
 		std::cout << "Starting iteration " << it << std::endl;
 
 		std::cout << "Evolving fluid interior and boundary" << std::endl; 
+		/* DO 1000 REPS of KERNEL B/W RECORDING */
         cudaEventRecord(start);
 		FluidAdvance<<<grid_dimensions, block_dimensions>>>(rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1, 
 																rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
