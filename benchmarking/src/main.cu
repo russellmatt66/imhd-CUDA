@@ -122,16 +122,19 @@ int main(int argc, char* argv[]){
     bench_file << "it, fluid_time (ms), bcs_time (ms), swap_time (ms), numblocks_x, numblocks_y, numblocks_z, numthreadsper_x, numthreadsper_y, numthreadsper_z" << std::endl; 
 
 	/* Simulation loop */
+	size_t num_bench_iters = 1000; 
 	for (size_t it = 0; it < Nt; it++){
 		std::cout << "Starting iteration " << it << std::endl;
 
 		std::cout << "Evolving fluid interior and boundary" << std::endl; 
 		/* DO 1000 REPS of KERNEL B/W RECORDING */
         cudaEventRecord(start);
-		FluidAdvance<<<grid_dimensions, block_dimensions>>>(rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1, 
-																rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
-																rho_int, rhovx_int, rhovy_int, rhovz_int, Bx_int, By_int, Bz_int, e_int, 
-																D, dt, dx, dy, dz, Nx, Ny, Nz);
+		for (size_t il = 0; il < num_bench_iters; il++){
+			FluidAdvance<<<grid_dimensions, block_dimensions>>>(rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1, 
+																	rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
+																	rho_int, rhovx_int, rhovy_int, rhovz_int, Bx_int, By_int, Bz_int, e_int, 
+																	D, dt, dx, dy, dz, Nx, Ny, Nz);
+		}
 		cudaEventRecord(stop);
         cudaEventSynchronize(stop);
         cudaEventElapsedTime(&fluid_time, start, stop);

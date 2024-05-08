@@ -11,7 +11,11 @@ Source directory
 - Don't have the space to do this during the simulation
 
 # Current Tasks
-(1) Complete `write_grid.cu`
 
-(2) Write the data out with GDS
-- Implement feature to write out data every given number of timesteps or so
+(2) Complete `write_grid.cu`
+- Implement Device2Host memory transfer
+- Resolve max pinned size GDS error
+```
+~/Desktop/imhd-CUDA/build$ python3 gridLauncher.py 
+cuFile Buffer registration error: access beyond maximum pinned size
+```

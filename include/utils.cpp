@@ -17,19 +17,6 @@ void writeGrid(const std::vector<std::string> file_names, const float* x_grid, c
         std::cout << "Not providing the right number of file names to writeGrid" << std::endl;
         std::cout << "The correct number is 8" << std::endl;
     }
-    /* 
-    DOESN'T WRITE ALL THE DATA 
-    Each thread writes a cube of data, the union of which does not form a complete representation of the original data
-    The solution is to partition the workload into slabs so that each thread completely writes a given number of the xy-planes
-    */
-    // std::thread w1(writeCSV, file_names[0], x_grid, y_grid, z_grid, Nx, Ny, Nz, 0, Nx / 8, 0, Ny / 8, 0, Nz / 8);
-    // std::thread w2(writeCSV, file_names[1], x_grid, y_grid, z_grid, Nx, Ny, Nz, Nx / 8, Nx / 4, Ny / 8, Ny / 4, Nz / 8, Nz / 4);
-    // std::thread w3(writeCSV, file_names[2], x_grid, y_grid, z_grid, Nx, Ny, Nz, Nx / 4, 3 * Nx / 8, Ny / 4, 3 * Ny / 8, Nz / 4, 3 * Nz / 8);
-    // std::thread w4(writeCSV, file_names[3], x_grid, y_grid, z_grid, Nx, Ny, Nz, 3 * Nx / 8, Nx / 2, 3 * Ny / 8, Ny / 2, 3 * Nz / 8, Nz / 2);
-    // std::thread w5(writeCSV, file_names[4], x_grid, y_grid, z_grid, Nx, Ny, Nz, Nx / 2, 5 * Nx / 8, Ny / 2, 5 * Ny / 8, Nz / 2, 5 * Nz / 8);
-    // std::thread w6(writeCSV, file_names[5], x_grid, y_grid, z_grid, Nx, Ny, Nz, 5 * Nx / 8, 3 * Nx / 4, 5 * Ny / 8, 3 * Ny / 4, 5 * Nz / 8, 3 * Nz / 4);
-    // std::thread w7(writeCSV, file_names[6], x_grid, y_grid, z_grid, Nx, Ny, Nz, 3 * Nx / 4, 7 * Nx / 8, 3 * Ny / 4, 7 * Ny / 8, 3 * Nz / 4, 7 * Nz / 8);
-    // std::thread w8(writeCSV, file_names[7], x_grid, y_grid, z_grid, Nx, Ny, Nz, 7 * Nx / 8, Nx, 7 * Ny / 8, Ny, 7 * Nz / 8, Nz);
 
     std::thread w1(writeCSV, file_names[0], x_grid, y_grid, z_grid, Nx, Ny, Nz, 0, Nx, 0, Ny, 0, Nz / 8);
     std::thread w2(writeCSV, file_names[1], x_grid, y_grid, z_grid, Nx, Ny, Nz, 0, Nx, 0, Ny, Nz / 8, Nz / 4);

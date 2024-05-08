@@ -1,0 +1,15 @@
+Nx=64
+Ny=64
+Nz=64
+SM_mult_x=1
+SM_mult_y=1
+SM_mult_z=1
+threads_per_block_x=32
+threads_per_block_y=16
+threads_per_block_z=2
+x_min=-3.14159
+x_max=3.14159
+y_min=-3.14159
+y_max=3.14159
+z_min=-3.14159
+z_max=3.14159

@@ -1,5 +1,5 @@
 # Overview
-Build folder for `imhd-CUDA`
+Build folder for `imhd-cuda` and `write-grid`
 
 # Build Instructions
 - `$ cmake ../src`
@@ -8,4 +8,7 @@ Build folder for `imhd-CUDA`
 
 # Run Instructions
 - `$ python3 imhdLauncher.py`
-    - Make sure `imhd-CUDA.inp` is in the same folder
+    - Make sure `imhd-cuda.inp` is in the same folder
+
+- `$ python3 gridLauncher.py`
+    - Make sure `grid.inp` is in the same folder

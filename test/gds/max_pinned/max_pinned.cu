@@ -21,7 +21,7 @@ int main(int argc, char* argv[]){
 
     std::cout << "Maximum pinned memory size on GPU: " << driver_properties.max_device_pinned_mem_size / (1024 * 1024) << " MB" << std::endl;
 
-    size_t max_pinned_memory_cust = UINT64_MAX; // KB 
+    size_t max_pinned_memory_cust = 256 * 1024 * 1024; // MB
     status = cuFileDriverSetMaxPinnedMemSize(max_pinned_memory_cust);
     if (status.err != CU_FILE_SUCCESS) {
         std::cerr << "Failed to set max pinned size: " << cuFileGetErrorString(status) << std::endl;

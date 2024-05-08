@@ -4,11 +4,11 @@ Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD sys
 # Current Tasks
 (1) Run kernel and visualize results
 - Write data out
--- See `/src/README.md` for features and next steps
+-- Running into problems with GDS (max pinned size)
 
 (2) Figure out how to change the maximum amount of device pinned memory
 - `test/gds/max_pinned` 
-- Is this resolved?
+-- Not really sure why it's not changing, guess project will have to go with device2host transfers
 
 (3) Benchmark
 - Kernel
