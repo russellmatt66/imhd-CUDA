@@ -3,8 +3,8 @@ Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD sys
 
 # Current Tasks
 (1) Run kernel and visualize results
-- Write data out
--- Running into problems with GDS (max pinned size)
+- Finish `visualization/create_video_csv.cpp`
+- Figure out why Jz = 0 everywhere for it > 0
 
 (2) Figure out how to change the maximum amount of device pinned memory
 - `test/gds/max_pinned` 

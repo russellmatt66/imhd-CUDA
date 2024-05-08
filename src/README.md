@@ -11,7 +11,7 @@ Source directory
 - Don't have the space to do this during the simulation
 
 # Current Tasks
-
+(1) Figure out why all Jz for it > 0 are 0
 (2) Add GDS to `write_grid.cu`
 - Resolve max pinned size GDS error
 ```

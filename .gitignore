@@ -17,6 +17,7 @@
 /data/By/*
 /data/Bz/*
 /data/e/*
+/data/grid/*
 
 # HIDING CMAKE FILES FROM `/benchmarking/`
 /benchmarking/build/CMakeFiles/*
