@@ -6,6 +6,7 @@
 #include "../include/kernels_od.cuh"
 #include "../include/initialize_od.cuh"
 #include "../include/gds.cuh"
+#include "../include/utils.hpp"
 
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define checkCuda(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -39,20 +40,20 @@ int main(int argc, char* argv[]){
 	float z_min = atof(argv[17]);
 	float z_max = atof(argv[18]);
 	float dt = atof(argv[19]);
-	// int write_rho = atoi(argv[20]); // Data volume gets very large
-	// int write_rhovx = atoi(argv[21]);
-	// int write_rhovy = atoi(argv[22]);
-	// int write_rhovz = atoi(argv[23]);
-	// int write_Bx = atoi(argv[24]);
-	// int write_By = atoi(argv[25]);
-	// int write_Bz = atoi(argv[26]);
-	// int write_e = atoi(argv[27]);
+	int write_rho = atoi(argv[20]); // Data volume gets very large
+	int write_rhovx = atoi(argv[21]);
+	int write_rhovy = atoi(argv[22]);
+	int write_rhovz = atoi(argv[23]);
+	int write_Bx = atoi(argv[24]);
+	int write_By = atoi(argv[25]);
+	int write_Bz = atoi(argv[26]);
+	int write_e = atoi(argv[27]);
 
 	float dx = (x_max - x_min) / (Nx - 1);
 	float dy = (y_max - y_min) / (Ny - 1);
 	float dz = (z_max - z_min) / (Nz - 1);
 
-	/* Initialize device data */
+	// Initialize device data
 	int deviceId;
 	int numberOfSMs;
 
@@ -62,14 +63,14 @@ int main(int argc, char* argv[]){
 	int* to_write_or_not;
 	to_write_or_not = (int*)malloc(8 * sizeof(int));
 
-	for (int i = 0; i < 8; i++){
+	for (int i = 0; i < 8; i++){ /* COULD USE A CHAR FOR THIS */
 		to_write_or_not[i] = atoi(argv[20 + i]);
 	}
 
 	float *rho, *rhov_x, *rhov_y, *rhov_z, *Bx, *By, *Bz, *e;
 	float *rho_np1, *rhovx_np1, *rhovy_np1, *rhovz_np1, *Bx_np1, *By_np1, *Bz_np1, *e_np1;
 	float *rho_int, *rhovx_int, *rhovy_int, *rhovz_int, *Bx_int, *By_int, *Bz_int, *e_int;
-	float *grid_x, *grid_y, *grid_z, *grid_buffer;
+	float *grid_x, *grid_y, *grid_z;
 
 	int fluid_data_size = sizeof(float) * Nx * Ny * Nz;
 
@@ -119,13 +120,61 @@ int main(int argc, char* argv[]){
 																Nx, Ny, Nz); // All 0.0
 	checkCuda(cudaDeviceSynchronize());
 
+    // Prepare host data for writing out
+	std::vector<std::string> fluid_data_files (8); // 8 is the number of threads I'm going with
+    std::string base_file = "../data/rho/";
+    for (size_t i = 0; i < fluid_data_files.size(); i++){
+        fluid_data_files[i] = base_file + std::to_string(i) + ".csv";
+    }   
+
+	float *h_rho, *h_rhovx, *h_rhovy, *h_rhovz, *h_Bx, *h_By, *h_Bz, *h_e;
+
+	h_rho = (float*)malloc(fluid_data_size);
+	h_rhovx = (float*)malloc(fluid_data_size);
+	h_rhovy = (float*)malloc(fluid_data_size);
+	h_rhovz = (float*)malloc(fluid_data_size);
+	h_Bx = (float*)malloc(fluid_data_size);
+	h_By = (float*)malloc(fluid_data_size);
+	h_Bz = (float*)malloc(fluid_data_size);
+	h_e = (float*)malloc(fluid_data_size);
+
+	for (size_t ih = 0; ih < 8; ih++){
+		if (!to_write_or_not[ih]){ // No need for the host memory if it's not being written out
+			switch (ih)
+			{
+			case 0:
+				free(h_rho);
+				break;
+			case 1:
+				free(h_rhovx);
+				break;
+			case 2:
+				free(h_rhovy);
+				break;			
+			case 3:
+				free(h_rhovz);
+				break;			
+			case 4:
+				free(h_Bx);
+				break;			
+			case 5:
+				free(h_By);
+				break;			
+			case 6:
+				free(h_Bz);
+				break;			
+			case 7:
+				free(h_e);
+				break;			
+			default:
+				break;
+			}
+		}
+	}
+
 	/* Simulation loop */
 	for (size_t it = 0; it < Nt; it++){
 		std::cout << "Starting iteration " << it << std::endl;
-
-		/* Write data out - use GPUDirect Storage (GDS) */
-		std::cout << "Writing data out with GDS" << std::endl;
-		writeFluidDataGDS(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, Nx * Ny * Nz, it, to_write_or_not);
 
 		/* Compute interior and boundaries*/
 		std::cout << "Evolving fluid interior and boundary" << std::endl; 
@@ -137,13 +186,89 @@ int main(int argc, char* argv[]){
 																	rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
 																	rho_int, rhovx_int, rhovy_int, rhovz_int, Bx_int, By_int, Bz_int, e_int, 
 																	D, dt, dx, dy, dz, Nx, Ny, Nz);
+	
+		std::cout << "Writing fluid data to host" << std::endl;
+		// Data volume scales very fast w/problem size, don't want to always write everything out 
+		for (size_t iv = 0; iv < 8; iv++){ 
+			if (to_write_or_not[iv]){  
+				switch (iv)
+				{
+				case 0:
+					cudaMemcpy(h_rho, rho, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;
+				case 1:
+					cudaMemcpy(h_rhovx, rhov_x, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;
+				case 2:
+					cudaMemcpy(h_rhovy, rhov_y, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;
+				case 3:
+					cudaMemcpy(h_rhovz, rhov_z, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;			
+				case 4:
+					cudaMemcpy(h_Bx, Bx, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;				
+				case 5:
+					cudaMemcpy(h_By, By, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;				
+				case 6:
+					cudaMemcpy(h_Bz, Bz, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;				
+				case 7:
+					cudaMemcpy(h_e, e, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;				
+				default:
+					break;
+				}
+			}
+		}
 		checkCuda(cudaDeviceSynchronize());
 		
-		/* Transfer future timestep data to current timestep in order to avoid race conditions */
+		// Transfer future timestep data to current timestep in order to avoid race conditions
 		std::cout << "Swapping future timestep to current" << std::endl;
 		SwapSimData<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
 															rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1,
 															Nx, Ny, Nz);
+
+		// Split the Device2Host and Host2Storage writes up to reduce synchro barriers
+		std::cout << "Writing host data to storage" << std::endl; 
+		for (size_t iv = 0; iv < 8; iv++){ 
+			if (to_write_or_not[iv]){ 
+				base_file = getNewBaseDataLoc(iv);
+				for (size_t i = 0; i < fluid_data_files.size(); i++){
+					fluid_data_files[i] = base_file + std::to_string(i) + ".csv";
+				}  
+				switch (iv)
+				{
+				case 0:
+					writeFluidVars(fluid_data_files, h_rho, Nx, Ny, Nz);					
+					break;
+				case 1:
+					writeFluidVars(fluid_data_files, h_rhovx, Nx, Ny, Nz);					
+					break;
+				case 2:
+					writeFluidVars(fluid_data_files, h_rhovy, Nx, Ny, Nz);					
+					break;
+				case 3:
+					writeFluidVars(fluid_data_files, h_rhovz, Nx, Ny, Nz);					
+					break;			
+				case 4:
+					writeFluidVars(fluid_data_files, h_Bx, Nx, Ny, Nz);					
+					break;				
+				case 5:
+					writeFluidVars(fluid_data_files, h_By, Nx, Ny, Nz);					
+					break;				
+				case 6:
+					writeFluidVars(fluid_data_files, h_Bz, Nx, Ny, Nz);					
+					break;				
+				case 7:
+					writeFluidVars(fluid_data_files, h_e, Nx, Ny, Nz);					
+					break;				
+				default:
+					break;
+				}
+			}
+		}
 		checkCuda(cudaDeviceSynchronize());
 	}
 
@@ -180,6 +305,39 @@ int main(int argc, char* argv[]){
 	checkCuda(cudaFree(grid_z));
 
 	/* Free host data */
+	for (size_t ih = 0; ih < 8; ih++){
+		if (to_write_or_not[ih]){ // Don't forget to free the rest of the host buffers 
+			switch (ih)
+			{
+			case 0:
+				free(h_rho);
+				break;
+			case 1:
+				free(h_rhovx);
+				break;
+			case 2:
+				free(h_rhovy);
+				break;			
+			case 3:
+				free(h_rhovz);
+				break;			
+			case 4:
+				free(h_Bx);
+				break;			
+			case 5:
+				free(h_By);
+				break;			
+			case 6:
+				free(h_Bz);
+				break;			
+			case 7:
+				free(h_e);
+				break;			
+			default:
+				break;
+			}
+		}
+	}
 	free(to_write_or_not);
 	return 0;
 }

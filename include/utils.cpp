@@ -51,7 +51,7 @@ void writeCSV(const std::string file_name, const float* x_grid, const float* y_g
 
 /* EXTEND TO ALL FLUID VARS */
 void writeFluidVars(const std::vector<std::string> file_names, 
-    const float* rho, const float* rhov_z, 
+    const float* fluid_data,
     const size_t Nx, const size_t Ny, const size_t Nz){
         /* 
         To avoid issues with asynchronous execution, e.g., needing a semaphore, each thread is going to write to its own `.csv` file
@@ -61,27 +61,14 @@ void writeFluidVars(const std::vector<std::string> file_names,
             std::cout << "Not providing the right number of file names to writeFluidVars" << std::endl;
             std::cout << "The correct number is 8" << std::endl;
         }
-        /* 
-        DOESN'T WRITE ALL THE DATA 
-        Each thread writes a cube of data, the union of which does not form a complete representation of the original data
-        */
-        // std::thread w1(writeFVCSV, file_names[0], rho, Nx, Ny, Nz, 0, Nx / 8, 0, Ny / 8, 0, Nz / 8);
-        // std::thread w2(writeFVCSV, file_names[1], rho, Nx, Ny, Nz, Nx / 8, Nx / 4, Ny / 8, Ny / 4, Nz / 8, Nz / 4);
-        // std::thread w3(writeFVCSV, file_names[2], rho, Nx, Ny, Nz, Nx / 4, 3 * Nx / 8, Ny / 4, 3 * Ny / 8, Nz / 4, 3 * Nz / 8);
-        // std::thread w4(writeFVCSV, file_names[3], rho, Nx, Ny, Nz, 3 * Nx / 8, Nx / 2, 3 * Ny / 8, Ny / 2, 3 * Nz / 8, Nz / 2);
-        // std::thread w5(writeFVCSV, file_names[4], rho, Nx, Ny, Nz, Nx / 2, 5 * Nx / 8, Ny / 2, 5 * Ny / 8, Nz / 2, 5 * Nz / 8);
-        // std::thread w6(writeFVCSV, file_names[5], rho, Nx, Ny, Nz, 5 * Nx / 8, 3 * Nx / 4, 5 * Ny / 8, 3 * Ny / 4, 5 * Nz / 8, 3 * Nz / 4);
-        // std::thread w7(writeFVCSV, file_names[6], rho, Nx, Ny, Nz, 3 * Nx / 4, 7 * Nx / 8, 3 * Ny / 4, 7 * Ny / 8, 3 * Nz / 4, 7 * Nz / 8);
-        // std::thread w8(writeFVCSV, file_names[7], rho, Nx, Ny, Nz, 7 * Nx / 8, Nx, 7 * Ny / 8, Ny, 7 * Nz / 8, Nz);
-
-        std::thread w1(writeFVCSV, file_names[0], rho, rhov_z, Nx, Ny, Nz, 0, Nx, 0, Ny, 0, Nz / 8);
-        std::thread w2(writeFVCSV, file_names[1], rho, rhov_z, Nx, Ny, Nz, 0, Nx, 0, Ny, Nz / 8, Nz / 4);
-        std::thread w3(writeFVCSV, file_names[2], rho, rhov_z, Nx, Ny, Nz, 0, Nx, 0, Ny, Nz / 4, 3 * Nz / 8);
-        std::thread w4(writeFVCSV, file_names[3], rho, rhov_z, Nx, Ny, Nz, 0, Nx, 0, Ny, 3 * Nz / 8, Nz / 2);
-        std::thread w5(writeFVCSV, file_names[4], rho, rhov_z, Nx, Ny, Nz, 0, Nx, 0, Ny, Nz / 2, 5 * Nz / 8);
-        std::thread w6(writeFVCSV, file_names[5], rho, rhov_z, Nx, Ny, Nz, 0, Nx, 0, Ny, 5 * Nz / 8, 3 * Nz / 4);
-        std::thread w7(writeFVCSV, file_names[6], rho, rhov_z, Nx, Ny, Nz, 0, Nx, 0, Ny, 3 * Nz / 4, 7 * Nz / 8);
-        std::thread w8(writeFVCSV, file_names[7], rho, rhov_z, Nx, Ny, Nz, 0, Nx, 0, Ny, 7 * Nz / 8, Nz);
+        std::thread w1(writeFVCSV, file_names[0], fluid_data, Nx, Ny, Nz, 0, Nx, 0, Ny, 0, Nz / 8);
+        std::thread w2(writeFVCSV, file_names[1], fluid_data, Nx, Ny, Nz, 0, Nx, 0, Ny, Nz / 8, Nz / 4);
+        std::thread w3(writeFVCSV, file_names[2], fluid_data, Nx, Ny, Nz, 0, Nx, 0, Ny, Nz / 4, 3 * Nz / 8);
+        std::thread w4(writeFVCSV, file_names[3], fluid_data, Nx, Ny, Nz, 0, Nx, 0, Ny, 3 * Nz / 8, Nz / 2);
+        std::thread w5(writeFVCSV, file_names[4], fluid_data, Nx, Ny, Nz, 0, Nx, 0, Ny, Nz / 2, 5 * Nz / 8);
+        std::thread w6(writeFVCSV, file_names[5], fluid_data, Nx, Ny, Nz, 0, Nx, 0, Ny, 5 * Nz / 8, 3 * Nz / 4);
+        std::thread w7(writeFVCSV, file_names[6], fluid_data, Nx, Ny, Nz, 0, Nx, 0, Ny, 3 * Nz / 4, 7 * Nz / 8);
+        std::thread w8(writeFVCSV, file_names[7], fluid_data, Nx, Ny, Nz, 0, Nx, 0, Ny, 7 * Nz / 8, Nz);
 
         w1.join(); w2.join(); w3.join(); w4.join(); w5.join(); w6.join(); w7.join(); w8.join();
         return;
@@ -89,20 +76,19 @@ void writeFluidVars(const std::vector<std::string> file_names,
 
 /* EXTEND TO ALL FLUID VARS */
 void writeFVCSV(const std::string file_name, 
-    const float* rho, const float* rhov_z, 
+    const float* fluid_data,
     const size_t Nx, const size_t Ny, const size_t Nz,
     const size_t x_begin, const size_t x_end, const size_t y_begin, const size_t y_end, const size_t z_begin, const size_t z_end){
         std::remove(file_name.data()); // Remove old data file for clean slate
         std::ofstream data_file;
         data_file.open(file_name);
 
-        data_file << "rho,rhov_z,i,j,k" << std::endl; 
+        data_file << "val,i,j,k" << std::endl; 
 
         for (size_t k = z_begin; k < z_end; k++){
             for (size_t i = x_begin; i < x_end; i++){
                 for (size_t j = y_begin; j < y_end; j++){
-                    data_file << rho[IDX3D(i, j, k, Nx, Ny, Nz)] << "," 
-                        << rhov_z[IDX3D(i, j, k, Nx, Ny, Nz)] << ","
+                    data_file << fluid_data[IDX3D(i, j, k, Nx, Ny, Nz)] << "," 
                         << i << "," << j << "," << k << std::endl;
                 }
             }
@@ -110,3 +96,37 @@ void writeFVCSV(const std::string file_name,
 
         return;
     }
+
+// Ensures that data is written out to correct folder
+std::string getNewBaseDataLoc(const int iv){
+    switch (iv)
+    {
+    case 0:
+        return "../data/rho/rho_";
+        break;
+    case 1:
+        return "../data/rhovx/rhovx_";
+        break;
+    case 2:
+        return "../data/rhovy/rhovy_";
+        break;
+    case 3:
+        return "../data/rhovz/rhovz_";
+        break;
+    case 4:
+        return "../data/Bx/Bx_";
+        break;
+    case 5:
+        return "../data/By/By_";
+        break;
+    case 6:
+        return "../data/Bz/Bz_";
+        break;
+    case 7:
+        return "../data/e/e_";    
+        break;
+    default:
+        break;
+    }
+    return "";
+}

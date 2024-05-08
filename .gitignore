@@ -4,7 +4,8 @@
 /build/*.cmake
 /build/*.a
 /build/CMakeCache.txt
-/build/imhd_cuda
+/build/imhd-cuda
+/build/write-grid
 /build/*.log
 
 # HIDING DATA FILES
