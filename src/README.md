@@ -12,8 +12,7 @@ Source directory
 
 # Current Tasks
 
-(2) Complete `write_grid.cu`
-- Implement Device2Host memory transfer
+(2) Add GDS to `write_grid.cu`
 - Resolve max pinned size GDS error
 ```
 ~/Desktop/imhd-CUDA/build$ python3 gridLauncher.py 

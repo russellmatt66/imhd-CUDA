@@ -102,28 +102,28 @@ std::string getNewBaseDataLoc(const int iv){
     switch (iv)
     {
     case 0:
-        return "../data/rho/rho_";
+        return "../data/rho/rho";
         break;
     case 1:
-        return "../data/rhovx/rhovx_";
+        return "../data/rhovx/rhovx";
         break;
     case 2:
-        return "../data/rhovy/rhovy_";
+        return "../data/rhovy/rhovy";
         break;
     case 3:
-        return "../data/rhovz/rhovz_";
+        return "../data/rhovz/rhovz";
         break;
     case 4:
-        return "../data/Bx/Bx_";
+        return "../data/Bx/Bx";
         break;
     case 5:
-        return "../data/By/By_";
+        return "../data/By/By";
         break;
     case 6:
-        return "../data/Bz/Bz_";
+        return "../data/Bz/Bz";
         break;
     case 7:
-        return "../data/e/e_";    
+        return "../data/e/e";    
         break;
     default:
         break;

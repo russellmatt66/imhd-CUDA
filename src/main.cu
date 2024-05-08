@@ -236,7 +236,7 @@ int main(int argc, char* argv[]){
 			if (to_write_or_not[iv]){ 
 				base_file = getNewBaseDataLoc(iv);
 				for (size_t i = 0; i < fluid_data_files.size(); i++){
-					fluid_data_files[i] = base_file + std::to_string(i) + ".csv";
+					fluid_data_files[i] = base_file + std::to_string(it) + "_" + std::to_string(i) + ".csv";
 				}  
 				switch (iv)
 				{
