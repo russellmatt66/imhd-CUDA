@@ -19,7 +19,15 @@
 /data/e/*
 /data/grid/*
 
-# HIDING CMAKE FILES FROM `/benchmarking/`
+# HIDING CMAKE FILES FROM `./debug/`
+/debug/build/CMakeFiles/*
+/debug/build/*.cmake
+/debug/build/Makefile
+/debug/build/*.a
+/debug/build/imhd-debug
+/debug/build/CMakeCache.txt
+
+# HIDING CMAKE FILES FROM `./benchmarking/`
 /benchmarking/build/CMakeFiles/*
 /benchmarking/build/*.cmake
 /benchmarking/build/Makefile

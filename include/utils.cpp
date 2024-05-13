@@ -130,3 +130,15 @@ std::string getNewBaseDataLoc(const int iv){
     }
     return "";
 }
+
+// Parses input file for debugging the simulation executable
+void parseInputFileDebug(std::vector<float>& inputs, const std::string input_file){
+    std::ifstream input_file_stream(input_file);
+    std::string line;
+    int i = 0;
+    while (std::getline(input_file_stream, line)){
+        inputs[i] = std::atoi(line.data());
+        i++;
+    }
+    return;
+}

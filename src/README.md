@@ -12,6 +12,7 @@ Source directory
 
 # Current Tasks
 (1) Figure out why all Jz for it > 0 are 0
+
 (2) Add GDS to `write_grid.cu`
 - Resolve max pinned size GDS error
 ```
