@@ -24,6 +24,10 @@ int main(int argc, char* argv[]){
     std::vector<float> inputs (19, 0.0);
     parseInputFileDebug(inputs, "./debug.inp");
 	
+	for (int i = 0; i < inputs.size(); i++){
+		std::cout << "inputs[" << i << "] = " << inputs[i] << std::endl; 
+	}
+
     int Nt = int(inputs[0]);
 	int Nx = int(inputs[1]);
 	int Ny = int(inputs[2]);

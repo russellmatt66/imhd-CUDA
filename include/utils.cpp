@@ -137,7 +137,7 @@ void parseInputFileDebug(std::vector<float>& inputs, const std::string input_fil
     std::string line;
     int i = 0;
     while (std::getline(input_file_stream, line)){
-        inputs[i] = std::atoi(line.data());
+        inputs[i] = std::atof(line.data());
         i++;
     }
     return;
