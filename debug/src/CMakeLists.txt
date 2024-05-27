@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 project(imhd-CUDA LANGUAGES CUDA CXX)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_VERBOSE_MAKEFILE on)
+# set(CMAKE_VERBOSE_MAKEFILE on)
 
 find_package(CUDA REQUIRED)
 
@@ -19,11 +19,15 @@ target_link_libraries(imhd-debug PRIVATE initialize_od_lib)
 target_link_libraries(imhd-debug PRIVATE utils_lib)
 
 target_compile_options(imhd-debug PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
-                        -lineinfo
+                        -g
+                        -G
+                        -Xptxas=-v
+                        # -lineinfo
                         >)
                         
 target_compile_options(kernels_od_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
                         -lineinfo
+                        -Xptxas=-v
                         >)
 
 # add_compile_options(-g -lineinfo -v)
