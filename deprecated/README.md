@@ -1,2 +1,2 @@
-fluidadvance.cu
-- Version of the fluid advance kernel that didn't store intermediate variables in memory
+`kernels_od.cu`
+- Version of the fluid advance kernel that requires too many registers
