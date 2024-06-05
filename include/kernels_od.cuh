@@ -22,13 +22,7 @@ __global__ void SwapSimData(float* rho, float* rhov_x, float* rhov_y, float* rho
      const float* Bx_np1, const float* By_np1, const float* Bz_np1, const float* e_np1,
      const int Nx, const int Ny, const int Nz); 
 
-/* REQUIRES TOO MANY REGISTERS */
-// __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
-//      const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
-//      float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
-//      const float D, const float dt, const float dx, const float dy, const float dz, 
-//      const int Nx, const int Ny, const int Nz);
-
+// Computing these inside the fluid variable advance, and boundary condition, kernels requires too many registers
 // Many of the state variables are associated with fluxes, the intermediate calculation of which requires intermediate forms of other state variables   
 __global__ void ComputeIntermediateVars(
     const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
@@ -41,6 +35,12 @@ __global__ void ComputeIntermediateVarsBoundary(
     float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
     const float D, const float dt, const float dx, const float dy, const float dz, 
     const int Nx, const int Ny, const int Nz);
+
+__global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
+     const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
+     float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
+     const float D, const float dt, const float dx, const float dy, const float dz, 
+     const int Nx, const int Ny, const int Nz);
 
 // Advancing every state variable in a single kernel requires too many registers
 __global__ void RhoAdvance(float* rho_np1, 
@@ -97,14 +97,13 @@ __global__ void EnergyAdvance(float* Bz_np1,
      const float* Bx_int, const float* By_int, const float* Bz_int, const float* e_int,  
      const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
 
-/* REQUIRES TOO MANY REGISTERS */
-// __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, 
-//      float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
-//      const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, 
-//      const float* Bx, const float* By, const float* Bz, const float* e, 
-//      float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
-//      const float D, const float dt, const float dx, const float dy, const float dz,
-//      const int Nx, const int Ny, const int Nz);
+__global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, 
+     float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
+     const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz, const float* e, 
+     float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
+     const float D, const float dt, const float dx, const float dy, const float dz,
+     const int Nx, const int Ny, const int Nz);
 
 // Computing BCs for every state variable in a single kernel requires too many registers
 __global__ void RhoBCs(float* rho_np1, 

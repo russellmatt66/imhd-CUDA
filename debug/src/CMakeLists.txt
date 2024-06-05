@@ -4,7 +4,7 @@ project(imhd-CUDA LANGUAGES CUDA CXX)
 set(CMAKE_BUILD_TYPE Debug)
 # set(CMAKE_VERBOSE_MAKEFILE on)
 
-find_package(CUDA REQUIRED)
+find_package(CUDAToolkit REQUIRED)
 
 add_library(kernels_od_lib ../../include/kernels_od.cu)
 add_library(initialize_od_lib ../../include/initialize_od.cu)
