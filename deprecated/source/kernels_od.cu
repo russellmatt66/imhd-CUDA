@@ -8,7 +8,7 @@
 // row-major, column-minor order
 #define IDX3D(i, j, k, Nx, Ny, Nz) (k * (Nx * Ny) + i * Ny + j)
 
-/* REQUIRES TOO MANY REGISTERS */
+/* REQUIRES TOO MANY REGISTERS FOR 1024 THREADS PER THREADBLOCK */
 // Advances fluid variables on interior of the grid, and adds a numerical diffusion
 __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
     const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
@@ -692,7 +692,7 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
             }
         }
         return;
-     }
+    }
 
 // Swap buffer to avoid race conditions
 __global__ void SwapSimData(float* rho, float* rhov_x, float* rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e,

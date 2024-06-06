@@ -17,15 +17,10 @@ partitioned into two sets:
 // #define q_e 1.6 * pow(10,-19) // [C]
 // #define m 1.67 * pow(10, -27) // [kg]
 
-
 __global__ void SwapSimData(float* rho, float* rhov_x, float* rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e,
      const float* rho_np1, const float* rhovx_np1, const float* rhovy_np1, const float* rhovz_np1, 
      const float* Bx_np1, const float* By_np1, const float* Bz_np1, const float* e_np1,
      const int Nx, const int Ny, const int Nz); 
-
-/* BEFORE STARTING REFACTOR, VERIFY REGISTER ISSUE SOURCE */
-// __global__ void SwapSimData(float* fluidvars, const float* fluidvars_np1,
-//      const int Nx, const int Ny, const int Nz); 
 
 __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
      const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 

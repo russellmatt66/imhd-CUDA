@@ -17,21 +17,85 @@ partitioned into two sets:
 // #define q_e 1.6 * pow(10,-19) // [C]
 // #define m 1.67 * pow(10, -27) // [kg]
 
-
 __global__ void SwapSimData(float* rho, float* rhov_x, float* rhov_y, float* rhov_z, float* Bx, float* By, float* Bz, float* e,
      const float* rho_np1, const float* rhovx_np1, const float* rhovy_np1, const float* rhovz_np1, 
      const float* Bx_np1, const float* By_np1, const float* Bz_np1, const float* e_np1,
      const int Nx, const int Ny, const int Nz); 
 
-/* BEFORE STARTING REFACTOR, VERIFY REGISTER ISSUE SOURCE */
-// __global__ void SwapSimData(float* fluidvars, const float* fluidvars_np1,
-//      const int Nx, const int Ny, const int Nz); 
+// Computing these inside the fluid variable advance, and boundary condition, kernels requires too many registers
+// Many of the state variables are associated with fluxes, the intermediate calculation of which requires intermediate forms of other state variables   
+__global__ void ComputeIntermediateVars(
+    const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
+    float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
+    const float D, const float dt, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void ComputeIntermediateVarsBoundary(
+    const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
+    float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
+    const float D, const float dt, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz);
 
 __global__ void FluidAdvance(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
      const float* rho, const float* rhov_x, const float *rhov_y, const float* rhov_z, const float* Bx, const float* By, const float* Bz, const float* e, 
      float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
      const float D, const float dt, const float dx, const float dy, const float dz, 
      const int Nx, const int Ny, const int Nz);
+
+// Advancing every state variable in a single kernel requires too many registers
+__global__ void RhoAdvance(float* rho_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,   
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
+
+__global__ void RhoVXAdvance(float* rhovx_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz, const float* e, 
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,  
+     const float* Bx_int, const float* By_int, const float* Bz_int, const float* e_int, 
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
+
+__global__ void RhoVYAdvance(float* rhovy_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz, const float* e, 
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,  
+     const float* Bx_int, const float* By_int, const float* Bz_int, const float* e_int,  
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
+
+__global__ void RhoVZAdvance(float* rhovz_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz, const float* e, 
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,  
+     const float* Bx_int, const float* By_int, const float* Bz_int, const float* e_int, 
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
+
+__global__ void BXAdvance(float* Bx_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz,
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,  
+     const float* Bx_int, const float* By_int, const float* Bz_int,
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
+
+__global__ void BYAdvance(float* By_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz,
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,  
+     const float* Bx_int, const float* By_int, const float* Bz_int,
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
+
+__global__ void BZAdvance(float* Bz_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz,
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,  
+     const float* Bx_int, const float* By_int, const float* Bz_int,
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
+
+__global__ void EnergyAdvance(float* Bz_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz, const float* e,
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,  
+     const float* Bx_int, const float* By_int, const float* Bz_int, const float* e_int,  
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
 
 __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhovy_np1, float* rhovz_np1, 
      float* Bx_np1, float* By_np1, float* Bz_np1, float* e_np1,
@@ -40,6 +104,61 @@ __global__ void BoundaryConditions(float* rho_np1, float* rhovx_np1, float* rhov
      float* rho_int, float* rhovx_int, float* rhovy_int, float* rhovz_int, float* Bx_int, float* By_int, float* Bz_int, float* e_int,
      const float D, const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);
+
+// Computing BCs for every state variable in a single kernel requires too many registers
+__global__ void RhoBCs(float* rho_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z,
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,   
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
+
+__global__ void RhoVXBCs(float* rhovx_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz, const float* e, 
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,  
+     const float* Bx_int, const float* By_int, const float* Bz_int, const float* e_int, 
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
+
+__global__ void RhoVYBCs(float* rhovy_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz, const float* e, 
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,  
+     const float* Bx_int, const float* By_int, const float* Bz_int, const float* e_int,  
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
+
+__global__ void RhoVZBCs(float* rhovz_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz, const float* e, 
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,  
+     const float* Bx_int, const float* By_int, const float* Bz_int, const float* e_int, 
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
+
+__global__ void BXBCs(float* Bx_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz,
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,  
+     const float* Bx_int, const float* By_int, const float* Bz_int,
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
+
+__global__ void BYBCs(float* By_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz,
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,  
+     const float* Bx_int, const float* By_int, const float* Bz_int,
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
+
+__global__ void BZBCs(float* Bz_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz,
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,  
+     const float* Bx_int, const float* By_int, const float* Bz_int,
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
+
+__global__ void EnergyBCs(float* Bz_np1, 
+     const float* rho, const float* rhov_x, const float* rhov_y, const float* rhov_z, 
+     const float* Bx, const float* By, const float* Bz, const float* e,
+     const float* rho_int, const float* rhovx_int, const float* rhovy_int, const float* rhovz_int,  
+     const float* Bx_int, const float* By_int, const float* Bz_int, const float* e_int,  
+     const float dt, const float dx, const float dy, const float dz, const int Nx, const int Ny, const int Nz);
 
 // 15 AO, 8 MR
 __device__ float LaxWendroffAdvRho(const int i, const int j, const int k, 

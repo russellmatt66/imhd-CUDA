@@ -46,4 +46,5 @@ ptxas info    : Function properties for __internal_accurate_pow
 ```
 -- The above means that, for 1024 threads per block, `BoundaryConditions` requires 162k register memory per SM (RTX2060 has 64k), and `FluidAdvance` requires 128k. 
 
-(3) Try launching `FluidAdvance` with execution configuration whose resource requirements can be satisfied.
+(3) Try launching `FluidAdvance` with execution configuration whose resource requirements can be satisfied
+- This is impossible, the minimum performant executation configuration has 30^3 blocks, meaning it would require < 0.0149 threads per block  
