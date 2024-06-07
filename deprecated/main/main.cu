@@ -19,7 +19,6 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
-/* REFACTOR THIS ACCORDING TO REFACTORED LIBRARIES */
 int main(int argc, char* argv[]){
 	// Parse inputs - provided by imhdLauncher.py because Python parsing is easiest, and Python launching is easy
 	int Nt = atoi(argv[1]);

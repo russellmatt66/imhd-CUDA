@@ -1,27 +1,29 @@
 # Overview
 Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD system.
 
+[O] = "(O)ccomplished"
+[] = "Not yet accomplished"
+
 # Current Tasks
 (1) Kernel needs to be refactored to compactify all data into three arrays:
-    (1) float *fluidvar
-    (2) float *intvar
-    (3) float *fluidvar_np1
+- `float *fluidvar`, `float *intvar`, and `float *fluidvar_np1`
+- [O]
 
-Furthermore, there is a race condition amongst the intermediate variable calculation. To solve this, move the intermediate variable's computation outside of
+- Furthermore, there is a race condition amongst the intermediate variable calculation. To solve this, move the intermediate variable's computation outside of
 the fluid advance loop, and into its own kernel. Precompute them after the initial conditions, then compute them in the loop while writing data out.   
+- [] 
 
-(1) Run kernel and visualize results
+(2) Run kernel and visualize results
 - Finish `visualization/create_video_csv.cpp`
-- Figure out why Jz = 0 everywhere for it > 0
-
-(2) Figure out how to change the maximum amount of device pinned memory
-- `test/gds/max_pinned` 
--- Not really sure why it's not changing, guess project will have to go with device2host transfers
 
 (3) Benchmark
 - Kernel
 - BCs
 - Swap buffer
+
+(4) Figure out how to change the maximum amount of device pinned memory
+- `test/gds/max_pinned` 
+-- Not really sure why it's not changing, guess project will have to go with device2host transfers
 
 # Design
 ## On-Device or Host-Device?
