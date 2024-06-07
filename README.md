@@ -2,6 +2,14 @@
 Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD system.
 
 # Current Tasks
+(1) Kernel needs to be refactored to compactify all data into three arrays:
+    (1) float *fluidvar
+    (2) float *intvar
+    (3) float *fluidvar_np1
+
+Furthermore, there is a race condition amongst the intermediate variable calculation. To solve this, move the intermediate variable's computation outside of
+the fluid advance loop, and into its own kernel. Precompute them after the initial conditions, then compute them in the loop while writing data out.   
+
 (1) Run kernel and visualize results
 - Finish `visualization/create_video_csv.cpp`
 - Figure out why Jz = 0 everywhere for it > 0
