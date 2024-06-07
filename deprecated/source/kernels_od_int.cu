@@ -281,7 +281,7 @@ __global__ void ComputeIntermediateVarsBoundary(
 
         // Don't need to compute along i = 0, and j = 0 due to Dirichlet BCs, and LW algorithm 
         // i = Nx - 1
-        if (tidy < Ny && tidy > 0 && tidz < (Nz - 1) && tidz > 1){ // Don't overwrite k = 0 and k = Nz - 1 intersection
+        if (tidy < Ny && tidy > 0 && tidz < (Nz - 1) && tidz > 0){ // Don't overwrite k = 0 and k = Nz - 1 intersection
             rho_int[IDX3D(Nx - 1, j, k, Nx, Ny, Nz)] = intRho(Nx - 1, j, k, rho, rhov_x, rhov_y, rhov_z,
                                                     dt, dx, dy, dz, Nx, Ny, Nz); // 12 AO, 7 MR
             rhovx_int[IDX3D(Nx - 1, j, k, Nx, Ny, Nz)] = intRhoVX(Nx - 1, j, k, rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e,
