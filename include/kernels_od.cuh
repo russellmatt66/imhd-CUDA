@@ -66,22 +66,5 @@ __device__ float LaxWendroffAdvE(const int i, const int j, const int k,
      const float* fluidvar, const float* intvar, 
      const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);
-
-// Helper Functions
-__device__ float B_sq(int i, int j, int k, const float* fluidvar, const int Nx, const int Ny, const int Nz); // B / \sqrt{\mu_{0}} -> B 
-__device__ float p(int i, int j, int k, const float* fluidvar, const float B_sq, const float KE, const int Nx, const int Ny, const int Nz);
-__device__ float KE(int i, int j, int k, const float* fluidvar, const int Nx, const int Ny, const int Nz); // \rho * \vec{u}\cdot\vec{u} * 0.5
-__device__ float B_dot_u(int i, int j, int k, const float* fluidvar, const int Nx, const int Ny, const int Nz);
-
-__device__ float numericalDiffusion(const int i, const int j, const int k, const float* fluid_var, 
-    const float D, const float dx, const float dy, const float dz, 
-    const int Nx, const int Ny, const int Nz);
-
-__device__ float numericalDiffusionFront(const int i, const int j, const float* fluid_var, 
-    const float D, const float dx, const float dy, const float dz, 
-    const int Nx, const int Ny, const int Nz);
-
-__device__ float numericalDiffusionBack(const int i, const int j, const float* fluid_var, 
-    const float D, const float dx, const float dy, const float dz, 
-    const int Nx, const int Ny, const int Nz);
+     
 #endif
