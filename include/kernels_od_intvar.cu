@@ -16,6 +16,7 @@ __global__ void ComputeIntermediateVariables(const float* fluidvar, float* intva
         int zthreads = blockDim.z * gridDim.z;
     
         int cube_size = Nx * Ny * Nz;
+
         for (int k = tidz + 1; k < Nz - 1; k += zthreads){
             for (int i = tidx + 1; i < Nx - 1; i += xthreads){
                 for (int j = tidy + 1; j < Ny - 1; j += ythreads){
@@ -33,6 +34,13 @@ __global__ void ComputeIntermediateVariables(const float* fluidvar, float* intva
         return;
     }
 
+/* 
+IMPLEMENT INT. VAR COMPUTATION AT THE APPROPRIATE BOUNDARY PLANES: 
+(1) i = Nx - 1
+(2) j = Ny - 1
+(3) k = 0
+(4) k = Nz - 1
+*/
 __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz, 
     const int Nx, const int Ny, const int Nz)
@@ -46,14 +54,6 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
         int zthreads = blockDim.z * gridDim.z;
     
         int cube_size = Nx * Ny * Nz;
-
-        /* 
-        IMPLEMENT INT. VAR COMPUTATION AT THE APPROPRIATE BOUNDARY PLANES: 
-        (1) i = Nx - 1
-        (2) j = Ny - 1
-        (3) k = 0
-        (4) k = Nz - 1
-        */
 
         // k = 0 and k = Nz - 1
         int k = 0;
