@@ -96,6 +96,8 @@ __global__ void BoundaryConditions(float* fluidvar_np1, const float* fluidvar, c
     int tidy = threadIdx.y + blockDim.y * blockIdx.y;
     int tidz = threadIdx.z + blockDim.z * blockIdx.z;
 
+    /* IMPLEMENT PBCs */
+    
     return;
     }
 

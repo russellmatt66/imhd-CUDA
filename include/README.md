@@ -12,5 +12,10 @@ utils.hpp/
 - Header file for `utils.cpp`, containing function declarations
 
 # Current Tasks:
-(1) Count number of floating point operations occurring in the kernels
-(2) Complete README
+(1) Complete kernel refactor
+- `kernels_od.cu`
+- `kernels_od_intvar.cu`
+- `kernels_od_fluxes.cu`
+- `initialize_od.cu`
+- `helper_functions.cu`
+- `diffusion.cu`
