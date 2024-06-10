@@ -4,6 +4,8 @@
 #include <iostream>
 
 #include "../include/kernels_od.cuh"
+#include "../include/kernels_od_intvar.cuh"
+
 #include "../include/initialize_od.cuh"
 #include "../include/gds.cuh"
 #include "../include/utils.hpp"
@@ -68,9 +70,6 @@ int main(int argc, char* argv[]){
 		to_write_or_not[i] = atoi(argv[20 + i]);
 	}
 
-	// float *rho, *rhov_x, *rhov_y, *rhov_z, *Bx, *By, *Bz, *e;
-	// float *rho_np1, *rhovx_np1, *rhovy_np1, *rhovz_np1, *Bx_np1, *By_np1, *Bz_np1, *e_np1;
-	// float *rho_int, *rhovx_int, *rhovy_int, *rhovz_int, *Bx_int, *By_int, *Bz_int, *e_int;
 	float *fluidvar;
 	float *fluidvar_np1;
 	float *intvar;
@@ -94,13 +93,14 @@ int main(int argc, char* argv[]){
 															grid_x, grid_y, grid_z, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());
 
-	InitialConditions<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
-																J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
-	InitializeIntAndSwap<<<grid_dimensions, block_dimensions>>>(rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1,
-																rho_int, rhovx_int, rhovy_int, rhovz_int, Bx_int, By_int, Bz_int, e_int, 
-																Nx, Ny, Nz); // All 0.0
+	InitialConditions<<<grid_dimensions, block_dimensions>>>(fluidvar, J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
+	InitializeIntAndSwap<<<grid_dimensions, block_dimensions>>>(fluidvar_np1, intvar, Nx, Ny, Nz); // All 0.0
 	checkCuda(cudaDeviceSynchronize());
 
+	ComputeIntermediateVariables<<<grid_dimensions, block_dimensions>>>(fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
+	ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dimensions>>>(fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
+
+	/* THIS CAN STAY */
     // Prepare host data for writing out
 	std::vector<std::string> fluid_data_files (8); // 8 is the number of threads I'm going with
     std::string base_file = "../data/rho/";
@@ -152,6 +152,7 @@ int main(int argc, char* argv[]){
 			}
 		}
 	}
+	checkCuda(cudaDeviceSynchronize());
 
 	/* Simulation loop */
 	for (size_t it = 0; it < Nt; it++){
@@ -159,44 +160,39 @@ int main(int argc, char* argv[]){
 
 		/* Compute interior and boundaries*/
 		std::cout << "Evolving fluid interior and boundary" << std::endl; 
-		FluidAdvance<<<grid_dimensions, block_dimensions>>>(rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1, 
-																rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
-																rho_int, rhovx_int, rhovy_int, rhovz_int, Bx_int, By_int, Bz_int, e_int, 
-																D, dt, dx, dy, dz, Nx, Ny, Nz);
-		BoundaryConditions<<<grid_dimensions, block_dimensions>>>(rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1,
-																	rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
-																	rho_int, rhovx_int, rhovy_int, rhovz_int, Bx_int, By_int, Bz_int, e_int, 
-																	D, dt, dx, dy, dz, Nx, Ny, Nz);
+		FluidAdvance<<<grid_dimensions, block_dimensions>>>(fluidvar_np1, fluidvar, intvar, D, dt, dx, dy, dz, Nx, Ny, Nz);
+		BoundaryConditions<<<grid_dimensions, block_dimensions>>>(fluidvar_np1, fluidvar, intvar, D, dt, dx, dy, dz, Nx, Ny, Nz);
 	
 		std::cout << "Writing fluid data to host" << std::endl;
+		/* HOW TO POINT TO RIGHT LOCATIONS IN `fluidvar`? */
 		// Data volume scales very fast w/problem size, don't want to always write everything out 
 		for (size_t iv = 0; iv < 8; iv++){ 
 			if (to_write_or_not[iv]){  
 				switch (iv)
 				{
 				case 0:
-					cudaMemcpy(h_rho, rho, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_rho, fluidvar, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;
 				case 1:
-					cudaMemcpy(h_rhovx, rhov_x, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_rhovx, fluidvar + fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;
 				case 2:
-					cudaMemcpy(h_rhovy, rhov_y, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_rhovy, fluidvar + 2 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;
 				case 3:
-					cudaMemcpy(h_rhovz, rhov_z, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_rhovz, fluidvar + 3 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;			
 				case 4:
-					cudaMemcpy(h_Bx, Bx, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_Bx, fluidvar + 4 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;				
 				case 5:
-					cudaMemcpy(h_By, By, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_By, fluidvar + 5 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;				
 				case 6:
-					cudaMemcpy(h_Bz, Bz, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_Bz, fluidvar + 6 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;				
 				case 7:
-					cudaMemcpy(h_e, e, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_e, fluidvar + 7 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;				
 				default:
 					break;
@@ -207,9 +203,9 @@ int main(int argc, char* argv[]){
 		
 		// Transfer future timestep data to current timestep in order to avoid race conditions
 		std::cout << "Swapping future timestep to current" << std::endl;
-		SwapSimData<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
-															rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1,
-															Nx, Ny, Nz);
+		SwapSimData<<<grid_dimensions, block_dimensions>>>(fluidvar, fluidvar_np1, Nx, Ny, Nz);
+		ComputeIntermediateVariables<<<grid_dimensions, block_dimensions>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz); // Avoid race condition w/int. vars
+		ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dimensions>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
 
 		// Split the Device2Host and Host2Storage writes up to reduce synchro barriers
 		std::cout << "Writing host data to storage" << std::endl; 
@@ -254,32 +250,9 @@ int main(int argc, char* argv[]){
 	}
 
 	/* Free device data */ 
-	checkCuda(cudaFree(rho));
-	checkCuda(cudaFree(rhov_x));
-	checkCuda(cudaFree(rhov_y));
-	checkCuda(cudaFree(rhov_z));
-	checkCuda(cudaFree(Bx));
-	checkCuda(cudaFree(By));
-	checkCuda(cudaFree(Bz));
-	checkCuda(cudaFree(e));
-
-	checkCuda(cudaFree(rho_np1));
-	checkCuda(cudaFree(rhovx_np1));
-	checkCuda(cudaFree(rhovy_np1));
-	checkCuda(cudaFree(rhovz_np1));
-	checkCuda(cudaFree(Bx_np1));
-	checkCuda(cudaFree(By_np1));
-	checkCuda(cudaFree(Bz_np1));
-	checkCuda(cudaFree(e_np1));
-
-	checkCuda(cudaFree(rho_int));
-	checkCuda(cudaFree(rhovx_int));
-	checkCuda(cudaFree(rhovy_int));
-	checkCuda(cudaFree(rhovz_int));
-	checkCuda(cudaFree(Bx_int));
-	checkCuda(cudaFree(By_int));
-	checkCuda(cudaFree(Bz_int));
-	checkCuda(cudaFree(e_int));
+	checkCuda(cudaFree(fluidvar));
+	checkCuda(cudaFree(fluidvar_np1));
+	checkCuda(cudaFree(intvar));
 
 	checkCuda(cudaFree(grid_x));
 	checkCuda(cudaFree(grid_y));

@@ -7,6 +7,7 @@
 /build/imhd-cuda
 /build/write-grid
 /build/*.log
+/build/test.*
 
 # HIDING DATA FILES
 /data/rho/*
