@@ -64,44 +64,24 @@ int main(int argc, char* argv[]){
 	int* to_write_or_not;
 	to_write_or_not = (int*)malloc(8 * sizeof(int));
 
-	for (int i = 0; i < 8; i++){ /* COULD USE A CHAR FOR THIS */
+	for (int i = 0; i < 8; i++){ /* COULD USE AN INT FOR THIS */
 		to_write_or_not[i] = atoi(argv[20 + i]);
 	}
 
-	float *rho, *rhov_x, *rhov_y, *rhov_z, *Bx, *By, *Bz, *e;
-	float *rho_np1, *rhovx_np1, *rhovy_np1, *rhovz_np1, *Bx_np1, *By_np1, *Bz_np1, *e_np1;
-	float *rho_int, *rhovx_int, *rhovy_int, *rhovz_int, *Bx_int, *By_int, *Bz_int, *e_int;
+	// float *rho, *rhov_x, *rhov_y, *rhov_z, *Bx, *By, *Bz, *e;
+	// float *rho_np1, *rhovx_np1, *rhovy_np1, *rhovz_np1, *Bx_np1, *By_np1, *Bz_np1, *e_np1;
+	// float *rho_int, *rhovx_int, *rhovy_int, *rhovz_int, *Bx_int, *By_int, *Bz_int, *e_int;
+	float *fluidvar;
+	float *fluidvar_np1;
+	float *intvar;
 	float *grid_x, *grid_y, *grid_z;
 
 	int fluid_data_size = sizeof(float) * Nx * Ny * Nz;
 
-	/* MALLOC TO DEVICE */
-	checkCuda(cudaMalloc(&rho, fluid_data_size));
-	checkCuda(cudaMalloc(&rhov_x, fluid_data_size));
-	checkCuda(cudaMalloc(&rhov_y, fluid_data_size));
-	checkCuda(cudaMalloc(&rhov_z, fluid_data_size));
-	checkCuda(cudaMalloc(&Bx, fluid_data_size));
-	checkCuda(cudaMalloc(&By, fluid_data_size));
-	checkCuda(cudaMalloc(&Bz, fluid_data_size));
-	checkCuda(cudaMalloc(&e, fluid_data_size));
-
-	checkCuda(cudaMalloc(&rho_np1, fluid_data_size));
-	checkCuda(cudaMalloc(&rhovx_np1, fluid_data_size));
-	checkCuda(cudaMalloc(&rhovy_np1, fluid_data_size));
-	checkCuda(cudaMalloc(&rhovz_np1, fluid_data_size));
-	checkCuda(cudaMalloc(&Bx_np1, fluid_data_size));
-	checkCuda(cudaMalloc(&By_np1, fluid_data_size));
-	checkCuda(cudaMalloc(&Bz_np1, fluid_data_size));
-	checkCuda(cudaMalloc(&e_np1, fluid_data_size));
-
-	checkCuda(cudaMalloc(&rho_int, fluid_data_size));
-	checkCuda(cudaMalloc(&rhovx_int, fluid_data_size));
-	checkCuda(cudaMalloc(&rhovy_int, fluid_data_size));
-	checkCuda(cudaMalloc(&rhovz_int, fluid_data_size));
-	checkCuda(cudaMalloc(&Bx_int, fluid_data_size));
-	checkCuda(cudaMalloc(&By_int, fluid_data_size));
-	checkCuda(cudaMalloc(&Bz_int, fluid_data_size));
-	checkCuda(cudaMalloc(&e_int, fluid_data_size));
+	/* MALLOC TO GLOBAL MEMORY */
+	checkCuda(cudaMalloc(&fluidvar, 8 * fluid_data_size));
+	checkCuda(cudaMalloc(&fluidvar_np1, 8 * fluid_data_size));
+	checkCuda(cudaMalloc(&intvar, 8 * fluid_data_size));
 
 	checkCuda(cudaMalloc(&grid_x, sizeof(float) * Nx));
 	checkCuda(cudaMalloc(&grid_y, sizeof(float) * Ny));
