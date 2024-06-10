@@ -1,0 +1,19 @@
+cmake_minimum_required(VERSION 3.12)
+project(imhd-CUDA LANGUAGES CUDA CXX)
+
+find_package(CUDAToolkit REQUIRED)
+
+set(CMAKE_VERBOSE_MAKEFILE on)
+
+add_executable(imhd-cuda 
+    main.cu 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/diffusion.cu
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/helper_functions.cu
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/initialize_od.cu
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/kernels_od_fluxes.cu
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/kernels_od_intvar.cu
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/kernels_od.cu
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/utils.cpp
+    )
+
+set_target_properties(imhd-cuda PROPERTIES CUDA_ARCHITECTURES 75)

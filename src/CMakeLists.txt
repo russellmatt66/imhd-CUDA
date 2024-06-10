@@ -3,18 +3,18 @@ project(imhd-CUDA LANGUAGES CUDA CXX)
 
 find_package(CUDAToolkit REQUIRED)
 
-set(CMAKE_VERBOSE_MAKEFILE on)
+# set(CMAKE_VERBOSE_MAKEFILE on)
 
-set(CMAKE_CXX_KEEP_INTERMEDIATE_OBJECTS 1)
-set(CMAKE_CUDA_KEEP_INTERMEDIATE_OBJECTS 1)
+# set(CMAKE_CXX_KEEP_INTERMEDIATE_OBJECTS 1)
+# set(CMAKE_CUDA_KEEP_INTERMEDIATE_OBJECTS 1)
 
-add_library(helper_lib ../include/helper_functions.cu)
-add_library(diffusion_lib ../include/diffusion.cu)
-add_library(fluxes_lib ../include/kernels_od_fluxes.cu)
-add_library(kernels_od_lib ../include/kernels_od.cu)
-add_library(initialize_od_lib ../include/initialize_od.cu)
-add_library(intvar_lib ../include/kernels_od_intvar.cu)
-add_library(utils_lib ../include/utils.cpp)
+add_library(helper_lib STATIC ../include/helper_functions.cu)
+add_library(diffusion_lib STATIC ../include/diffusion.cu)
+add_library(fluxes_lib STATIC ../include/kernels_od_fluxes.cu)
+add_library(kernels_od_lib STATIC ../include/kernels_od.cu)
+add_library(initialize_od_lib STATIC ../include/initialize_od.cu)
+add_library(intvar_lib STATIC ../include/kernels_od_intvar.cu)
+add_library(utils_lib STATIC ../include/utils.cpp)
 
 add_executable(imhd-cuda main.cu)
 add_executable(write-grid write_grid.cu)
