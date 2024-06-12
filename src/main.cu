@@ -99,6 +99,7 @@ int main(int argc, char* argv[]){
 
 	ComputeIntermediateVariables<<<grid_dimensions, block_dimensions>>>(fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
 	ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dimensions>>>(fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
+	checkCuda(cudaDeviceSynchronize());
 
 	/* THIS CAN STAY */
     // Prepare host data for writing out
@@ -152,7 +153,6 @@ int main(int argc, char* argv[]){
 			}
 		}
 	}
-	checkCuda(cudaDeviceSynchronize());
 
 	/* Simulation loop */
 	for (size_t it = 0; it < Nt; it++){
@@ -164,7 +164,6 @@ int main(int argc, char* argv[]){
 		BoundaryConditions<<<grid_dimensions, block_dimensions>>>(fluidvar_np1, fluidvar, intvar, D, dt, dx, dy, dz, Nx, Ny, Nz);
 	
 		std::cout << "Writing fluid data to host" << std::endl;
-		/* HOW TO POINT TO RIGHT LOCATIONS IN `fluidvar`? */
 		// Data volume scales very fast w/problem size, don't want to always write everything out 
 		for (size_t iv = 0; iv < 8; iv++){ 
 			if (to_write_or_not[iv]){  
