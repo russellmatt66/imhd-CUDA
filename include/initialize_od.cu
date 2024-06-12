@@ -84,11 +84,26 @@ __global__ void InitializeIntAndSwap(float* fluidvar_np1, float* intvar, const i
 
     int cube_size = Nx * Ny * Nz;
 
-    for (int k = tidz; k < 8 * Nz; k += zthreads){
-            for (int i = tidx; i < 8 * Nx; i += xthreads){
-                for (int j = tidy; j < 8 * Ny; j += ythreads){
+    for (int k = tidz; k < Nz; k += zthreads){
+            for (int i = tidx; i < Nx; i += xthreads){
+                for (int j = tidy; j < Ny; j += ythreads){
                     intvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0;
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0;
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0;
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.0; 
+
                     fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0;
+                    fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
+                    fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
+                    fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0;
+                    fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0;
+                    fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
+                    fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.0; 
             }
         }
     }

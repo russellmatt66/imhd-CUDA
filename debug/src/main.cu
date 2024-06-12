@@ -77,9 +77,9 @@ int main(int argc, char* argv[]){
 	
 	// dim3 block_dimensions(num_threads_per_block_x, num_threads_per_block_y, num_threads_per_block_z);
 	dim3 block_dims_grid(32, 16, 2); // 1024 threads per block
-	dim3 block_dims_init(8, 8, 8); // 512 < 923 threads per block
-	dim3 block_dims_intvar(8, 8, 4); // 256 < 334 threads per block 
-	dim3 block_dims_fluid(8, 8, 4); // 256 < 331 threads per block - based on register requirement of FluidAdvance + BCs kernels
+	dim3 block_dims_init(8, 4, 4); // 512 < 923 threads per block
+	dim3 block_dims_intvar(8, 8, 2); // 256 < 334 threads per block 
+	dim3 block_dims_fluid(8, 8, 2); // 256 < 331 threads per block - based on register requirement of FluidAdvance + BCs kernels
 
 	InitializeGrid<<<grid_dimensions, block_dims_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz,
 															grid_x, grid_y, grid_z, Nx, Ny, Nz);
