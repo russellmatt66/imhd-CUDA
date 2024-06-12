@@ -1,4 +1,7 @@
 # Directory Structure
+execution_config/
+- Python snippets related to calculating execution configurations 
+
 gds/ 
 - Snippets related to GPU Direct Storage functionality
 

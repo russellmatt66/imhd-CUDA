@@ -74,18 +74,23 @@ int main(int argc, char* argv[]){
 	checkCuda(cudaMalloc(&grid_z, sizeof(float) * Nz));
 
 	dim3 grid_dimensions(SM_mult_x * numberOfSMs, SM_mult_y * numberOfSMs, SM_mult_z * numberOfSMs);
-	dim3 block_dimensions(num_threads_per_block_x, num_threads_per_block_y, num_threads_per_block_z);
+	
+	// dim3 block_dimensions(num_threads_per_block_x, num_threads_per_block_y, num_threads_per_block_z);
+	dim3 block_dims_grid(32, 16, 2); // 1024 threads per block
+	dim3 block_dims_init(8, 8, 8); // 512 < 923 threads per block
+	dim3 block_dims_intvar(8, 8, 4); // 256 < 334 threads per block 
+	dim3 block_dims_fluid(8, 8, 4); // 256 < 331 threads per block - based on register requirement of FluidAdvance + BCs kernels
 
-	InitializeGrid<<<grid_dimensions, block_dimensions>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz,
+	InitializeGrid<<<grid_dimensions, block_dims_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz,
 															grid_x, grid_y, grid_z, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());
 
-	InitialConditions<<<grid_dimensions, block_dimensions>>>(fluidvar, J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
-	InitializeIntAndSwap<<<grid_dimensions, block_dimensions>>>(fluidvar_np1, intvar, Nx, Ny, Nz); // All 0.0
+	InitialConditions<<<grid_dimensions, block_dims_init>>>(fluidvar, J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
+	InitializeIntAndSwap<<<grid_dimensions, block_dims_init>>>(fluidvar_np1, intvar, Nx, Ny, Nz); // All 0.0
 	checkCuda(cudaDeviceSynchronize());
 
-	ComputeIntermediateVariables<<<grid_dimensions, block_dimensions>>>(fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
-	ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dimensions>>>(fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
+	ComputeIntermediateVariables<<<grid_dimensions, block_dims_intvar>>>(fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
+	ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dims_intvar>>>(fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());
 
 	/* Simulation loop */
@@ -94,17 +99,17 @@ int main(int argc, char* argv[]){
 
 		/* Compute interior and boundaries*/
 		std::cout << "Evolving fluid interior and boundary" << std::endl; 
-		FluidAdvance<<<grid_dimensions, block_dimensions>>>(fluidvar_np1, fluidvar, intvar, D, dt, dx, dy, dz, Nx, Ny, Nz);
-		BoundaryConditions<<<grid_dimensions, block_dimensions>>>(fluidvar_np1, fluidvar, intvar, D, dt, dx, dy, dz, Nx, Ny, Nz);
+		FluidAdvance<<<grid_dimensions, block_dims_fluid>>>(fluidvar_np1, fluidvar, intvar, D, dt, dx, dy, dz, Nx, Ny, Nz);
+		BoundaryConditions<<<grid_dimensions, block_dims_fluid>>>(fluidvar_np1, fluidvar, intvar, D, dt, dx, dy, dz, Nx, Ny, Nz);
 	
 		std::cout << "Writing fluid data to host" << std::endl;
 		checkCuda(cudaDeviceSynchronize());
 		
 		// Transfer future timestep data to current timestep in order to avoid race conditions
 		std::cout << "Swapping future timestep to current" << std::endl;
-		SwapSimData<<<grid_dimensions, block_dimensions>>>(fluidvar, fluidvar_np1, Nx, Ny, Nz);
-		ComputeIntermediateVariables<<<grid_dimensions, block_dimensions>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
-		ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dimensions>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
+		SwapSimData<<<grid_dimensions, block_dims_intvar>>>(fluidvar, fluidvar_np1, Nx, Ny, Nz);
+		ComputeIntermediateVariables<<<grid_dimensions, block_dims_intvar>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
+		ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dims_intvar>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
 		checkCuda(cudaDeviceSynchronize());
 	}
 
@@ -117,40 +122,5 @@ int main(int argc, char* argv[]){
 	checkCuda(cudaFree(grid_y));
 	checkCuda(cudaFree(grid_z));
 
-	/* Free host data */
-	// for (size_t ih = 0; ih < 8; ih++){
-	// 	if (to_write_or_not[ih]){ // Don't forget to free the rest of the host buffers 
-	// 		switch (ih)
-	// 		{
-	// 		case 0:
-	// 			free(h_rho);
-	// 			break;
-	// 		case 1:
-	// 			free(h_rhovx);
-	// 			break;
-	// 		case 2:
-	// 			free(h_rhovy);
-	// 			break;			
-	// 		case 3:
-	// 			free(h_rhovz);
-	// 			break;			
-	// 		case 4:
-	// 			free(h_Bx);
-	// 			break;			
-	// 		case 5:
-	// 			free(h_By);
-	// 			break;			
-	// 		case 6:
-	// 			free(h_Bz);
-	// 			break;			
-	// 		case 7:
-	// 			free(h_e);
-	// 			break;			
-	// 		default:
-	// 			break;
-	// 		}
-	// 	}
-	// }
-	// free(to_write_or_not);
 	return 0;
 }

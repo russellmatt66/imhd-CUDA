@@ -3,6 +3,7 @@
 
 #define IDX3D(i, j, k, Nx, Ny, Nz) (k * (Nx * Ny) + i * Ny + j)
 
+// 80 registers per thread
 __global__ void ComputeIntermediateVariables(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz, 
     const int Nx, const int Ny, const int Nz)
@@ -41,6 +42,7 @@ IMPLEMENT INT. VAR COMPUTATION AT THE APPROPRIATE BOUNDARY PLANES:
 (3) k = 0
 (4) k = Nz - 1
 */
+// 56 registers per thread
 __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz, 
     const int Nx, const int Ny, const int Nz)

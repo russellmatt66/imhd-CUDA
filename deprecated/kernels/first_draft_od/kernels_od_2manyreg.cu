@@ -8,7 +8,10 @@
 // row-major, column-minor order
 #define IDX3D(i, j, k, Nx, Ny, Nz) (k * (Nx * Ny) + i * Ny + j)
 
-/* REQUIRES TOO MANY REGISTERS DUE TO ALL THE POINTERS */
+/* REQUIRES TOO MANY REGISTERS DUE TO ALL THE POINTERS 
+FluidAdvance - 120 registers
+BoundaryConditions - 162 registers 
+*/
 /* 
 Needs to be refactored to compactify all data into three arrays:
 (1) float *fluidvar

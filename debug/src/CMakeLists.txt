@@ -42,12 +42,20 @@ target_compile_options(imhd-debug PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
                         -Xptxas=-v
                         >)
                         
-# Compile options for kernels_od_lib
+# Needed register requirements, and line info for debugging
 target_compile_options(kernels_od_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
                         -lineinfo
                         -Xptxas=-v
                         >)
+# Need register requirements
+target_compile_options(intvar_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                        -Xptxas=-v
+                        >)   
 
+target_compile_options(initialize_od_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                        -Xptxas=-v
+                        >)                  
+                        
 # Set CUDA architectures
 set_target_properties(initialize_od_lib PROPERTIES CUDA_ARCHITECTURES 75)
 set_target_properties(helper_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)

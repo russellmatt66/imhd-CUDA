@@ -7,6 +7,11 @@
 // row-major, column-minor order
 #define IDX3D(i, j, k, Nx, Ny, Nz) (k * (Nx * Ny) + i * Ny + j)
 
+/* Still needs a lot of registers
+FluidAdvance - 66 registers
+BoundaryConditions - 120 registers 
+*/
+
 /* 
 Needed to be refactored to compactify all data into three arrays:
 (1) float *fluidvar
@@ -23,7 +28,6 @@ fluidvar -> [rho_{000}, rho_{010}, rho_{020}, ..., rho_{0,Ny-1,0}, rho_{100}, ..
 */
 
 // Global kernels
-// 40 registers per thread
 __global__ void SwapSimData(float* fluidvar, const float* fluidvar_np1, const int Nx, const int Ny, const int Nz)
     {
     int tidx = threadIdx.x + blockDim.x * blockIdx.x; 
@@ -52,7 +56,6 @@ __global__ void SwapSimData(float* fluidvar, const float* fluidvar_np1, const in
     return;
     }
 
-// 66 registers per thread
 __global__ void FluidAdvance(float* fluidvar_np1, const float* fluidvar, const float* intvar, 
     const float D, const float dt, const float dx, const float dy, const float dz, 
     const int Nx, const int Ny, const int Nz)
@@ -92,7 +95,6 @@ __global__ void FluidAdvance(float* fluidvar_np1, const float* fluidvar, const f
     return;
     }
 
-// 120 registers per thread
 __global__ void BoundaryConditions(float* fluidvar_np1, const float* fluidvar, const float* intvar, 
     const float D, const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
