@@ -9,6 +9,7 @@ build/
 - Where `main.cu` is built
 
 # Current Tasks
+(1) Figure out the weirdness with `compute-sanitizer`
 (1) Specify execution configurations for the various kernels that work well with their resource requirements
 - Initialization
 -- `InitializeGrid` - 16 registers / thread -> 1024 per block (10 per dimension)

@@ -48,4 +48,5 @@ __device__ float intE(const int i, const int j, const int k,
     const float* fluidvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
+    
 #endif

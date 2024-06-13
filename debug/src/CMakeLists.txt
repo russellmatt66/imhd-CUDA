@@ -47,6 +47,7 @@ target_compile_options(kernels_od_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
                         -lineinfo
                         -Xptxas=-v
                         >)
+
 # Need register requirements
 target_compile_options(intvar_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
                         -Xptxas=-v
@@ -55,7 +56,11 @@ target_compile_options(intvar_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
 target_compile_options(initialize_od_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
                         -Xptxas=-v
                         >)                  
-                        
+
+target_compile_options(diffusion_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                        -lineinfo
+                        >)                                   
+
 # Set CUDA architectures
 set_target_properties(initialize_od_lib PROPERTIES CUDA_ARCHITECTURES 75)
 set_target_properties(helper_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)

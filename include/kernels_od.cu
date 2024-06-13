@@ -68,7 +68,7 @@ __global__ void FluidAdvance(float* fluidvar_np1, const float* fluidvar, const f
     int cube_size = Nx * Ny * Nz;
 
     for (int k = tidz + 1; k < Nz - 1; k += zthreads){
-        for (int i = tidx + 1; i < Nx - 1; k += xthreads){
+        for (int i = tidx + 1; i < Nx - 1; i += xthreads){
             for (int j = tidy + 1; j < Ny - 1; j += ythreads){
                 fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRho(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
                                                             + numericalDiffusion(i, j, k, fluidvar, D, dx, dy, dz, 0, Nx, Ny, Nz); // rho
