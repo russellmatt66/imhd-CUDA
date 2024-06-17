@@ -5,25 +5,19 @@ Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD sys
 [] = "Not yet accomplished"
 
 # Current Tasks
-(1) Kernel needs to be refactored to compactify all data into three arrays:
-- `float *fluidvar`, `float *intvar`, and `float *fluidvar_np1`
-- [O]
+(1) Profile simulation
+- Figure out how to profile `304x304x592` case
 
-- Furthermore, there is a race condition amongst the intermediate variable calculation. To solve this, move the intermediate variable's computation outside of
-the fluid advance loop, and into its own kernel. Precompute them after the initial conditions, then compute them in the loop while writing data out.   
-- [] 
-
-(2) Run kernel and visualize results
+(2) Run simulation and visualize results
 - Finish `visualization/create_video_csv.cpp`
 
-(3) Benchmark
-- Kernel
-- BCs
-- Swap buffer
+(3) Optimize
+- Kernels need to be refactored again for global memory coalescing
+- Execution configurations should go to 1B1T
+- Shared memory access needs to be implemented in kernels
 
-(4) Figure out how to change the maximum amount of device pinned memory
-- `test/gds/max_pinned` 
--- Not really sure why it's not changing, guess project will have to go with device2host transfers
+# VCS
+- `v1.0`: (6/16/24) The project has reached a milestone where it passes the functional correctness testing of `compute-sanitizer` with all end-to-end components. This working draft needs further work to done to visualize the output, improve the performance, clean up the repo, and profile the production case of `304x304x592`. It is stored with a `git tag` of `v1.0`.
 
 # Design
 ## On-Device or Host-Device?
@@ -48,7 +42,7 @@ Numerical simulations of physical systems are best implemented in `non-dimension
 Fortunately, the Ideal MHD system is already written in such a way, with the only physical constant left behind being the adiabatic index, &gamma, which in general is related to the number of degrees of freedom that the particles of a gaseous system possess. Plasmas, being an electrically-charged gas which on macroscopic scales is roughly electrically-neutral as the abundance of free charge in the system acts in a way to shield electric potentials from the bulk, can be analyzed by considering the particles to have only translational degrees of freedom in three dimensions, which yields a &gamma = 5 / 3.    
 
 ## Initial and Boundary Conditions
-The system that is currently implemented for simulation is a screw-pinch fusion plasma. The screw-pinch is a kind of magnetic confinement fusion (MCF) configuration which uses external magnets along with the `pinch` effect in order to heat, and confine, a plasma to fusion temperatures for long enough, and at high enough density, that breakeven is achieved. Currently, no screw-pinch, or MCF configuration for that matter, has achieved breakeven, a.k.a ignition. 
+The system that is currently implemented for simulation is a screw-pinch fusion plasma. The screw-pinch is a kind of magnetic confinement fusion (MCF) configuration which uses external magnets along with the `pinch` effect in order to heat, and confine, a plasma to fusion temperatures for long enough, and at high enough density, that breakeven is achieved. Currently, no screw-pinch, or MCF configuration for that matter, has achieved breakeven. 
 
 # Directory Structure
 WIP
