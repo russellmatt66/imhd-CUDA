@@ -2624,9 +2624,9 @@ $L__BB1_9:
 {
 	.reg .pred 	%p<12>;
 	.reg .f32 	%f<284>;
-	.reg .b32 	%r<155>;
+	.reg .b32 	%r<156>;
 	.reg .f64 	%fd<187>;
-	.reg .b64 	%rd<111>;
+	.reg .b64 	%rd<106>;
 
 
 	ld.param.u64 	%rd10, [_Z18BoundaryConditionsPfPKfS1_fffffiii_param_0];
@@ -2637,39 +2637,39 @@ $L__BB1_9:
 	ld.param.f32 	%f10, [_Z18BoundaryConditionsPfPKfS1_fffffiii_param_5];
 	ld.param.f32 	%f11, [_Z18BoundaryConditionsPfPKfS1_fffffiii_param_6];
 	ld.param.f32 	%f12, [_Z18BoundaryConditionsPfPKfS1_fffffiii_param_7];
-	ld.param.u32 	%r33, [_Z18BoundaryConditionsPfPKfS1_fffffiii_param_8];
-	ld.param.u32 	%r34, [_Z18BoundaryConditionsPfPKfS1_fffffiii_param_9];
-	ld.param.u32 	%r35, [_Z18BoundaryConditionsPfPKfS1_fffffiii_param_10];
+	ld.param.u32 	%r32, [_Z18BoundaryConditionsPfPKfS1_fffffiii_param_8];
+	ld.param.u32 	%r33, [_Z18BoundaryConditionsPfPKfS1_fffffiii_param_9];
+	ld.param.u32 	%r34, [_Z18BoundaryConditionsPfPKfS1_fffffiii_param_10];
 	cvta.to.global.u64 	%rd1, %rd10;
-	mov.u32 	%r36, %ctaid.x;
-	mov.u32 	%r37, %ntid.x;
-	mov.u32 	%r38, %ctaid.y;
-	mov.u32 	%r39, %ntid.y;
-	mov.u32 	%r40, %tid.y;
-	mad.lo.s32 	%r1, %r39, %r38, %r40;
-	mov.u32 	%r41, %ctaid.z;
-	mov.u32 	%r42, %ntid.z;
-	mov.u32 	%r43, %tid.z;
-	mad.lo.s32 	%r153, %r42, %r41, %r43;
-	mov.u32 	%r44, %nctaid.x;
-	mul.lo.s32 	%r3, %r37, %r44;
-	mov.u32 	%r45, %nctaid.y;
-	mul.lo.s32 	%r4, %r39, %r45;
-	mov.u32 	%r46, %nctaid.z;
-	mul.lo.s32 	%r5, %r42, %r46;
-	mul.lo.s32 	%r6, %r34, %r33;
-	mul.lo.s32 	%r7, %r6, %r35;
-	mov.u32 	%r47, %tid.x;
-	mad.lo.s32 	%r48, %r37, %r36, %r47;
-	add.s32 	%r8, %r48, 1;
-	add.s32 	%r9, %r33, -1;
+	mov.u32 	%r35, %ctaid.x;
+	mov.u32 	%r36, %ntid.x;
+	mov.u32 	%r37, %ctaid.y;
+	mov.u32 	%r38, %ntid.y;
+	mov.u32 	%r39, %tid.y;
+	mad.lo.s32 	%r1, %r38, %r37, %r39;
+	mov.u32 	%r40, %ctaid.z;
+	mov.u32 	%r41, %ntid.z;
+	mov.u32 	%r42, %tid.z;
+	mad.lo.s32 	%r154, %r41, %r40, %r42;
+	mov.u32 	%r43, %nctaid.x;
+	mul.lo.s32 	%r3, %r36, %r43;
+	mov.u32 	%r44, %nctaid.y;
+	mul.lo.s32 	%r4, %r38, %r44;
+	mov.u32 	%r45, %nctaid.z;
+	mul.lo.s32 	%r5, %r41, %r45;
+	mul.lo.s32 	%r6, %r33, %r32;
+	mul.lo.s32 	%r7, %r6, %r34;
+	mov.u32 	%r46, %tid.x;
+	mad.lo.s32 	%r47, %r36, %r35, %r46;
+	add.s32 	%r8, %r47, 1;
+	add.s32 	%r9, %r32, -1;
 	setp.ge.s32 	%p1, %r8, %r9;
 	@%p1 bra 	$L__BB2_6;
 
 	cvta.to.global.u64 	%rd2, %rd9;
 	cvta.to.global.u64 	%rd3, %rd8;
 	add.s32 	%r10, %r1, 1;
-	add.s32 	%r11, %r34, -1;
+	add.s32 	%r11, %r33, -1;
 	div.rn.f32 	%f13, %f9, %f10;
 	cvt.f64.f32 	%fd4, %f13;
 	mul.f64 	%fd1, %fd4, 0d3FE0000000000000;
@@ -2680,36 +2680,35 @@ $L__BB1_9:
 	cvt.f64.f32 	%fd6, %f15;
 	mul.f64 	%fd3, %fd6, 0d3FE0000000000000;
 	cvt.rn.f32.s32 	%f1, %r7;
-	shl.b32 	%r49, %r7, 1;
-	cvt.rn.f32.s32 	%f2, %r49;
-	mul.lo.s32 	%r50, %r7, 3;
-	cvt.rn.f32.s32 	%f3, %r50;
-	shl.b32 	%r51, %r7, 2;
-	cvt.rn.f32.s32 	%f4, %r51;
-	mul.lo.s32 	%r52, %r7, 5;
-	cvt.rn.f32.s32 	%f5, %r52;
-	mul.lo.s32 	%r53, %r7, 6;
-	cvt.rn.f32.s32 	%f6, %r53;
-	mul.lo.s32 	%r54, %r7, 7;
-	cvt.rn.f32.s32 	%f7, %r54;
+	shl.b32 	%r48, %r7, 1;
+	cvt.rn.f32.s32 	%f2, %r48;
+	mul.lo.s32 	%r49, %r7, 3;
+	cvt.rn.f32.s32 	%f3, %r49;
+	shl.b32 	%r50, %r7, 2;
+	cvt.rn.f32.s32 	%f4, %r50;
+	mul.lo.s32 	%r51, %r7, 5;
+	cvt.rn.f32.s32 	%f5, %r51;
+	mul.lo.s32 	%r52, %r7, 6;
+	cvt.rn.f32.s32 	%f6, %r52;
+	mul.lo.s32 	%r53, %r7, 7;
+	cvt.rn.f32.s32 	%f7, %r53;
 	sub.s32 	%r13, %r7, %r6;
-	sub.s32 	%r14, %r35, %r6;
-	mul.lo.s32 	%r55, %r35, %r34;
-	mul.lo.s32 	%r56, %r55, %r33;
-	mul.wide.s32 	%rd4, %r56, 4;
+	mul.lo.s32 	%r54, %r34, %r33;
+	mul.lo.s32 	%r55, %r54, %r32;
+	mul.wide.s32 	%rd4, %r55, 4;
 	add.s64 	%rd5, %rd4, 4;
-	mov.u32 	%r149, %r8;
+	mov.u32 	%r150, %r8;
 
 $L__BB2_2:
 	setp.ge.s32 	%p2, %r10, %r11;
 	@%p2 bra 	$L__BB2_5;
 
-	mov.u32 	%r150, %r10;
+	mov.u32 	%r151, %r10;
 
 $L__BB2_4:
-	mul.lo.s32 	%r148, %r149, %r34;
-	add.s32 	%r57, %r150, %r148;
-	mul.wide.s32 	%rd11, %r57, 4;
+	mul.lo.s32 	%r149, %r150, %r33;
+	add.s32 	%r56, %r151, %r149;
+	mul.wide.s32 	%rd11, %r56, 4;
 	add.s64 	%rd12, %rd3, %rd11;
 	add.s64 	%rd13, %rd2, %rd11;
 	ld.global.f32 	%f16, [%rd13];
@@ -2720,20 +2719,20 @@ $L__BB2_4:
 	{ // callseq 56, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r90, %r149, 1;
-	st.param.b32 	[param0+0], %r90;
+	add.s32 	%r91, %r150, 1;
+	st.param.b32 	[param0+0], %r91;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z8XFluxRhoiiiPKfiii, 
@@ -2751,19 +2750,19 @@ $L__BB2_4:
 	{ // callseq 57, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z8XFluxRhoiiiPKfiii, 
@@ -2782,23 +2781,23 @@ $L__BB2_4:
 	cvt.f64.f32 	%fd9, %f21;
 	mul.f64 	%fd10, %fd1, %fd9;
 	sub.f64 	%fd11, %fd8, %fd10;
-	add.s32 	%r58, %r150, 1;
+	add.s32 	%r57, %r151, 1;
 	{ // callseq 58, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z8YFluxRhoiiiPKfiii, 
@@ -2816,19 +2815,19 @@ $L__BB2_4:
 	{ // callseq 59, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z8YFluxRhoiiiPKfiii, 
@@ -2850,19 +2849,19 @@ $L__BB2_4:
 	{ // callseq 60, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z8ZFluxRhoiiiPKfiii, 
@@ -2880,19 +2879,19 @@ $L__BB2_4:
 	{ // callseq 61, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z8ZFluxRhoiiiPKfiii, 
@@ -2917,9 +2916,9 @@ $L__BB2_4:
 	{ // callseq 62, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -2933,11 +2932,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 0;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z23numericalDiffusionFrontiiPKfffffiiii, 
@@ -2956,7 +2955,7 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f29, [retval0+0];
 	} // callseq 62
-	add.s32 	%r59, %r57, %r7;
+	add.s32 	%r58, %r56, %r7;
 	mul.wide.s32 	%rd15, %r7, 4;
 	add.s64 	%rd16, %rd12, %rd15;
 	ld.global.f32 	%f30, [%rd13];
@@ -2968,20 +2967,20 @@ $L__BB2_4:
 	{ // callseq 63, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r91, %r149, 1;
-	st.param.b32 	[param0+0], %r91;
+	add.s32 	%r92, %r150, 1;
+	st.param.b32 	[param0+0], %r92;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10XFluxRhoVXiiiPKfiii, 
@@ -2999,19 +2998,19 @@ $L__BB2_4:
 	{ // callseq 64, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10XFluxRhoVXiiiPKfiii, 
@@ -3033,19 +3032,19 @@ $L__BB2_4:
 	{ // callseq 65, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10YFluxRhoVXiiiPKfiii, 
@@ -3063,19 +3062,19 @@ $L__BB2_4:
 	{ // callseq 66, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10YFluxRhoVXiiiPKfiii, 
@@ -3097,19 +3096,19 @@ $L__BB2_4:
 	{ // callseq 67, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10ZFluxRhoVXiiiPKfiii, 
@@ -3127,19 +3126,19 @@ $L__BB2_4:
 	{ // callseq 68, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10ZFluxRhoVXiiiPKfiii, 
@@ -3164,9 +3163,9 @@ $L__BB2_4:
 	{ // callseq 69, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -3180,11 +3179,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 1;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z23numericalDiffusionFrontiiPKfffffiiii, 
@@ -3203,8 +3202,8 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f44, [retval0+0];
 	} // callseq 69
-	add.s32 	%r60, %r59, %r7;
-	mul.wide.s32 	%rd18, %r60, 4;
+	add.s32 	%r59, %r58, %r7;
+	mul.wide.s32 	%rd18, %r59, 4;
 	add.s64 	%rd19, %rd3, %rd18;
 	ld.global.f32 	%f45, [%rd13];
 	ld.global.f32 	%f46, [%rd19];
@@ -3215,20 +3214,20 @@ $L__BB2_4:
 	{ // callseq 70, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r92, %r149, 1;
-	st.param.b32 	[param0+0], %r92;
+	add.s32 	%r93, %r150, 1;
+	st.param.b32 	[param0+0], %r93;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10XFluxRhoVYiiiPKfiii, 
@@ -3246,19 +3245,19 @@ $L__BB2_4:
 	{ // callseq 71, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10XFluxRhoVYiiiPKfiii, 
@@ -3280,19 +3279,19 @@ $L__BB2_4:
 	{ // callseq 72, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10YFluxRhoVYiiiPKfiii, 
@@ -3310,19 +3309,19 @@ $L__BB2_4:
 	{ // callseq 73, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10YFluxRhoVYiiiPKfiii, 
@@ -3344,19 +3343,19 @@ $L__BB2_4:
 	{ // callseq 74, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10ZFluxRhoVYiiiPKfiii, 
@@ -3374,19 +3373,19 @@ $L__BB2_4:
 	{ // callseq 75, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10ZFluxRhoVYiiiPKfiii, 
@@ -3411,9 +3410,9 @@ $L__BB2_4:
 	{ // callseq 76, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -3427,11 +3426,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 2;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z23numericalDiffusionFrontiiPKfffffiiii, 
@@ -3450,7 +3449,7 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f59, [retval0+0];
 	} // callseq 76
-	add.s32 	%r61, %r60, %r7;
+	add.s32 	%r60, %r59, %r7;
 	add.s64 	%rd21, %rd19, %rd4;
 	add.s64 	%rd22, %rd21, -4;
 	ld.global.f32 	%f60, [%rd13];
@@ -3462,20 +3461,20 @@ $L__BB2_4:
 	{ // callseq 77, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r93, %r149, 1;
-	st.param.b32 	[param0+0], %r93;
+	add.s32 	%r94, %r150, 1;
+	st.param.b32 	[param0+0], %r94;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10XFluxRhoVZiiiPKfiii, 
@@ -3493,19 +3492,19 @@ $L__BB2_4:
 	{ // callseq 78, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10XFluxRhoVZiiiPKfiii, 
@@ -3527,19 +3526,19 @@ $L__BB2_4:
 	{ // callseq 79, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10YFluxRhoVZiiiPKfiii, 
@@ -3557,19 +3556,19 @@ $L__BB2_4:
 	{ // callseq 80, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10YFluxRhoVZiiiPKfiii, 
@@ -3591,19 +3590,19 @@ $L__BB2_4:
 	{ // callseq 81, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10ZFluxRhoVZiiiPKfiii, 
@@ -3621,19 +3620,19 @@ $L__BB2_4:
 	{ // callseq 82, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10ZFluxRhoVZiiiPKfiii, 
@@ -3653,15 +3652,15 @@ $L__BB2_4:
 	mul.f64 	%fd49, %fd3, %fd48;
 	sub.f64 	%fd50, %fd47, %fd49;
 	cvt.rn.f32.f64 	%f73, %fd50;
-	mul.wide.s32 	%rd23, %r61, 4;
+	mul.wide.s32 	%rd23, %r60, 4;
 	add.s64 	%rd24, %rd1, %rd23;
 	st.global.f32 	[%rd24], %f73;
 	{ // callseq 83, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -3675,11 +3674,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 3;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z23numericalDiffusionFrontiiPKfffffiiii, 
@@ -3698,7 +3697,7 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f74, [retval0+0];
 	} // callseq 83
-	add.s32 	%r62, %r61, %r7;
+	add.s32 	%r61, %r60, %r7;
 	add.s64 	%rd25, %rd22, %rd4;
 	add.s64 	%rd26, %rd22, %rd5;
 	ld.global.f32 	%f75, [%rd13];
@@ -3710,20 +3709,20 @@ $L__BB2_4:
 	{ // callseq 84, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r94, %r149, 1;
-	st.param.b32 	[param0+0], %r94;
+	add.s32 	%r95, %r150, 1;
+	st.param.b32 	[param0+0], %r95;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7XFluxBXiiiPKfiii, 
@@ -3741,19 +3740,19 @@ $L__BB2_4:
 	{ // callseq 85, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7XFluxBXiiiPKfiii, 
@@ -3775,19 +3774,19 @@ $L__BB2_4:
 	{ // callseq 86, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7YFluxBXiiiPKfiii, 
@@ -3805,19 +3804,19 @@ $L__BB2_4:
 	{ // callseq 87, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7YFluxBXiiiPKfiii, 
@@ -3839,19 +3838,19 @@ $L__BB2_4:
 	{ // callseq 88, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7ZFluxBXiiiPKfiii, 
@@ -3869,19 +3868,19 @@ $L__BB2_4:
 	{ // callseq 89, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7ZFluxBXiiiPKfiii, 
@@ -3901,15 +3900,15 @@ $L__BB2_4:
 	mul.f64 	%fd60, %fd3, %fd59;
 	sub.f64 	%fd61, %fd58, %fd60;
 	cvt.rn.f32.f64 	%f88, %fd61;
-	mul.wide.s32 	%rd27, %r62, 4;
+	mul.wide.s32 	%rd27, %r61, 4;
 	add.s64 	%rd28, %rd1, %rd27;
 	st.global.f32 	[%rd28], %f88;
 	{ // callseq 90, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -3923,11 +3922,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 4;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z23numericalDiffusionFrontiiPKfffffiiii, 
@@ -3946,7 +3945,7 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f89, [retval0+0];
 	} // callseq 90
-	add.s32 	%r63, %r62, %r7;
+	add.s32 	%r62, %r61, %r7;
 	add.s64 	%rd29, %rd25, %rd4;
 	add.s64 	%rd30, %rd25, %rd5;
 	ld.global.f32 	%f90, [%rd13];
@@ -3958,20 +3957,20 @@ $L__BB2_4:
 	{ // callseq 91, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r95, %r149, 1;
-	st.param.b32 	[param0+0], %r95;
+	add.s32 	%r96, %r150, 1;
+	st.param.b32 	[param0+0], %r96;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7XFluxBYiiiPKfiii, 
@@ -3989,19 +3988,19 @@ $L__BB2_4:
 	{ // callseq 92, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7XFluxBYiiiPKfiii, 
@@ -4023,19 +4022,19 @@ $L__BB2_4:
 	{ // callseq 93, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7YFluxBYiiiPKfiii, 
@@ -4053,19 +4052,19 @@ $L__BB2_4:
 	{ // callseq 94, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7YFluxBYiiiPKfiii, 
@@ -4087,19 +4086,19 @@ $L__BB2_4:
 	{ // callseq 95, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7ZFluxBYiiiPKfiii, 
@@ -4117,19 +4116,19 @@ $L__BB2_4:
 	{ // callseq 96, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7ZFluxBYiiiPKfiii, 
@@ -4149,15 +4148,15 @@ $L__BB2_4:
 	mul.f64 	%fd71, %fd3, %fd70;
 	sub.f64 	%fd72, %fd69, %fd71;
 	cvt.rn.f32.f64 	%f103, %fd72;
-	mul.wide.s32 	%rd31, %r63, 4;
+	mul.wide.s32 	%rd31, %r62, 4;
 	add.s64 	%rd32, %rd1, %rd31;
 	st.global.f32 	[%rd32], %f103;
 	{ // callseq 97, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -4171,11 +4170,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 5;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z23numericalDiffusionFrontiiPKfffffiiii, 
@@ -4194,7 +4193,7 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f104, [retval0+0];
 	} // callseq 97
-	add.s32 	%r64, %r63, %r7;
+	add.s32 	%r63, %r62, %r7;
 	add.s64 	%rd33, %rd29, %rd4;
 	add.s64 	%rd34, %rd29, %rd5;
 	ld.global.f32 	%f105, [%rd13];
@@ -4206,20 +4205,20 @@ $L__BB2_4:
 	{ // callseq 98, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r96, %r149, 1;
-	st.param.b32 	[param0+0], %r96;
+	add.s32 	%r97, %r150, 1;
+	st.param.b32 	[param0+0], %r97;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7XFluxBZiiiPKfiii, 
@@ -4237,19 +4236,19 @@ $L__BB2_4:
 	{ // callseq 99, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7XFluxBZiiiPKfiii, 
@@ -4271,19 +4270,19 @@ $L__BB2_4:
 	{ // callseq 100, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7YFluxBZiiiPKfiii, 
@@ -4301,19 +4300,19 @@ $L__BB2_4:
 	{ // callseq 101, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7YFluxBZiiiPKfiii, 
@@ -4335,19 +4334,19 @@ $L__BB2_4:
 	{ // callseq 102, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7ZFluxBZiiiPKfiii, 
@@ -4365,19 +4364,19 @@ $L__BB2_4:
 	{ // callseq 103, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7ZFluxBZiiiPKfiii, 
@@ -4397,15 +4396,15 @@ $L__BB2_4:
 	mul.f64 	%fd82, %fd3, %fd81;
 	sub.f64 	%fd83, %fd80, %fd82;
 	cvt.rn.f32.f64 	%f118, %fd83;
-	mul.wide.s32 	%rd35, %r64, 4;
+	mul.wide.s32 	%rd35, %r63, 4;
 	add.s64 	%rd36, %rd1, %rd35;
 	st.global.f32 	[%rd36], %f118;
 	{ // callseq 104, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -4419,11 +4418,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 6;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z23numericalDiffusionFrontiiPKfffffiiii, 
@@ -4442,7 +4441,7 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f119, [retval0+0];
 	} // callseq 104
-	add.s32 	%r65, %r64, %r7;
+	add.s32 	%r64, %r63, %r7;
 	add.s64 	%rd37, %rd33, %rd5;
 	ld.global.f32 	%f120, [%rd13];
 	ld.global.f32 	%f121, [%rd37];
@@ -4453,20 +4452,20 @@ $L__BB2_4:
 	{ // callseq 105, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r97, %r149, 1;
-	st.param.b32 	[param0+0], %r97;
+	add.s32 	%r98, %r150, 1;
+	st.param.b32 	[param0+0], %r98;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z6XFluxEiiiPKfiii, 
@@ -4484,19 +4483,19 @@ $L__BB2_4:
 	{ // callseq 106, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7XFluxBZiiiPKfiii, 
@@ -4518,19 +4517,19 @@ $L__BB2_4:
 	{ // callseq 107, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z6YFluxEiiiPKfiii, 
@@ -4548,19 +4547,19 @@ $L__BB2_4:
 	{ // callseq 108, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7YFluxBZiiiPKfiii, 
@@ -4582,19 +4581,19 @@ $L__BB2_4:
 	{ // callseq 109, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z6ZFluxEiiiPKfiii, 
@@ -4612,19 +4611,19 @@ $L__BB2_4:
 	{ // callseq 110, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 0;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7ZFluxBZiiiPKfiii, 
@@ -4644,15 +4643,15 @@ $L__BB2_4:
 	mul.f64 	%fd93, %fd3, %fd92;
 	sub.f64 	%fd94, %fd91, %fd93;
 	cvt.rn.f32.f64 	%f133, %fd94;
-	mul.wide.s32 	%rd38, %r65, 4;
+	mul.wide.s32 	%rd38, %r64, 4;
 	add.s64 	%rd39, %rd1, %rd38;
 	st.global.f32 	[%rd39], %f133;
 	{ // callseq 111, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -4666,11 +4665,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 7;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z23numericalDiffusionFrontiiPKfffffiiii, 
@@ -4689,8 +4688,8 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f134, [retval0+0];
 	} // callseq 111
-	add.s32 	%r66, %r57, %r13;
-	mul.wide.s32 	%rd40, %r66, 4;
+	add.s32 	%r65, %r56, %r13;
+	mul.wide.s32 	%rd40, %r65, 4;
 	add.s64 	%rd41, %rd3, %rd40;
 	add.s64 	%rd42, %rd2, %rd40;
 	ld.global.f32 	%f135, [%rd42];
@@ -4701,21 +4700,21 @@ $L__BB2_4:
 	{ // callseq 112, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r98, %r149, 1;
-	st.param.b32 	[param0+0], %r98;
+	add.s32 	%r99, %r150, 1;
+	st.param.b32 	[param0+0], %r99;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r99, %r35, -1;
-	st.param.b32 	[param2+0], %r99;
+	add.s32 	%r100, %r34, -1;
+	st.param.b32 	[param2+0], %r100;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z8XFluxRhoiiiPKfiii, 
@@ -4733,20 +4732,20 @@ $L__BB2_4:
 	{ // callseq 113, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r100, %r35, -1;
-	st.param.b32 	[param2+0], %r100;
+	add.s32 	%r101, %r34, -1;
+	st.param.b32 	[param2+0], %r101;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z8XFluxRhoiiiPKfiii, 
@@ -4768,20 +4767,20 @@ $L__BB2_4:
 	{ // callseq 114, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
-	add.s32 	%r101, %r35, -1;
-	st.param.b32 	[param2+0], %r101;
+	add.s32 	%r102, %r34, -1;
+	st.param.b32 	[param2+0], %r102;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z8YFluxRhoiiiPKfiii, 
@@ -4799,20 +4798,20 @@ $L__BB2_4:
 	{ // callseq 115, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r102, %r35, -1;
-	st.param.b32 	[param2+0], %r102;
+	add.s32 	%r103, %r34, -1;
+	st.param.b32 	[param2+0], %r103;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z8YFluxRhoiiiPKfiii, 
@@ -4834,19 +4833,19 @@ $L__BB2_4:
 	{ // callseq 116, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z8ZFluxRhoiiiPKfiii, 
@@ -4864,20 +4863,20 @@ $L__BB2_4:
 	{ // callseq 117, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r103, %r35, -1;
-	st.param.b32 	[param2+0], %r103;
+	add.s32 	%r104, %r34, -1;
+	st.param.b32 	[param2+0], %r104;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z8ZFluxRhoiiiPKfiii, 
@@ -4902,9 +4901,9 @@ $L__BB2_4:
 	{ // callseq 118, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -4918,11 +4917,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 0;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z22numericalDiffusionBackiiPKfffffiiii, 
@@ -4941,7 +4940,7 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f148, [retval0+0];
 	} // callseq 118
-	add.s32 	%r67, %r66, %r7;
+	add.s32 	%r66, %r65, %r7;
 	add.s64 	%rd44, %rd41, %rd15;
 	ld.global.f32 	%f149, [%rd42];
 	ld.global.f32 	%f150, [%rd44];
@@ -4952,21 +4951,21 @@ $L__BB2_4:
 	{ // callseq 119, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r104, %r149, 1;
-	st.param.b32 	[param0+0], %r104;
+	add.s32 	%r105, %r150, 1;
+	st.param.b32 	[param0+0], %r105;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r105, %r35, -1;
-	st.param.b32 	[param2+0], %r105;
+	add.s32 	%r106, %r34, -1;
+	st.param.b32 	[param2+0], %r106;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10XFluxRhoVXiiiPKfiii, 
@@ -4984,20 +4983,20 @@ $L__BB2_4:
 	{ // callseq 120, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r106, %r35, -1;
-	st.param.b32 	[param2+0], %r106;
+	add.s32 	%r107, %r34, -1;
+	st.param.b32 	[param2+0], %r107;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10XFluxRhoVXiiiPKfiii, 
@@ -5019,20 +5018,20 @@ $L__BB2_4:
 	{ // callseq 121, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
-	add.s32 	%r107, %r35, -1;
-	st.param.b32 	[param2+0], %r107;
+	add.s32 	%r108, %r34, -1;
+	st.param.b32 	[param2+0], %r108;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10YFluxRhoVXiiiPKfiii, 
@@ -5050,20 +5049,20 @@ $L__BB2_4:
 	{ // callseq 122, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r108, %r35, -1;
-	st.param.b32 	[param2+0], %r108;
+	add.s32 	%r109, %r34, -1;
+	st.param.b32 	[param2+0], %r109;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10YFluxRhoVXiiiPKfiii, 
@@ -5085,19 +5084,19 @@ $L__BB2_4:
 	{ // callseq 123, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10ZFluxRhoVXiiiPKfiii, 
@@ -5115,20 +5114,20 @@ $L__BB2_4:
 	{ // callseq 124, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r109, %r35, -1;
-	st.param.b32 	[param2+0], %r109;
+	add.s32 	%r110, %r34, -1;
+	st.param.b32 	[param2+0], %r110;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10ZFluxRhoVXiiiPKfiii, 
@@ -5153,9 +5152,9 @@ $L__BB2_4:
 	{ // callseq 125, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -5169,11 +5168,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 1;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z22numericalDiffusionBackiiPKfffffiiii, 
@@ -5192,8 +5191,8 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f163, [retval0+0];
 	} // callseq 125
-	add.s32 	%r68, %r67, %r7;
-	mul.wide.s32 	%rd46, %r68, 4;
+	add.s32 	%r67, %r66, %r7;
+	mul.wide.s32 	%rd46, %r67, 4;
 	add.s64 	%rd47, %rd3, %rd46;
 	ld.global.f32 	%f164, [%rd42];
 	ld.global.f32 	%f165, [%rd47];
@@ -5204,21 +5203,21 @@ $L__BB2_4:
 	{ // callseq 126, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r110, %r149, 1;
-	st.param.b32 	[param0+0], %r110;
+	add.s32 	%r111, %r150, 1;
+	st.param.b32 	[param0+0], %r111;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r111, %r35, -1;
-	st.param.b32 	[param2+0], %r111;
+	add.s32 	%r112, %r34, -1;
+	st.param.b32 	[param2+0], %r112;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10XFluxRhoVYiiiPKfiii, 
@@ -5236,20 +5235,20 @@ $L__BB2_4:
 	{ // callseq 127, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r112, %r35, -1;
-	st.param.b32 	[param2+0], %r112;
+	add.s32 	%r113, %r34, -1;
+	st.param.b32 	[param2+0], %r113;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10XFluxRhoVYiiiPKfiii, 
@@ -5271,20 +5270,20 @@ $L__BB2_4:
 	{ // callseq 128, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
-	add.s32 	%r113, %r35, -1;
-	st.param.b32 	[param2+0], %r113;
+	add.s32 	%r114, %r34, -1;
+	st.param.b32 	[param2+0], %r114;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10YFluxRhoVYiiiPKfiii, 
@@ -5302,20 +5301,20 @@ $L__BB2_4:
 	{ // callseq 129, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r114, %r35, -1;
-	st.param.b32 	[param2+0], %r114;
+	add.s32 	%r115, %r34, -1;
+	st.param.b32 	[param2+0], %r115;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10YFluxRhoVYiiiPKfiii, 
@@ -5337,19 +5336,19 @@ $L__BB2_4:
 	{ // callseq 130, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10ZFluxRhoVYiiiPKfiii, 
@@ -5367,20 +5366,20 @@ $L__BB2_4:
 	{ // callseq 131, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r115, %r35, -1;
-	st.param.b32 	[param2+0], %r115;
+	add.s32 	%r116, %r34, -1;
+	st.param.b32 	[param2+0], %r116;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10ZFluxRhoVYiiiPKfiii, 
@@ -5405,9 +5404,9 @@ $L__BB2_4:
 	{ // callseq 132, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -5421,11 +5420,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 2;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z22numericalDiffusionBackiiPKfffffiiii, 
@@ -5444,6 +5443,7 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f178, [retval0+0];
 	} // callseq 132
+	add.s32 	%r68, %r67, %r7;
 	add.s64 	%rd49, %rd47, %rd4;
 	ld.global.f32 	%f179, [%rd42];
 	ld.global.f32 	%f180, [%rd49];
@@ -5454,21 +5454,21 @@ $L__BB2_4:
 	{ // callseq 133, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r116, %r149, 1;
-	st.param.b32 	[param0+0], %r116;
+	add.s32 	%r117, %r150, 1;
+	st.param.b32 	[param0+0], %r117;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r117, %r35, -1;
-	st.param.b32 	[param2+0], %r117;
+	add.s32 	%r118, %r34, -1;
+	st.param.b32 	[param2+0], %r118;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10XFluxRhoVZiiiPKfiii, 
@@ -5486,20 +5486,20 @@ $L__BB2_4:
 	{ // callseq 134, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r118, %r35, -1;
-	st.param.b32 	[param2+0], %r118;
+	add.s32 	%r119, %r34, -1;
+	st.param.b32 	[param2+0], %r119;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10XFluxRhoVZiiiPKfiii, 
@@ -5521,20 +5521,20 @@ $L__BB2_4:
 	{ // callseq 135, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
-	add.s32 	%r119, %r35, -1;
-	st.param.b32 	[param2+0], %r119;
+	add.s32 	%r120, %r34, -1;
+	st.param.b32 	[param2+0], %r120;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10YFluxRhoVZiiiPKfiii, 
@@ -5552,20 +5552,20 @@ $L__BB2_4:
 	{ // callseq 136, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r120, %r35, -1;
-	st.param.b32 	[param2+0], %r120;
+	add.s32 	%r121, %r34, -1;
+	st.param.b32 	[param2+0], %r121;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10YFluxRhoVZiiiPKfiii, 
@@ -5587,19 +5587,19 @@ $L__BB2_4:
 	{ // callseq 137, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10ZFluxRhoVZiiiPKfiii, 
@@ -5617,20 +5617,20 @@ $L__BB2_4:
 	{ // callseq 138, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r121, %r35, -1;
-	st.param.b32 	[param2+0], %r121;
+	add.s32 	%r122, %r34, -1;
+	st.param.b32 	[param2+0], %r122;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z10ZFluxRhoVZiiiPKfiii, 
@@ -5650,14 +5650,15 @@ $L__BB2_4:
 	mul.f64 	%fd137, %fd3, %fd136;
 	sub.f64 	%fd138, %fd135, %fd137;
 	cvt.rn.f32.f64 	%f192, %fd138;
-	add.s64 	%rd50, %rd48, %rd4;
-	st.global.f32 	[%rd50], %f192;
+	mul.wide.s32 	%rd50, %r68, 4;
+	add.s64 	%rd51, %rd1, %rd50;
+	st.global.f32 	[%rd51], %f192;
 	{ // callseq 139, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -5671,11 +5672,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 3;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z22numericalDiffusionBackiiPKfffffiiii, 
@@ -5694,9 +5695,10 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f193, [retval0+0];
 	} // callseq 139
-	add.s64 	%rd51, %rd49, %rd4;
+	add.s32 	%r69, %r68, %r7;
+	add.s64 	%rd52, %rd49, %rd4;
 	ld.global.f32 	%f194, [%rd42];
-	ld.global.f32 	%f195, [%rd51];
+	ld.global.f32 	%f195, [%rd52];
 	add.f32 	%f196, %f195, %f194;
 	add.f32 	%f197, %f196, %f4;
 	cvt.f64.f32 	%fd139, %f197;
@@ -5704,21 +5706,21 @@ $L__BB2_4:
 	{ // callseq 140, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r122, %r149, 1;
-	st.param.b32 	[param0+0], %r122;
+	add.s32 	%r123, %r150, 1;
+	st.param.b32 	[param0+0], %r123;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r123, %r35, -1;
-	st.param.b32 	[param2+0], %r123;
+	add.s32 	%r124, %r34, -1;
+	st.param.b32 	[param2+0], %r124;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7XFluxBXiiiPKfiii, 
@@ -5736,20 +5738,20 @@ $L__BB2_4:
 	{ // callseq 141, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r124, %r35, -1;
-	st.param.b32 	[param2+0], %r124;
+	add.s32 	%r125, %r34, -1;
+	st.param.b32 	[param2+0], %r125;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7XFluxBXiiiPKfiii, 
@@ -5771,20 +5773,20 @@ $L__BB2_4:
 	{ // callseq 142, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
-	add.s32 	%r125, %r35, -1;
-	st.param.b32 	[param2+0], %r125;
+	add.s32 	%r126, %r34, -1;
+	st.param.b32 	[param2+0], %r126;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7YFluxBXiiiPKfiii, 
@@ -5802,20 +5804,20 @@ $L__BB2_4:
 	{ // callseq 143, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r126, %r35, -1;
-	st.param.b32 	[param2+0], %r126;
+	add.s32 	%r127, %r34, -1;
+	st.param.b32 	[param2+0], %r127;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7YFluxBXiiiPKfiii, 
@@ -5837,19 +5839,19 @@ $L__BB2_4:
 	{ // callseq 144, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7ZFluxBXiiiPKfiii, 
@@ -5867,20 +5869,20 @@ $L__BB2_4:
 	{ // callseq 145, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r127, %r35, -1;
-	st.param.b32 	[param2+0], %r127;
+	add.s32 	%r128, %r34, -1;
+	st.param.b32 	[param2+0], %r128;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7ZFluxBXiiiPKfiii, 
@@ -5900,14 +5902,15 @@ $L__BB2_4:
 	mul.f64 	%fd148, %fd3, %fd147;
 	sub.f64 	%fd149, %fd146, %fd148;
 	cvt.rn.f32.f64 	%f207, %fd149;
-	add.s64 	%rd52, %rd50, %rd4;
-	st.global.f32 	[%rd52], %f207;
+	mul.wide.s32 	%rd53, %r69, 4;
+	add.s64 	%rd54, %rd1, %rd53;
+	st.global.f32 	[%rd54], %f207;
 	{ // callseq 146, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -5921,11 +5924,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 4;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z22numericalDiffusionBackiiPKfffffiiii, 
@@ -5944,9 +5947,10 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f208, [retval0+0];
 	} // callseq 146
-	add.s64 	%rd53, %rd51, %rd4;
+	add.s32 	%r70, %r69, %r7;
+	add.s64 	%rd55, %rd52, %rd4;
 	ld.global.f32 	%f209, [%rd42];
-	ld.global.f32 	%f210, [%rd53];
+	ld.global.f32 	%f210, [%rd55];
 	add.f32 	%f211, %f210, %f209;
 	add.f32 	%f212, %f211, %f5;
 	cvt.f64.f32 	%fd150, %f212;
@@ -5954,21 +5958,21 @@ $L__BB2_4:
 	{ // callseq 147, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r128, %r149, 1;
-	st.param.b32 	[param0+0], %r128;
+	add.s32 	%r129, %r150, 1;
+	st.param.b32 	[param0+0], %r129;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r129, %r35, -1;
-	st.param.b32 	[param2+0], %r129;
+	add.s32 	%r130, %r34, -1;
+	st.param.b32 	[param2+0], %r130;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7XFluxBYiiiPKfiii, 
@@ -5986,20 +5990,20 @@ $L__BB2_4:
 	{ // callseq 148, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r130, %r35, -1;
-	st.param.b32 	[param2+0], %r130;
+	add.s32 	%r131, %r34, -1;
+	st.param.b32 	[param2+0], %r131;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7XFluxBYiiiPKfiii, 
@@ -6021,20 +6025,20 @@ $L__BB2_4:
 	{ // callseq 149, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
-	add.s32 	%r131, %r35, -1;
-	st.param.b32 	[param2+0], %r131;
+	add.s32 	%r132, %r34, -1;
+	st.param.b32 	[param2+0], %r132;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7YFluxBYiiiPKfiii, 
@@ -6052,20 +6056,20 @@ $L__BB2_4:
 	{ // callseq 150, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r132, %r35, -1;
-	st.param.b32 	[param2+0], %r132;
+	add.s32 	%r133, %r34, -1;
+	st.param.b32 	[param2+0], %r133;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7YFluxBYiiiPKfiii, 
@@ -6087,19 +6091,19 @@ $L__BB2_4:
 	{ // callseq 151, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7ZFluxBYiiiPKfiii, 
@@ -6117,20 +6121,20 @@ $L__BB2_4:
 	{ // callseq 152, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r133, %r35, -1;
-	st.param.b32 	[param2+0], %r133;
+	add.s32 	%r134, %r34, -1;
+	st.param.b32 	[param2+0], %r134;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7ZFluxBYiiiPKfiii, 
@@ -6150,14 +6154,15 @@ $L__BB2_4:
 	mul.f64 	%fd159, %fd3, %fd158;
 	sub.f64 	%fd160, %fd157, %fd159;
 	cvt.rn.f32.f64 	%f222, %fd160;
-	add.s64 	%rd54, %rd52, %rd4;
-	st.global.f32 	[%rd54], %f222;
+	mul.wide.s32 	%rd56, %r70, 4;
+	add.s64 	%rd57, %rd1, %rd56;
+	st.global.f32 	[%rd57], %f222;
 	{ // callseq 153, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -6171,11 +6176,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 5;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z22numericalDiffusionBackiiPKfffffiiii, 
@@ -6194,9 +6199,10 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f223, [retval0+0];
 	} // callseq 153
-	add.s64 	%rd55, %rd53, %rd4;
+	add.s32 	%r71, %r70, %r7;
+	add.s64 	%rd58, %rd55, %rd4;
 	ld.global.f32 	%f224, [%rd42];
-	ld.global.f32 	%f225, [%rd55];
+	ld.global.f32 	%f225, [%rd58];
 	add.f32 	%f226, %f225, %f224;
 	add.f32 	%f227, %f226, %f6;
 	cvt.f64.f32 	%fd161, %f227;
@@ -6204,21 +6210,21 @@ $L__BB2_4:
 	{ // callseq 154, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r134, %r149, 1;
-	st.param.b32 	[param0+0], %r134;
+	add.s32 	%r135, %r150, 1;
+	st.param.b32 	[param0+0], %r135;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r135, %r35, -1;
-	st.param.b32 	[param2+0], %r135;
+	add.s32 	%r136, %r34, -1;
+	st.param.b32 	[param2+0], %r136;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7XFluxBZiiiPKfiii, 
@@ -6236,20 +6242,20 @@ $L__BB2_4:
 	{ // callseq 155, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r136, %r35, -1;
-	st.param.b32 	[param2+0], %r136;
+	add.s32 	%r137, %r34, -1;
+	st.param.b32 	[param2+0], %r137;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7XFluxBZiiiPKfiii, 
@@ -6271,20 +6277,20 @@ $L__BB2_4:
 	{ // callseq 156, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
-	add.s32 	%r137, %r35, -1;
-	st.param.b32 	[param2+0], %r137;
+	add.s32 	%r138, %r34, -1;
+	st.param.b32 	[param2+0], %r138;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7YFluxBZiiiPKfiii, 
@@ -6302,20 +6308,20 @@ $L__BB2_4:
 	{ // callseq 157, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r138, %r35, -1;
-	st.param.b32 	[param2+0], %r138;
+	add.s32 	%r139, %r34, -1;
+	st.param.b32 	[param2+0], %r139;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7YFluxBZiiiPKfiii, 
@@ -6337,19 +6343,19 @@ $L__BB2_4:
 	{ // callseq 158, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7ZFluxBZiiiPKfiii, 
@@ -6367,20 +6373,20 @@ $L__BB2_4:
 	{ // callseq 159, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r139, %r35, -1;
-	st.param.b32 	[param2+0], %r139;
+	add.s32 	%r140, %r34, -1;
+	st.param.b32 	[param2+0], %r140;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7ZFluxBZiiiPKfiii, 
@@ -6400,14 +6406,15 @@ $L__BB2_4:
 	mul.f64 	%fd170, %fd3, %fd169;
 	sub.f64 	%fd171, %fd168, %fd170;
 	cvt.rn.f32.f64 	%f237, %fd171;
-	add.s64 	%rd56, %rd54, %rd4;
-	st.global.f32 	[%rd56], %f237;
+	mul.wide.s32 	%rd59, %r71, 4;
+	add.s64 	%rd60, %rd1, %rd59;
+	st.global.f32 	[%rd60], %f237;
 	{ // callseq 160, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -6421,11 +6428,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 6;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z22numericalDiffusionBackiiPKfffffiiii, 
@@ -6444,9 +6451,10 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f238, [retval0+0];
 	} // callseq 160
-	add.s64 	%rd57, %rd55, %rd4;
+	add.s32 	%r72, %r71, %r7;
+	add.s64 	%rd61, %rd58, %rd4;
 	ld.global.f32 	%f239, [%rd42];
-	ld.global.f32 	%f240, [%rd57];
+	ld.global.f32 	%f240, [%rd61];
 	add.f32 	%f241, %f240, %f239;
 	add.f32 	%f242, %f241, %f7;
 	cvt.f64.f32 	%fd172, %f242;
@@ -6454,21 +6462,21 @@ $L__BB2_4:
 	{ // callseq 161, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r140, %r149, 1;
-	st.param.b32 	[param0+0], %r140;
+	add.s32 	%r141, %r150, 1;
+	st.param.b32 	[param0+0], %r141;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r141, %r35, -1;
-	st.param.b32 	[param2+0], %r141;
+	add.s32 	%r142, %r34, -1;
+	st.param.b32 	[param2+0], %r142;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z6XFluxEiiiPKfiii, 
@@ -6486,20 +6494,20 @@ $L__BB2_4:
 	{ // callseq 162, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r142, %r35, -1;
-	st.param.b32 	[param2+0], %r142;
+	add.s32 	%r143, %r34, -1;
+	st.param.b32 	[param2+0], %r143;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7XFluxBZiiiPKfiii, 
@@ -6521,20 +6529,20 @@ $L__BB2_4:
 	{ // callseq 163, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r58;
+	st.param.b32 	[param1+0], %r57;
 	.param .b32 param2;
-	add.s32 	%r143, %r35, -1;
-	st.param.b32 	[param2+0], %r143;
+	add.s32 	%r144, %r34, -1;
+	st.param.b32 	[param2+0], %r144;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z6YFluxEiiiPKfiii, 
@@ -6552,20 +6560,20 @@ $L__BB2_4:
 	{ // callseq 164, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r144, %r35, -1;
-	st.param.b32 	[param2+0], %r144;
+	add.s32 	%r145, %r34, -1;
+	st.param.b32 	[param2+0], %r145;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7YFluxBZiiiPKfiii, 
@@ -6587,19 +6595,19 @@ $L__BB2_4:
 	{ // callseq 165, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
 	st.param.b32 	[param2+0], 1;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z6ZFluxEiiiPKfiii, 
@@ -6617,20 +6625,20 @@ $L__BB2_4:
 	{ // callseq 166, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b32 param2;
-	add.s32 	%r145, %r35, -1;
-	st.param.b32 	[param2+0], %r145;
+	add.s32 	%r146, %r34, -1;
+	st.param.b32 	[param2+0], %r146;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd9;
 	.param .b32 param4;
-	st.param.b32 	[param4+0], %r33;
+	st.param.b32 	[param4+0], %r32;
 	.param .b32 param5;
-	st.param.b32 	[param5+0], %r34;
+	st.param.b32 	[param5+0], %r33;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r35;
+	st.param.b32 	[param6+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z7ZFluxBZiiiPKfiii, 
@@ -6650,14 +6658,15 @@ $L__BB2_4:
 	mul.f64 	%fd181, %fd3, %fd180;
 	sub.f64 	%fd182, %fd179, %fd181;
 	cvt.rn.f32.f64 	%f252, %fd182;
-	add.s64 	%rd58, %rd56, %rd4;
-	st.global.f32 	[%rd58], %f252;
+	mul.wide.s32 	%rd62, %r72, 4;
+	add.s64 	%rd63, %rd1, %rd62;
+	st.global.f32 	[%rd63], %f252;
 	{ // callseq 167, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r149;
+	st.param.b32 	[param0+0], %r150;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r150;
+	st.param.b32 	[param1+0], %r151;
 	.param .b64 param2;
 	st.param.b64 	[param2+0], %rd8;
 	.param .b32 param3;
@@ -6671,11 +6680,11 @@ $L__BB2_4:
 	.param .b32 param7;
 	st.param.b32 	[param7+0], 7;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r33;
+	st.param.b32 	[param8+0], %r32;
 	.param .b32 param9;
-	st.param.b32 	[param9+0], %r34;
+	st.param.b32 	[param9+0], %r33;
 	.param .b32 param10;
-	st.param.b32 	[param10+0], %r35;
+	st.param.b32 	[param10+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z22numericalDiffusionBackiiPKfffffiiii, 
@@ -6694,116 +6703,103 @@ $L__BB2_4:
 	);
 	ld.param.f32 	%f253, [retval0+0];
 	} // callseq 167
-	add.s32 	%r69, %r57, %r14;
-	mul.wide.s32 	%rd59, %r69, 4;
-	add.s64 	%rd60, %rd1, %rd59;
 	ld.global.f32 	%f254, [%rd14];
-	ld.global.f32 	%f255, [%rd60];
+	ld.global.f32 	%f255, [%rd43];
 	add.f32 	%f256, %f255, %f254;
 	st.global.f32 	[%rd14], %f256;
-	st.global.f32 	[%rd60], %f256;
-	add.s32 	%r70, %r69, %r7;
-	add.s64 	%rd61, %rd60, %rd15;
+	st.global.f32 	[%rd43], %f256;
 	ld.global.f32 	%f257, [%rd17];
-	ld.global.f32 	%f258, [%rd61];
+	ld.global.f32 	%f258, [%rd45];
 	add.f32 	%f259, %f258, %f257;
 	st.global.f32 	[%rd17], %f259;
-	st.global.f32 	[%rd61], %f259;
-	add.s32 	%r71, %r70, %r7;
-	mul.wide.s32 	%rd62, %r71, 4;
-	add.s64 	%rd63, %rd1, %rd62;
+	st.global.f32 	[%rd45], %f259;
 	ld.global.f32 	%f260, [%rd20];
-	ld.global.f32 	%f261, [%rd63];
+	ld.global.f32 	%f261, [%rd48];
 	add.f32 	%f262, %f261, %f260;
 	st.global.f32 	[%rd20], %f262;
-	st.global.f32 	[%rd63], %f262;
-	add.s64 	%rd64, %rd63, %rd4;
+	st.global.f32 	[%rd48], %f262;
 	ld.global.f32 	%f263, [%rd24];
-	ld.global.f32 	%f264, [%rd64];
+	ld.global.f32 	%f264, [%rd51];
 	add.f32 	%f265, %f264, %f263;
 	st.global.f32 	[%rd24], %f265;
-	st.global.f32 	[%rd64], %f265;
-	add.s64 	%rd65, %rd64, %rd4;
+	st.global.f32 	[%rd51], %f265;
 	ld.global.f32 	%f266, [%rd28];
-	ld.global.f32 	%f267, [%rd65];
+	ld.global.f32 	%f267, [%rd54];
 	add.f32 	%f268, %f267, %f266;
 	st.global.f32 	[%rd28], %f268;
-	st.global.f32 	[%rd65], %f268;
-	add.s64 	%rd66, %rd65, %rd4;
+	st.global.f32 	[%rd54], %f268;
 	ld.global.f32 	%f269, [%rd32];
-	ld.global.f32 	%f270, [%rd66];
+	ld.global.f32 	%f270, [%rd57];
 	add.f32 	%f271, %f270, %f269;
 	st.global.f32 	[%rd32], %f271;
-	st.global.f32 	[%rd66], %f271;
-	add.s64 	%rd67, %rd66, %rd4;
+	st.global.f32 	[%rd57], %f271;
 	ld.global.f32 	%f272, [%rd36];
-	ld.global.f32 	%f273, [%rd67];
+	ld.global.f32 	%f273, [%rd60];
 	add.f32 	%f274, %f273, %f272;
 	st.global.f32 	[%rd36], %f274;
-	st.global.f32 	[%rd67], %f274;
-	add.s64 	%rd68, %rd67, %rd4;
+	st.global.f32 	[%rd60], %f274;
 	ld.global.f32 	%f275, [%rd39];
-	ld.global.f32 	%f276, [%rd68];
+	ld.global.f32 	%f276, [%rd63];
 	add.f32 	%f277, %f276, %f275;
 	st.global.f32 	[%rd39], %f277;
-	st.global.f32 	[%rd68], %f277;
-	add.s32 	%r150, %r150, %r4;
-	setp.lt.s32 	%p3, %r150, %r11;
+	st.global.f32 	[%rd63], %f277;
+	add.s32 	%r151, %r151, %r4;
+	setp.lt.s32 	%p3, %r151, %r11;
 	@%p3 bra 	$L__BB2_4;
 
 $L__BB2_5:
-	add.s32 	%r149, %r149, %r3;
-	setp.lt.s32 	%p4, %r149, %r9;
+	add.s32 	%r150, %r150, %r3;
+	setp.lt.s32 	%p4, %r150, %r9;
 	@%p4 bra 	$L__BB2_2;
 
 $L__BB2_6:
-	setp.ge.s32 	%p5, %r153, %r35;
+	setp.ge.s32 	%p5, %r154, %r34;
 	@%p5 bra 	$L__BB2_17;
 
-	mul.lo.s32 	%r21, %r9, %r34;
-	mul.lo.s32 	%r72, %r35, %r34;
-	mul.lo.s32 	%r73, %r72, %r33;
-	mul.wide.s32 	%rd6, %r73, 4;
-	mul.wide.s32 	%rd71, %r7, 4;
-	mov.u32 	%r151, %r153;
+	mul.lo.s32 	%r20, %r9, %r33;
+	mul.lo.s32 	%r73, %r34, %r33;
+	mul.lo.s32 	%r74, %r73, %r32;
+	mul.wide.s32 	%rd6, %r74, 4;
+	mul.wide.s32 	%rd66, %r7, 4;
+	mov.u32 	%r152, %r154;
 
 $L__BB2_8:
-	setp.ge.s32 	%p6, %r1, %r34;
+	setp.ge.s32 	%p6, %r1, %r33;
 	@%p6 bra 	$L__BB2_11;
 
-	mul.lo.s32 	%r23, %r151, %r6;
-	mov.u32 	%r152, %r1;
+	mul.lo.s32 	%r22, %r152, %r6;
+	mov.u32 	%r153, %r1;
 
 $L__BB2_10:
-	add.s32 	%r74, %r152, %r23;
-	mul.wide.s32 	%rd69, %r74, 4;
-	add.s64 	%rd70, %rd1, %rd69;
-	mov.u32 	%r75, 953267991;
-	st.global.u32 	[%rd70], %r75;
-	add.s32 	%r76, %r74, %r7;
-	add.s64 	%rd72, %rd70, %rd71;
-	mov.u32 	%r77, 0;
-	st.global.u32 	[%rd72], %r77;
-	add.s32 	%r78, %r76, %r7;
-	mul.wide.s32 	%rd73, %r78, 4;
-	add.s64 	%rd74, %rd1, %rd73;
-	st.global.u32 	[%rd74], %r77;
-	add.s64 	%rd75, %rd74, %rd6;
-	st.global.u32 	[%rd75], %r77;
-	add.s64 	%rd76, %rd75, %rd6;
-	st.global.u32 	[%rd76], %r77;
-	add.s64 	%rd77, %rd76, %rd6;
-	st.global.u32 	[%rd77], %r77;
-	add.s64 	%rd78, %rd77, %rd6;
-	st.global.u32 	[%rd78], %r77;
+	add.s32 	%r75, %r153, %r22;
+	mul.wide.s32 	%rd64, %r75, 4;
+	add.s64 	%rd65, %rd1, %rd64;
+	mov.u32 	%r76, 953267991;
+	st.global.u32 	[%rd65], %r76;
+	add.s32 	%r77, %r75, %r7;
+	add.s64 	%rd67, %rd65, %rd66;
+	mov.u32 	%r78, 0;
+	st.global.u32 	[%rd67], %r78;
+	add.s32 	%r79, %r77, %r7;
+	mul.wide.s32 	%rd68, %r79, 4;
+	add.s64 	%rd69, %rd1, %rd68;
+	st.global.u32 	[%rd69], %r78;
+	add.s64 	%rd70, %rd69, %rd6;
+	st.global.u32 	[%rd70], %r78;
+	add.s64 	%rd71, %rd70, %rd6;
+	st.global.u32 	[%rd71], %r78;
+	add.s64 	%rd72, %rd71, %rd6;
+	st.global.u32 	[%rd72], %r78;
+	add.s64 	%rd73, %rd72, %rd6;
+	st.global.u32 	[%rd73], %r78;
 	{ // callseq 168, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
 	st.param.b32 	[param0+0], 0;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r152;
+	st.param.b32 	[param1+0], %r153;
 	.param .b32 param2;
-	st.param.b32 	[param2+0], %r151;
+	st.param.b32 	[param2+0], %r152;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd8;
 	.param .b32 param4;
@@ -6811,11 +6807,11 @@ $L__BB2_10:
 	.param .b32 param5;
 	st.param.f32 	[param5+0], 0f00000000;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r33;
+	st.param.b32 	[param6+0], %r32;
 	.param .b32 param7;
-	st.param.b32 	[param7+0], %r34;
+	st.param.b32 	[param7+0], %r33;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r35;
+	st.param.b32 	[param8+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z1piiiPKfffiii, 
@@ -6832,36 +6828,36 @@ $L__BB2_10:
 	);
 	ld.param.f32 	%f278, [retval0+0];
 	} // callseq 168
-	add.s64 	%rd79, %rd78, %rd6;
-	st.global.f32 	[%rd79], %f278;
-	add.s32 	%r79, %r74, %r21;
-	mul.wide.s32 	%rd80, %r79, 4;
-	add.s64 	%rd81, %rd1, %rd80;
-	st.global.u32 	[%rd81], %r75;
-	add.s32 	%r80, %r79, %r7;
-	add.s64 	%rd82, %rd81, %rd71;
-	st.global.u32 	[%rd82], %r77;
+	add.s64 	%rd74, %rd73, %rd6;
+	st.global.f32 	[%rd74], %f278;
+	add.s32 	%r80, %r75, %r20;
+	mul.wide.s32 	%rd75, %r80, 4;
+	add.s64 	%rd76, %rd1, %rd75;
+	st.global.u32 	[%rd76], %r76;
 	add.s32 	%r81, %r80, %r7;
-	mul.wide.s32 	%rd83, %r81, 4;
-	add.s64 	%rd84, %rd1, %rd83;
-	st.global.u32 	[%rd84], %r77;
-	add.s64 	%rd85, %rd84, %rd6;
-	st.global.u32 	[%rd85], %r77;
-	add.s64 	%rd86, %rd85, %rd6;
-	st.global.u32 	[%rd86], %r77;
-	add.s64 	%rd87, %rd86, %rd6;
-	st.global.u32 	[%rd87], %r77;
-	add.s64 	%rd88, %rd87, %rd6;
-	st.global.u32 	[%rd88], %r77;
+	add.s64 	%rd77, %rd76, %rd66;
+	st.global.u32 	[%rd77], %r78;
+	add.s32 	%r82, %r81, %r7;
+	mul.wide.s32 	%rd78, %r82, 4;
+	add.s64 	%rd79, %rd1, %rd78;
+	st.global.u32 	[%rd79], %r78;
+	add.s64 	%rd80, %rd79, %rd6;
+	st.global.u32 	[%rd80], %r78;
+	add.s64 	%rd81, %rd80, %rd6;
+	st.global.u32 	[%rd81], %r78;
+	add.s64 	%rd82, %rd81, %rd6;
+	st.global.u32 	[%rd82], %r78;
+	add.s64 	%rd83, %rd82, %rd6;
+	st.global.u32 	[%rd83], %r78;
 	{ // callseq 169, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	add.s32 	%r146, %r33, -1;
-	st.param.b32 	[param0+0], %r146;
+	add.s32 	%r147, %r32, -1;
+	st.param.b32 	[param0+0], %r147;
 	.param .b32 param1;
-	st.param.b32 	[param1+0], %r152;
+	st.param.b32 	[param1+0], %r153;
 	.param .b32 param2;
-	st.param.b32 	[param2+0], %r151;
+	st.param.b32 	[param2+0], %r152;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd8;
 	.param .b32 param4;
@@ -6869,11 +6865,11 @@ $L__BB2_10:
 	.param .b32 param5;
 	st.param.f32 	[param5+0], 0f00000000;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r33;
+	st.param.b32 	[param6+0], %r32;
 	.param .b32 param7;
-	st.param.b32 	[param7+0], %r34;
+	st.param.b32 	[param7+0], %r33;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r35;
+	st.param.b32 	[param8+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z1piiiPKfffiii, 
@@ -6890,56 +6886,56 @@ $L__BB2_10:
 	);
 	ld.param.f32 	%f279, [retval0+0];
 	} // callseq 169
-	add.s64 	%rd89, %rd88, %rd6;
-	st.global.f32 	[%rd89], %f279;
-	add.s32 	%r152, %r152, %r4;
-	setp.lt.s32 	%p7, %r152, %r34;
+	add.s64 	%rd84, %rd83, %rd6;
+	st.global.f32 	[%rd84], %f279;
+	add.s32 	%r153, %r153, %r4;
+	setp.lt.s32 	%p7, %r153, %r33;
 	@%p7 bra 	$L__BB2_10;
 
 $L__BB2_11:
-	add.s32 	%r151, %r151, %r5;
-	setp.lt.s32 	%p8, %r151, %r35;
+	add.s32 	%r152, %r152, %r5;
+	setp.lt.s32 	%p8, %r152, %r34;
 	@%p8 bra 	$L__BB2_8;
 
-	add.s32 	%r27, %r34, -1;
-	mul.wide.s32 	%rd101, %r27, 4;
+	add.s32 	%r26, %r33, -1;
+	mul.wide.s32 	%rd96, %r26, 4;
 
 $L__BB2_13:
 	@%p1 bra 	$L__BB2_16;
 
-	mul.lo.s32 	%r29, %r153, %r6;
-	mov.u32 	%r154, %r8;
+	mul.lo.s32 	%r28, %r154, %r6;
+	mov.u32 	%r155, %r8;
 
 $L__BB2_15:
-	mad.lo.s32 	%r84, %r154, %r34, %r29;
-	mul.wide.s32 	%rd90, %r84, 4;
-	add.s64 	%rd91, %rd1, %rd90;
-	mov.u32 	%r85, 953267991;
-	st.global.u32 	[%rd91], %r85;
-	add.s32 	%r86, %r84, %r7;
-	add.s64 	%rd93, %rd91, %rd71;
-	mov.u32 	%r87, 0;
-	st.global.u32 	[%rd93], %r87;
-	add.s32 	%r88, %r86, %r7;
-	mul.wide.s32 	%rd94, %r88, 4;
-	add.s64 	%rd95, %rd1, %rd94;
-	st.global.u32 	[%rd95], %r87;
-	add.s64 	%rd96, %rd95, %rd6;
-	st.global.u32 	[%rd96], %r87;
-	add.s64 	%rd97, %rd96, %rd6;
-	st.global.u32 	[%rd97], %r87;
-	add.s64 	%rd98, %rd97, %rd6;
-	st.global.u32 	[%rd98], %r87;
-	add.s64 	%rd99, %rd98, %rd6;
-	st.global.u32 	[%rd99], %r87;
+	mad.lo.s32 	%r85, %r155, %r33, %r28;
+	mul.wide.s32 	%rd85, %r85, 4;
+	add.s64 	%rd86, %rd1, %rd85;
+	mov.u32 	%r86, 953267991;
+	st.global.u32 	[%rd86], %r86;
+	add.s32 	%r87, %r85, %r7;
+	add.s64 	%rd88, %rd86, %rd66;
+	mov.u32 	%r88, 0;
+	st.global.u32 	[%rd88], %r88;
+	add.s32 	%r89, %r87, %r7;
+	mul.wide.s32 	%rd89, %r89, 4;
+	add.s64 	%rd90, %rd1, %rd89;
+	st.global.u32 	[%rd90], %r88;
+	add.s64 	%rd91, %rd90, %rd6;
+	st.global.u32 	[%rd91], %r88;
+	add.s64 	%rd92, %rd91, %rd6;
+	st.global.u32 	[%rd92], %r88;
+	add.s64 	%rd93, %rd92, %rd6;
+	st.global.u32 	[%rd93], %r88;
+	add.s64 	%rd94, %rd93, %rd6;
+	st.global.u32 	[%rd94], %r88;
 	{ // callseq 170, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r154;
+	st.param.b32 	[param0+0], %r155;
 	.param .b32 param1;
 	st.param.b32 	[param1+0], 0;
 	.param .b32 param2;
-	st.param.b32 	[param2+0], %r153;
+	st.param.b32 	[param2+0], %r154;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd8;
 	.param .b32 param4;
@@ -6947,11 +6943,11 @@ $L__BB2_15:
 	.param .b32 param5;
 	st.param.f32 	[param5+0], 0f00000000;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r33;
+	st.param.b32 	[param6+0], %r32;
 	.param .b32 param7;
-	st.param.b32 	[param7+0], %r34;
+	st.param.b32 	[param7+0], %r33;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r35;
+	st.param.b32 	[param8+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z1piiiPKfffiii, 
@@ -6971,33 +6967,33 @@ $L__BB2_15:
 	cvt.f64.f32 	%fd183, %f280;
 	div.rn.f64 	%fd184, %fd183, 0d3FE5555555555556;
 	cvt.rn.f32.f64 	%f281, %fd184;
+	add.s64 	%rd95, %rd94, %rd6;
+	st.global.f32 	[%rd95], %f281;
+	add.s64 	%rd97, %rd86, %rd96;
+	st.global.u32 	[%rd97], %r86;
+	add.s32 	%r90, %r87, %r26;
+	mul.wide.s32 	%rd98, %r90, 4;
+	add.s64 	%rd99, %rd1, %rd98;
+	st.global.u32 	[%rd99], %r88;
 	add.s64 	%rd100, %rd99, %rd6;
-	st.global.f32 	[%rd100], %f281;
-	add.s64 	%rd102, %rd91, %rd101;
-	st.global.u32 	[%rd102], %r85;
-	add.s32 	%r89, %r86, %r27;
-	mul.wide.s32 	%rd103, %r89, 4;
-	add.s64 	%rd104, %rd1, %rd103;
-	st.global.u32 	[%rd104], %r87;
-	add.s64 	%rd105, %rd104, %rd6;
-	st.global.u32 	[%rd105], %r87;
-	add.s64 	%rd106, %rd105, %rd6;
-	st.global.u32 	[%rd106], %r87;
-	add.s64 	%rd107, %rd106, %rd6;
-	st.global.u32 	[%rd107], %r87;
-	add.s64 	%rd108, %rd107, %rd6;
-	st.global.u32 	[%rd108], %r87;
-	add.s64 	%rd109, %rd108, %rd6;
-	st.global.u32 	[%rd109], %r87;
+	st.global.u32 	[%rd100], %r88;
+	add.s64 	%rd101, %rd100, %rd6;
+	st.global.u32 	[%rd101], %r88;
+	add.s64 	%rd102, %rd101, %rd6;
+	st.global.u32 	[%rd102], %r88;
+	add.s64 	%rd103, %rd102, %rd6;
+	st.global.u32 	[%rd103], %r88;
+	add.s64 	%rd104, %rd103, %rd6;
+	st.global.u32 	[%rd104], %r88;
 	{ // callseq 171, 0
 	.reg .b32 temp_param_reg;
 	.param .b32 param0;
-	st.param.b32 	[param0+0], %r154;
+	st.param.b32 	[param0+0], %r155;
 	.param .b32 param1;
-	add.s32 	%r147, %r34, -1;
-	st.param.b32 	[param1+0], %r147;
+	add.s32 	%r148, %r33, -1;
+	st.param.b32 	[param1+0], %r148;
 	.param .b32 param2;
-	st.param.b32 	[param2+0], %r153;
+	st.param.b32 	[param2+0], %r154;
 	.param .b64 param3;
 	st.param.b64 	[param3+0], %rd8;
 	.param .b32 param4;
@@ -7005,11 +7001,11 @@ $L__BB2_15:
 	.param .b32 param5;
 	st.param.f32 	[param5+0], 0f00000000;
 	.param .b32 param6;
-	st.param.b32 	[param6+0], %r33;
+	st.param.b32 	[param6+0], %r32;
 	.param .b32 param7;
-	st.param.b32 	[param7+0], %r34;
+	st.param.b32 	[param7+0], %r33;
 	.param .b32 param8;
-	st.param.b32 	[param8+0], %r35;
+	st.param.b32 	[param8+0], %r34;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	_Z1piiiPKfffiii, 
@@ -7029,15 +7025,15 @@ $L__BB2_15:
 	cvt.f64.f32 	%fd185, %f282;
 	div.rn.f64 	%fd186, %fd185, 0d3FE5555555555556;
 	cvt.rn.f32.f64 	%f283, %fd186;
-	add.s64 	%rd110, %rd109, %rd6;
-	st.global.f32 	[%rd110], %f283;
-	add.s32 	%r154, %r154, %r3;
-	setp.lt.s32 	%p10, %r154, %r9;
+	add.s64 	%rd105, %rd104, %rd6;
+	st.global.f32 	[%rd105], %f283;
+	add.s32 	%r155, %r155, %r3;
+	setp.lt.s32 	%p10, %r155, %r9;
 	@%p10 bra 	$L__BB2_15;
 
 $L__BB2_16:
-	add.s32 	%r153, %r153, %r5;
-	setp.lt.s32 	%p11, %r153, %r35;
+	add.s32 	%r154, %r154, %r5;
+	setp.lt.s32 	%p11, %r154, %r34;
 	@%p11 bra 	$L__BB2_13;
 
 $L__BB2_17:

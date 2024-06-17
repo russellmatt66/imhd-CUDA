@@ -1,6 +1,7 @@
+#include <stdio.h>
 #include "diffusion.cuh"
 
-#define IDX3D(i, j, k, Nx, Ny, Nz) (k * (Nx * Ny) + i * Ny + j)
+#define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx * Ny) + (i) * Ny + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
 __device__ float numericalDiffusion(const int i, const int j, const int k, const float* fluid_var, 
     const float D, const float dx, const float dy, const float dz,
@@ -8,6 +9,10 @@ __device__ float numericalDiffusion(const int i, const int j, const int k, const
     {
         int cube_size = Nx * Ny * Nz;
         float num_diff = 0.0;
+
+        // printf("(i, j, k) = (%d, %d, %d), Problem index is %d, cube size is %d, ivf is %d, computed linear index is %d, computed linear index should be %d, literal computed linear index is %d\n"
+        //     , i, j, k, IDX3D(i, j, k-1, Nx, Ny, Nz) + ivf * cube_size, cube_size, ivf, IDX3D(i, j, k-1, Nx, Ny, Nz), (k - 1) * (Nx * Ny) + i * Ny + j, k - 1 * (Nx * Ny) + i * Ny + j);
+
         num_diff = D * (
             (1.0 / pow(dx, 2)) 
             * (

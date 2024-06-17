@@ -9,15 +9,12 @@ build/
 - Where `main.cu` is built
 
 # Current Tasks
-(1) Figure out the weirdness with `compute-sanitizer`
-(1) Specify execution configurations for the various kernels that work well with their resource requirements
-- Initialization
--- `InitializeGrid` - 16 registers / thread -> 1024 per block (10 per dimension)
--- `InitialConditions` - 56 registers / thread + `InitializeIntAndSwap` - 15 registers / thread -> < 923 threads per block (9 per dimension)
+Figured out the problem with indexing! 
 
-- Fluid Advance
--- `FluidAdvance` - 66 registers / thread + `BoundaryConditions` - 120 registers / thread -> < 331 threads per block (6 per dimension)
+Problem was with indexing macro:
+-`#define IDX3D(i, j, k, Nx, Ny, Nz) (k * (Nx * Ny) + i * Ny + j)`
+Macro inserts arguments into expression literally. When argument for `k` is `k-1`, then what is calculated is `k - 1 * (Nx * Ny) + i * Ny + j`
+This leads to negative indices for some grid locations, and even when not negative, it will lead to computation being incorrectly applied for `k+1`, `i+1`, and `i-1`. 
 
-- Intermediate Variable Computation
--- `ComputeIntermediateVariables` - 80 registers / thread + `ComputeIntermediateVariablesBoundary`- 56 registers / thread
--- + `SwapSimData` - 40 registers / thread -> < 334 threads per block (6 per dimension)
+Solution is to add parentheses:
+-`#define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx * Ny) + (i) * Ny + j)`

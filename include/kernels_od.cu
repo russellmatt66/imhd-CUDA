@@ -1,11 +1,14 @@
 #include <math.h>
+#include <stdio.h>
+
 #include "kernels_od.cuh"
 #include "kernels_od_fluxes.cuh"
 #include "helper_functions.cuh"
 #include "diffusion.cuh"
 
 // row-major, column-minor order
-#define IDX3D(i, j, k, Nx, Ny, Nz) (k * (Nx * Ny) + i * Ny + j)
+#define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx * Ny) + (i) * Ny + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
+
 
 /* 
 Needed to be refactored to compactify all data into three arrays:

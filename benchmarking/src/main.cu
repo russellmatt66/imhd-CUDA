@@ -6,6 +6,7 @@
 
 #include "../../include/kernels_od.cuh"
 #include "../../include/initialize_od.cuh"
+#include "../../include/kernels_od_intvar.cuh"
 
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define checkCuda(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -51,60 +52,41 @@ int main(int argc, char* argv[]){
 	cudaGetDevice(&deviceId);
 	cudaDeviceGetAttribute(&numberOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
 
-	float *rho, *rhov_x, *rhov_y, *rhov_z, *Bx, *By, *Bz, *e;
-	float *rho_np1, *rhovx_np1, *rhovy_np1, *rhovz_np1, *Bx_np1, *By_np1, *Bz_np1, *e_np1;
-	float *rho_int, *rhovx_int, *rhovy_int, *rhovz_int, *Bx_int, *By_int, *Bz_int, *e_int;
+	float *fluidvar, *fluidvar_np1, *intvar;
 	float *grid_x, *grid_y, *grid_z;
 
 	int fluid_data_size = sizeof(float) * Nx * Ny * Nz;
 
 	/* MALLOC TO DEVICE */
-	checkCuda(cudaMalloc(&rho, fluid_data_size));
-	checkCuda(cudaMalloc(&rhov_x, fluid_data_size));
-	checkCuda(cudaMalloc(&rhov_y, fluid_data_size));
-	checkCuda(cudaMalloc(&rhov_z, fluid_data_size));
-	checkCuda(cudaMalloc(&Bx, fluid_data_size));
-	checkCuda(cudaMalloc(&By, fluid_data_size));
-	checkCuda(cudaMalloc(&Bz, fluid_data_size));
-	checkCuda(cudaMalloc(&e, fluid_data_size));
-
-	checkCuda(cudaMalloc(&rho_np1, fluid_data_size));
-	checkCuda(cudaMalloc(&rhovx_np1, fluid_data_size));
-	checkCuda(cudaMalloc(&rhovy_np1, fluid_data_size));
-	checkCuda(cudaMalloc(&rhovz_np1, fluid_data_size));
-	checkCuda(cudaMalloc(&Bx_np1, fluid_data_size));
-	checkCuda(cudaMalloc(&By_np1, fluid_data_size));
-	checkCuda(cudaMalloc(&Bz_np1, fluid_data_size));
-	checkCuda(cudaMalloc(&e_np1, fluid_data_size));
-
-	checkCuda(cudaMalloc(&rho_int, fluid_data_size));
-	checkCuda(cudaMalloc(&rhovx_int, fluid_data_size));
-	checkCuda(cudaMalloc(&rhovy_int, fluid_data_size));
-	checkCuda(cudaMalloc(&rhovz_int, fluid_data_size));
-	checkCuda(cudaMalloc(&Bx_int, fluid_data_size));
-	checkCuda(cudaMalloc(&By_int, fluid_data_size));
-	checkCuda(cudaMalloc(&Bz_int, fluid_data_size));
-	checkCuda(cudaMalloc(&e_int, fluid_data_size));
+	checkCuda(cudaMalloc(&fluidvar, 8 * fluid_data_size));
+	checkCuda(cudaMalloc(&fluidvar_np1, 8 * fluid_data_size));
+	checkCuda(cudaMalloc(&intvar, 8 * fluid_data_size));
 
 	checkCuda(cudaMalloc(&grid_x, sizeof(float) * Nx));
 	checkCuda(cudaMalloc(&grid_y, sizeof(float) * Ny));
 	checkCuda(cudaMalloc(&grid_z, sizeof(float) * Nz));
 
 	dim3 grid_dimensions(SM_mult_x * numberOfSMs, SM_mult_y * numberOfSMs, SM_mult_z * numberOfSMs);
-	dim3 block_dimensions(num_threads_per_block_x, num_threads_per_block_y, num_threads_per_block_z);
+	
+	// dim3 block_dimensions(num_threads_per_block_x, num_threads_per_block_y, num_threads_per_block_z);
+	dim3 block_dims_grid(32, 16, 2); // 1024 threads per block
+	dim3 block_dims_init(8, 4, 4); // 256 < 923 threads per block
+	dim3 block_dims_intvar(8, 8, 2); // 128 < 334 threads per block 
+	dim3 block_dims_fluid(8, 8, 2); // 128 < 331 threads per block - based on register requirement of FluidAdvance + BCs kernels
 
-	InitializeGrid<<<grid_dimensions, block_dimensions>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz,
+	InitializeGrid<<<grid_dimensions, block_dims_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz,
 															grid_x, grid_y, grid_z, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());
 
-	InitialConditions<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
-																J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
-	InitializeIntAndSwap<<<grid_dimensions, block_dimensions>>>(rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1,
-																rho_int, rhovx_int, rhovy_int, rhovz_int, Bx_int, By_int, Bz_int, e_int, 
-																Nx, Ny, Nz); // All 0.0
+	InitialConditions<<<grid_dimensions, block_dims_init>>>(fluidvar, J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
+	InitializeIntAndSwap<<<grid_dimensions, block_dims_init>>>(fluidvar_np1, intvar, Nx, Ny, Nz); // All 0.0
 	checkCuda(cudaDeviceSynchronize());
 
-    // Benchmarking 
+	ComputeIntermediateVariables<<<grid_dimensions, block_dims_intvar>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
+	ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dims_intvar>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
+	checkCuda(cudaDeviceSynchronize());
+    
+	// Benchmarking 
     cudaEvent_t start, stop, start_bcs, stop_bcs, start_swap, stop_swap;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
@@ -122,7 +104,7 @@ int main(int argc, char* argv[]){
     bench_file << "it, fluid_time (ms), bcs_time (ms), swap_time (ms), numblocks_x, numblocks_y, numblocks_z, numthreadsper_x, numthreadsper_y, numthreadsper_z" << std::endl; 
 
 	/* Simulation loop */
-	size_t num_bench_iters = 1000; 
+	size_t num_bench_iters = 1; 
 	for (size_t it = 0; it < Nt; it++){
 		std::cout << "Starting iteration " << it << std::endl;
 
@@ -130,20 +112,14 @@ int main(int argc, char* argv[]){
 		/* DO 1000 REPS of KERNEL B/W RECORDING */
         cudaEventRecord(start);
 		for (size_t il = 0; il < num_bench_iters; il++){
-			FluidAdvance<<<grid_dimensions, block_dimensions>>>(rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1, 
-																	rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
-																	rho_int, rhovx_int, rhovy_int, rhovz_int, Bx_int, By_int, Bz_int, e_int, 
-																	D, dt, dx, dy, dz, Nx, Ny, Nz);
+			FluidAdvance<<<grid_dimensions, block_dims_fluid>>>(fluidvar_np1, fluidvar, intvar, D, dt, dx, dy, dz, Nx, Ny, Nz);
 		}
 		cudaEventRecord(stop);
         cudaEventSynchronize(stop);
         cudaEventElapsedTime(&fluid_time, start, stop);
 
         cudaEventRecord(start_bcs);
-        BoundaryConditions<<<grid_dimensions, block_dimensions>>>(rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1,
-																	rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
-																	rho_int, rhovx_int, rhovy_int, rhovz_int, Bx_int, By_int, Bz_int, e_int, 
-																	D, dt, dx, dy, dz, Nx, Ny, Nz);
+        BoundaryConditions<<<grid_dimensions, block_dims_fluid>>>(fluidvar_np1, fluidvar, intvar, D, dt, dx, dy, dz, Nx, Ny, Nz);
 		cudaEventRecord(stop_bcs);
         cudaEventSynchronize(stop_bcs);
         cudaEventElapsedTime(&bcs_time, start_bcs, stop_bcs);
@@ -153,9 +129,9 @@ int main(int argc, char* argv[]){
 		// Transfer future timestep data to current timestep in order to avoid race conditions
 		std::cout << "Swapping future timestep to current" << std::endl;
         cudaEventRecord(start_swap);
-		SwapSimData<<<grid_dimensions, block_dimensions>>>(rho, rhov_x, rhov_y, rhov_z, Bx, By, Bz, e, 
-															rho_np1, rhovx_np1, rhovy_np1, rhovz_np1, Bx_np1, By_np1, Bz_np1, e_np1,
-															Nx, Ny, Nz);
+		SwapSimData<<<grid_dimensions, block_dims_intvar>>>(fluidvar, fluidvar_np1, Nx, Ny, Nz);
+		ComputeIntermediateVariables<<<grid_dimensions, block_dims_intvar>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
+		ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dims_intvar>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
 		cudaEventRecord(stop_swap);
         cudaEventSynchronize(stop_swap);
         cudaEventElapsedTime(&swap_time, start_swap, stop_swap);
@@ -165,32 +141,13 @@ int main(int argc, char* argv[]){
 	}
 
 	/* Free device data */ 
-	checkCuda(cudaFree(rho));
-	checkCuda(cudaFree(rhov_x));
-	checkCuda(cudaFree(rhov_y));
-	checkCuda(cudaFree(rhov_z));
-	checkCuda(cudaFree(Bx));
-	checkCuda(cudaFree(By));
-	checkCuda(cudaFree(Bz));
-	checkCuda(cudaFree(e));
+	checkCuda(cudaFree(fluidvar));
+	checkCuda(cudaFree(fluidvar_np1));
+	checkCuda(cudaFree(intvar));
 
-	checkCuda(cudaFree(rho_np1));
-	checkCuda(cudaFree(rhovx_np1));
-	checkCuda(cudaFree(rhovy_np1));
-	checkCuda(cudaFree(rhovz_np1));
-	checkCuda(cudaFree(Bx_np1));
-	checkCuda(cudaFree(By_np1));
-	checkCuda(cudaFree(Bz_np1));
-	checkCuda(cudaFree(e_np1));
-
-	checkCuda(cudaFree(rho_int));
-	checkCuda(cudaFree(rhovx_int));
-	checkCuda(cudaFree(rhovy_int));
-	checkCuda(cudaFree(rhovz_int));
-	checkCuda(cudaFree(Bx_int));
-	checkCuda(cudaFree(By_int));
-	checkCuda(cudaFree(Bz_int));
-	checkCuda(cudaFree(e_int));
+	checkCuda(cudaFree(grid_x));
+	checkCuda(cudaFree(grid_y));
+	checkCuda(cudaFree(grid_z));
 
     /* Free host data */
     bench_file.close();
