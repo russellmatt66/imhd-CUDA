@@ -14,7 +14,7 @@ set(DIFFUSION_SRC ../../include/diffusion.cu)
 set(INTVAR_SRC ../../include/kernels_od_intvar.cu)
 set(HELPER_SRC ../../include/helper_functions.cu)
 set(UTILS_SRC ../../include/utils.cpp)
-set(MAIN_SRC main.cu)
+set(DEBUG_SRC main.cu)
 
 # Add libraries
 add_library(helper_lib ${HELPER_SRC})
@@ -26,14 +26,17 @@ add_library(intvar_lib ${INTVAR_SRC})
 add_library(utils_lib ${UTILS_SRC})
 
 # Add executable
-add_executable(imhd-debug ${MAIN_SRC})
+add_executable(imhd-debug ${DEBUG_SRC})
+add_executable(imhd-debug_datawrite ../../src/main.cu)
 
 # Include directories
 target_include_directories(imhd-debug PRIVATE ${CUDA_INCLUDE_DIRS})
+target_include_directories(imhd-debug_datawrite PRIVATE ${CUDA_INCLUDE_DIRS})
 
 # Link libraries
 target_link_libraries(kernels_od_lib PRIVATE fluxes_lib diffusion_lib helper_lib)
 target_link_libraries(imhd-debug PRIVATE kernels_od_lib initialize_od_lib intvar_lib utils_lib)
+target_link_libraries(imhd-debug_datawrite PRIVATE kernels_od_lib initialize_od_lib intvar_lib utils_lib)
 
 # Compile options for imhd-debug
 target_compile_options(imhd-debug PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
@@ -41,7 +44,12 @@ target_compile_options(imhd-debug PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
                         -G
                         -Xptxas=-v
                         >)
-                        
+
+target_compile_options(imhd-debug_datawrite PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                        -g
+                        -G
+                        >)
+
 # Needed register requirements, and line info for debugging
 target_compile_options(kernels_od_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
                         -lineinfo
@@ -50,16 +58,27 @@ target_compile_options(kernels_od_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
 
 # Need register requirements
 target_compile_options(intvar_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                        -g
+                        -G
                         -Xptxas=-v
                         >)   
 
 target_compile_options(initialize_od_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                        -g
+                        -G
                         -Xptxas=-v
                         >)                  
 
 target_compile_options(diffusion_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                        -g
+                        -G
                         -lineinfo
                         >)                                   
+
+target_compile_options(utils_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                        -g
+                        -G
+                        >)
 
 # Set CUDA architectures
 set_target_properties(initialize_od_lib PROPERTIES CUDA_ARCHITECTURES 75)
@@ -69,6 +88,7 @@ set_target_properties(fluxes_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE
 set_target_properties(intvar_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(kernels_od_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(imhd-debug PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
+set_target_properties(imhd-debug_datawrite PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 
 # Custom commands to generate PTX files
 foreach(source_file ${KERNELS_OD_SRC} ${INITIALIZE_OD_SRC} ${MAIN_SRC})
