@@ -43,14 +43,15 @@ int main(int argc, char* argv[]){
 	float z_min = atof(argv[17]);
 	float z_max = atof(argv[18]);
 	float dt = atof(argv[19]);
-	int write_rho = atoi(argv[20]); // Data volume gets very large
-	int write_rhovx = atoi(argv[21]);
-	int write_rhovy = atoi(argv[22]);
-	int write_rhovz = atoi(argv[23]);
-	int write_Bx = atoi(argv[24]);
-	int write_By = atoi(argv[25]);
-	int write_Bz = atoi(argv[26]);
-	int write_e = atoi(argv[27]);
+	int data_write_period = atoi(argv[20]);
+	int write_rho = atoi(argv[21]); // Data volume gets very large
+	int write_rhovx = atoi(argv[22]);
+	int write_rhovy = atoi(argv[23]);
+	int write_rhovz = atoi(argv[24]);
+	int write_Bx = atoi(argv[25]);
+	int write_By = atoi(argv[26]);
+	int write_Bz = atoi(argv[27]);
+	int write_e = atoi(argv[28]);
 
 	float dx = (x_max - x_min) / (Nx - 1);
 	float dy = (y_max - y_min) / (Ny - 1);
@@ -67,7 +68,7 @@ int main(int argc, char* argv[]){
 	to_write_or_not = (int*)malloc(8 * sizeof(int));
 
 	for (int i = 0; i < 8; i++){ /* COULD USE AN INT FOR THIS */
-		to_write_or_not[i] = atoi(argv[20 + i]);
+		to_write_or_not[i] = atoi(argv[21 + i]);
 	}
 
 	float *fluidvar;
@@ -89,14 +90,15 @@ int main(int argc, char* argv[]){
 	dim3 grid_dimensions(SM_mult_x * numberOfSMs, SM_mult_y * numberOfSMs, SM_mult_z * numberOfSMs);
 	// dim3 block_dimensions(num_threads_per_block_x, num_threads_per_block_y, num_threads_per_block_z);
 	dim3 block_dims_grid(32, 16, 2); // 1024 threads per block
-	dim3 block_dims_init(8, 4, 4); // 512 < 923 threads per block
-	dim3 block_dims_intvar(8, 8, 2); // 256 < 334 threads per block 
-	dim3 block_dims_fluid(8, 8, 2); // 256 < 331 threads per block - based on register requirement of FluidAdvance + BCs kernels
+	dim3 block_dims_init(8, 4, 4); // 256 < 923 threads per block
+	dim3 block_dims_intvar(8, 8, 2); // 128 < 334 threads per block 
+	dim3 block_dims_fluid(8, 8, 2); // 128 < 331 threads per block - based on register requirement of FluidAdvance + BCs kernels
 
 	InitializeGrid<<<grid_dimensions, block_dims_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz,
 															grid_x, grid_y, grid_z, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());
 
+	printf("J0 is %4.3f\n", J0);
 	InitialConditions<<<grid_dimensions, block_dims_init>>>(fluidvar, J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
 	InitializeIntAndSwap<<<grid_dimensions, block_dims_init>>>(fluidvar_np1, intvar, Nx, Ny, Nz); // All 0.0
 	checkCuda(cudaDeviceSynchronize());
@@ -211,41 +213,43 @@ int main(int argc, char* argv[]){
 		ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dims_intvar>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
 
 		// Split the Device2Host and Host2Storage writes up to reduce synchro barriers
-		std::cout << "Writing host data to storage" << std::endl; 
-		for (size_t iv = 0; iv < 8; iv++){ 
-			if (to_write_or_not[iv]){ 
-				base_file = getNewBaseDataLoc(iv);
-				for (size_t i = 0; i < fluid_data_files.size(); i++){
-					fluid_data_files[i] = base_file + std::to_string(it) + "_" + std::to_string(i) + ".csv";
-				}  
-				switch (iv)
-				{
-				case 0:
-					writeFluidVars(fluid_data_files, h_rho, Nx, Ny, Nz);					
-					break;
-				case 1:
-					writeFluidVars(fluid_data_files, h_rhovx, Nx, Ny, Nz);					
-					break;
-				case 2:
-					writeFluidVars(fluid_data_files, h_rhovy, Nx, Ny, Nz);					
-					break;
-				case 3:
-					writeFluidVars(fluid_data_files, h_rhovz, Nx, Ny, Nz);					
-					break;			
-				case 4:
-					writeFluidVars(fluid_data_files, h_Bx, Nx, Ny, Nz);					
-					break;				
-				case 5:
-					writeFluidVars(fluid_data_files, h_By, Nx, Ny, Nz);					
-					break;				
-				case 6:
-					writeFluidVars(fluid_data_files, h_Bz, Nx, Ny, Nz);					
-					break;				
-				case 7:
-					writeFluidVars(fluid_data_files, h_e, Nx, Ny, Nz);					
-					break;				
-				default:
-					break;
+		if (!(it % data_write_period)){
+			std::cout << "Writing host data to storage" << std::endl; 
+			for (size_t iv = 0; iv < 8; iv++){ 
+				if (to_write_or_not[iv]){ 
+					base_file = getNewBaseDataLoc(iv);
+					for (size_t i = 0; i < fluid_data_files.size(); i++){
+						fluid_data_files[i] = base_file + std::to_string(it) + "_" + std::to_string(i) + ".csv";
+					}  
+					switch (iv)
+					{
+					case 0:
+						writeFluidVars(fluid_data_files, h_rho, Nx, Ny, Nz);					
+						break;
+					case 1:
+						writeFluidVars(fluid_data_files, h_rhovx, Nx, Ny, Nz);					
+						break;
+					case 2:
+						writeFluidVars(fluid_data_files, h_rhovy, Nx, Ny, Nz);					
+						break;
+					case 3:
+						writeFluidVars(fluid_data_files, h_rhovz, Nx, Ny, Nz);					
+						break;			
+					case 4:
+						writeFluidVars(fluid_data_files, h_Bx, Nx, Ny, Nz);					
+						break;				
+					case 5:
+						writeFluidVars(fluid_data_files, h_By, Nx, Ny, Nz);					
+						break;				
+					case 6:
+						writeFluidVars(fluid_data_files, h_Bz, Nx, Ny, Nz);					
+						break;				
+					case 7:
+						writeFluidVars(fluid_data_files, h_e, Nx, Ny, Nz);					
+						break;				
+					default:
+						break;
+					}
 				}
 			}
 		}

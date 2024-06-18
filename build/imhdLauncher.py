@@ -32,28 +32,30 @@ subprocess.run(arg_list)
 import pandas as pd
 
 def ConcatFragments(data_files_location: str, write_var: str, number_of_timesteps: int) -> None: 
+    print("Inside ConcatFragments")
     all_data_files = [data_files_location + f for f in listdir(data_files_location) if isfile(join(data_files_location, f))] # grid fragments    
+    print(f"all_data_files: {all_data_files}")
+
     it = 0
     while it < number_of_timesteps - 1: # initial timestep is it = 0
         df_list = []
         file_list = []
 
         for data_file in all_data_files:
-            # print(data_file.split(write_var)[2].split('_')[0])
+            print(f"Timestep of data file: {data_file.split(write_var)[2].split('_')[0]}, it: {it}")
             if data_file.split(write_var)[2].split('_')[0] == str(it):
                 df = pd.read_csv(data_file)
                 df_list.append(df)
                 file_list.append(data_file)
 
         print(f"Concating data files: {file_list}")
-        var_df = pd.concat(df_list)
-
-        print("Ascending sort by j, i, k")
-        var_df = var_df.sort_values(by=['k', 'i', 'j'])
-        var_df.to_csv(data_files_location + 'var_' + str(it) + '.csv', index=False)
-
-
-
+        try:
+            var_df = pd.concat(df_list)
+            print("Ascending sort by j, i, k")
+            var_df = var_df.sort_values(by=['k', 'i', 'j'])
+            var_df.to_csv(data_files_location + 'var_' + str(it) + '.csv', index=False)
+        except ValueError:
+            pass
         it += 1
 
     # Delete the fragments
@@ -75,6 +77,7 @@ with open('imhd-cuda.inp', 'r') as input_file:
             # print(write_flag)
             if (write_flag):
                 data_files_location = "../data/" + write_var + "/"
+                # print(data_files_location)
                 ConcatFragments(data_files_location, write_var, Nt) 
         except IndexError:
-            continue 
+            pass

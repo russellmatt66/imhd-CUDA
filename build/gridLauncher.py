@@ -3,7 +3,7 @@ from os import remove
 from os import listdir
 from os.path import isfile, join
 
-# Delete all datafiles in data directory
+# Delete all datafiles in the grid data directory
 data_files_location = "../data/grid/"
 
 all_data_files = [f for f in listdir(data_files_location) if isfile(join(data_files_location, f))]
@@ -41,7 +41,7 @@ grid_df = pd.concat(df_list)
 
 print("Ascending sort by j, i, k")
 grid_df = grid_df.sort_values(by=['k', 'i', 'j'])
-grid_df.to_csv(data_files_location + 'grid.csv')
+grid_df.to_csv(data_files_location + 'grid.csv', index=False)
 
 print(f"Deleting data files: {all_data_files}")
 for data_file in all_data_files: # Delete the fragments
