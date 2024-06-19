@@ -21,7 +21,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 int main(int argc, char* argv[]){
 	// Parse inputs - provided by imhdLauncher.py because Python parsing is easiest, and Python launching is easy
-    std::vector<float> inputs (19, 0.0);
+    std::vector<float> inputs (27, 0.0);
     parseInputFileDebug(inputs, "./debug.inp");
 	
 	for (int i = 0; i < inputs.size(); i++){
@@ -47,6 +47,14 @@ int main(int argc, char* argv[]){
 	float z_min = inputs[16];
 	float z_max = inputs[17];
 	float dt = inputs[18];
+	int write_rho = inputs[19]; // Data volume gets very large
+	int write_rhovx = inputs[20];
+	int write_rhovy = inputs[21];
+	int write_rhovz = inputs[22];
+	int write_Bx = inputs[23];
+	int write_By = inputs[24];
+	int write_Bz = inputs[25];
+	int write_e = inputs[26];
 
 	float dx = (x_max - x_min) / (Nx - 1);
 	float dy = (y_max - y_min) / (Ny - 1);
@@ -59,9 +67,17 @@ int main(int argc, char* argv[]){
 	cudaGetDevice(&deviceId);
 	cudaDeviceGetAttribute(&numberOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
 
+	int* to_write_or_not;
+	to_write_or_not = (int*)malloc(8 * sizeof(int));
+
+	for (int i = 0; i < 8; i++){ /* COULD USE AN INT FOR THIS */
+		to_write_or_not[i] = atoi(argv[21 + i]);
+	}
+
 	float *fluidvar, *fluidvar_np1, *intvar;
 	float *grid_x, *grid_y, *grid_z;
 
+	int cube_size = Nx * Ny * Nz;
 	int fluid_data_size = sizeof(float) * Nx * Ny * Nz;
 
 	/* MALLOC TO DEVICE */
@@ -93,6 +109,51 @@ int main(int argc, char* argv[]){
 	ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dims_intvar>>>(fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());
 
+	float *h_rho, *h_rhovx, *h_rhovy, *h_rhovz, *h_Bx, *h_By, *h_Bz, *h_e;
+
+	h_rho = (float*)malloc(fluid_data_size);
+	h_rhovx = (float*)malloc(fluid_data_size);
+	h_rhovy = (float*)malloc(fluid_data_size);
+	h_rhovz = (float*)malloc(fluid_data_size);
+	h_Bx = (float*)malloc(fluid_data_size);
+	h_By = (float*)malloc(fluid_data_size);
+	h_Bz = (float*)malloc(fluid_data_size);
+	h_e = (float*)malloc(fluid_data_size);
+
+	for (size_t ih = 0; ih < 8; ih++){
+		if (!to_write_or_not[ih]){ // No need for the host memory if it's not being written out
+			switch (ih)
+			{
+			case 0:
+				free(h_rho);
+				break;
+			case 1:
+				free(h_rhovx);
+				break;
+			case 2:
+				free(h_rhovy);
+				break;			
+			case 3:
+				free(h_rhovz);
+				break;			
+			case 4:
+				free(h_Bx);
+				break;			
+			case 5:
+				free(h_By);
+				break;			
+			case 6:
+				free(h_Bz);
+				break;			
+			case 7:
+				free(h_e);
+				break;			
+			default:
+				break;
+			}
+		}
+	}
+
 	/* Simulation loop */
 	for (size_t it = 0; it < Nt; it++){
 		std::cout << "Starting iteration " << it << std::endl;
@@ -103,6 +164,47 @@ int main(int argc, char* argv[]){
 		BoundaryConditions<<<grid_dimensions, block_dims_fluid>>>(fluidvar_np1, fluidvar, intvar, D, dt, dx, dy, dz, Nx, Ny, Nz);
 	
 		std::cout << "Writing fluid data to host" << std::endl;
+		// Data volume scales very fast w/problem size, don't want to always write everything out 
+		for (size_t iv = 0; iv < 8; iv++){ 
+			if (to_write_or_not[iv]){  
+				switch (iv)
+				{
+				case 0:
+					cudaMemcpy(h_rho, fluidvar, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;
+				case 1:
+					// cudaMemcpy(h_rhovx, fluidvar + fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_rhovx, fluidvar + cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;
+				case 2:
+					// cudaMemcpy(h_rhovy, fluidvar + 2 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_rhovy, fluidvar + 2 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;
+				case 3:
+					// cudaMemcpy(h_rhovz, fluidvar + 3 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_rhovz, fluidvar + 3 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;			
+				case 4:
+					// cudaMemcpy(h_Bx, fluidvar + 4 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_Bx, fluidvar + 4 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;				
+				case 5:
+					// cudaMemcpy(h_By, fluidvar + 5 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_By, fluidvar + 5 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;				
+				case 6:
+					// cudaMemcpy(h_Bz, fluidvar + 6 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_Bz, fluidvar + 6 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;				
+				case 7:
+					// cudaMemcpy(h_e, fluidvar + 7 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_e, fluidvar + 7 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					break;				
+				default:
+					break;
+				}
+			}
+		}
 		checkCuda(cudaDeviceSynchronize());
 		
 		// Transfer future timestep data to current timestep in order to avoid race conditions
@@ -122,5 +224,40 @@ int main(int argc, char* argv[]){
 	checkCuda(cudaFree(grid_y));
 	checkCuda(cudaFree(grid_z));
 
+	/* Free host data */
+	for (size_t ih = 0; ih < 8; ih++){
+		if (to_write_or_not[ih]){ // Don't forget to free the rest of the host buffers 
+			switch (ih)
+			{
+			case 0:
+				free(h_rho);
+				break;
+			case 1:
+				free(h_rhovx);
+				break;
+			case 2:
+				free(h_rhovy);
+				break;			
+			case 3:
+				free(h_rhovz);
+				break;			
+			case 4:
+				free(h_Bx);
+				break;			
+			case 5:
+				free(h_By);
+				break;			
+			case 6:
+				free(h_Bz);
+				break;			
+			case 7:
+				free(h_e);
+				break;			
+			default:
+				break;
+			}
+		}
+	}
+	free(to_write_or_not);
 	return 0;
 }

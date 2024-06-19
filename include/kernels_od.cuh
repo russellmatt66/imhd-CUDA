@@ -22,7 +22,7 @@ __global__ void FluidAdvance(float* fluidvar_np1, const float* fluidvar, const f
      const float D, const float dt, const float dx, const float dy, const float dz, 
      const int Nx, const int Ny, const int Nz);
 
-__global__ void BoundaryConditions(float* fluidvar_np1, const float* fluidvar, const float* intvar, 
+__global__ void BoundaryConditions(volatile float* fluidvar_np1, const float* fluidvar, const float* intvar, 
      const float D, const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);
 

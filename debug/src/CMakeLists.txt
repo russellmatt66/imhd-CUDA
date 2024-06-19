@@ -52,6 +52,8 @@ target_compile_options(imhd-debug_datawrite PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
 
 # Needed register requirements, and line info for debugging
 target_compile_options(kernels_od_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                        -g
+                        -G
                         -lineinfo
                         -Xptxas=-v
                         >)
