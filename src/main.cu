@@ -76,6 +76,7 @@ int main(int argc, char* argv[]){
 	float *intvar;
 	float *grid_x, *grid_y, *grid_z;
 
+	int cube_size = Nx * Ny * Nz;
 	int fluid_data_size = sizeof(float) * Nx * Ny * Nz;
 
 	/* MALLOC TO GLOBAL MEMORY */
@@ -178,25 +179,32 @@ int main(int argc, char* argv[]){
 					cudaMemcpy(h_rho, fluidvar, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;
 				case 1:
-					cudaMemcpy(h_rhovx, fluidvar + fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					// cudaMemcpy(h_rhovx, fluidvar + fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_rhovx, fluidvar + cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;
 				case 2:
-					cudaMemcpy(h_rhovy, fluidvar + 2 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					// cudaMemcpy(h_rhovy, fluidvar + 2 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_rhovy, fluidvar + 2 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;
 				case 3:
-					cudaMemcpy(h_rhovz, fluidvar + 3 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					// cudaMemcpy(h_rhovz, fluidvar + 3 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_rhovz, fluidvar + 3 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;			
 				case 4:
-					cudaMemcpy(h_Bx, fluidvar + 4 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					// cudaMemcpy(h_Bx, fluidvar + 4 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_Bx, fluidvar + 4 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;				
 				case 5:
-					cudaMemcpy(h_By, fluidvar + 5 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					// cudaMemcpy(h_By, fluidvar + 5 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_By, fluidvar + 5 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;				
 				case 6:
-					cudaMemcpy(h_Bz, fluidvar + 6 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					// cudaMemcpy(h_Bz, fluidvar + 6 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_Bz, fluidvar + 6 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;				
 				case 7:
-					cudaMemcpy(h_e, fluidvar + 7 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					// cudaMemcpy(h_e, fluidvar + 7 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
+					cudaMemcpy(h_e, fluidvar + 7 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
 					break;				
 				default:
 					break;
