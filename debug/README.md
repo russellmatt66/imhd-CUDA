@@ -12,5 +12,11 @@ This is where the debugging happens
 `data/`
 - Where the data goes to debug 
 
+`infs/`
+- Using RAPIDs to analyze data for infinities / anomalously large numbers
+
+`nulls/`
+- Using RAPIDs to analyze data for nulls / nans
+
 # Current Tasks
-(1) Refactor launcher in order to debug full application
+(1) Debug all the nulls / nans + infinities / ALNs out of application

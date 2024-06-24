@@ -67,12 +67,12 @@ __global__ void InitialConditions(float* fluidvar, const float J0, const float* 
                                                                                 + pow(fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size], 2) / (2.0 * fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)])
                                                                                 + pow(fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size], 2) + pow(fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size], 2) 
                                                                                 + pow(fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size], 2);  
-                        printf("For (%d, %d, %d) the value of the mhd energy is %5.4f, density: %5.4f, rhovz: %5.4f, Bx: %5.4f, By: %5.4f, Bz: %5.4f, gammacoeff: %f\n", 
-                            i, j, k, 
-                            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size], fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size], 
-                            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size], fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size],
-                            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size], fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size],
-                            (1.0 / (gamma - 1.0)));
+                        // printf("For (%d, %d, %d) the value of the mhd energy is %5.4f, density: %5.4f, rhovz: %5.4f, Bx: %5.4f, By: %5.4f, Bz: %5.4f, gammacoeff: %f\n", 
+                        //     i, j, k, 
+                        //     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size], fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size], 
+                        //     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size], fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size],
+                        //     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size], fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size],
+                        //     (1.0 / (gamma - 1.0)));
                     }
                 }
             }

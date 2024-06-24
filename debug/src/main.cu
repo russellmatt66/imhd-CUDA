@@ -7,6 +7,7 @@
 #include "../../include/initialize_od.cuh"
 #include "../../include/kernels_od_intvar.cuh"
 #include "../../include/utils.hpp"
+#include "../../include/utils.cuh"
 
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define checkCuda(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -165,7 +166,7 @@ int main(int argc, char* argv[]){
 		FluidAdvance<<<grid_dimensions, block_dims_fluid>>>(fluidvar_np1, fluidvar, intvar, D, dt, dx, dy, dz, Nx, Ny, Nz);
 		BoundaryConditions<<<grid_dimensions, block_dims_fluid>>>(fluidvar_np1, fluidvar, intvar, D, dt, dx, dy, dz, Nx, Ny, Nz);
 	
-		std::cout << "Writing fluid data to host" << std::endl;
+		std::cout << "Writing fluid data to host and printing intermediate variables" << std::endl;
 		// Data volume scales very fast w/problem size, don't want to always write everything out 
 		for (size_t iv = 0; iv < 8; iv++){ 
 			if (to_write_or_not[iv]){  
@@ -207,13 +208,20 @@ int main(int argc, char* argv[]){
 				}
 			}
 		}
+		if (it == 2){
+			PrintIntvar<<<grid_dimensions, block_dims_intvar>>>(intvar, fluidvar, Nx, Ny, Nz);
+		}
 		checkCuda(cudaDeviceSynchronize());
 		
 		// Transfer future timestep data to current timestep in order to avoid race conditions
-		std::cout << "Swapping future timestep to current" << std::endl;
+		std::cout << "Swapping future timestep to current, and printing fluidvars" << std::endl;
 		SwapSimData<<<grid_dimensions, block_dims_intvar>>>(fluidvar, fluidvar_np1, Nx, Ny, Nz);
 		ComputeIntermediateVariables<<<grid_dimensions, block_dims_intvar>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
 		ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dims_intvar>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
+		
+		if (it == 2) { 		
+			PrintFluidvar<<<grid_dimensions, block_dims_fluid>>>(fluidvar, Nx, Ny, Nz);
+		}
 		checkCuda(cudaDeviceSynchronize());
 	}
 

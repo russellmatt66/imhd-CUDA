@@ -14,6 +14,7 @@ set(DIFFUSION_SRC ../../include/diffusion.cu)
 set(INTVAR_SRC ../../include/kernels_od_intvar.cu)
 set(HELPER_SRC ../../include/helper_functions.cu)
 set(UTILS_SRC ../../include/utils.cpp)
+set(CUTILS_SRC ../../include/utils.cu)
 set(DEBUG_SRC main.cu)
 
 # Add libraries
@@ -24,19 +25,21 @@ add_library(kernels_od_lib ${KERNELS_OD_SRC})
 add_library(initialize_od_lib ${INITIALIZE_OD_SRC})
 add_library(intvar_lib ${INTVAR_SRC})
 add_library(utils_lib ${UTILS_SRC})
+add_library(cutils_lib ${CUTILS_SRC})
 
 # Add executable
 add_executable(imhd-debug ${DEBUG_SRC})
-add_executable(imhd-debug_datawrite ../../src/main.cu)
+# add_executable(imhd-debug_datawrite ../../src/main.cu) # Probably don't need this, or at least need to refactor
 
 # Include directories
 target_include_directories(imhd-debug PRIVATE ${CUDA_INCLUDE_DIRS})
-target_include_directories(imhd-debug_datawrite PRIVATE ${CUDA_INCLUDE_DIRS})
+# target_include_directories(imhd-debug_datawrite PRIVATE ${CUDA_INCLUDE_DIRS}) 
 
 # Link libraries
 target_link_libraries(kernels_od_lib PRIVATE fluxes_lib diffusion_lib helper_lib)
-target_link_libraries(imhd-debug PRIVATE kernels_od_lib initialize_od_lib intvar_lib utils_lib)
-target_link_libraries(imhd-debug_datawrite PRIVATE kernels_od_lib initialize_od_lib intvar_lib utils_lib)
+target_link_libraries(cutils_lib PRIVATE kernels_od_lib fluxes_lib diffusion_lib helper_lib)
+target_link_libraries(imhd-debug PRIVATE kernels_od_lib initialize_od_lib intvar_lib utils_lib cutils_lib)
+# target_link_libraries(imhd-debug_datawrite PRIVATE kernels_od_lib initialize_od_lib intvar_lib utils_lib)
 
 # Compile options for imhd-debug
 target_compile_options(imhd-debug PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
@@ -45,10 +48,10 @@ target_compile_options(imhd-debug PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
                         -Xptxas=-v
                         >)
 
-target_compile_options(imhd-debug_datawrite PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
-                        -g
-                        -G
-                        >)
+# target_compile_options(imhd-debug_datawrite PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+#                         -g
+#                         -G
+#                         >)
 
 # Needed register requirements, and line info for debugging
 target_compile_options(kernels_od_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
@@ -82,7 +85,13 @@ target_compile_options(utils_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
                         -G
                         >)
 
+target_compile_options(cutils_lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                        -g
+                        -G
+                        >)
+
 # Set CUDA architectures
+set_target_properties(cutils_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(initialize_od_lib PROPERTIES CUDA_ARCHITECTURES 75)
 set_target_properties(helper_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(diffusion_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
@@ -90,23 +99,23 @@ set_target_properties(fluxes_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE
 set_target_properties(intvar_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(kernels_od_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(imhd-debug PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
-set_target_properties(imhd-debug_datawrite PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
+# set_target_properties(imhd-debug_datawrite PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 
 # Custom commands to generate PTX files
-foreach(source_file ${KERNELS_OD_SRC} ${INITIALIZE_OD_SRC} ${MAIN_SRC})
-    get_filename_component(source_file_we ${source_file} NAME_WE)
-    add_custom_command(
-        OUTPUT ${CMAKE_BINARY_DIR}/${source_file_we}.ptx
-        COMMAND ${CMAKE_CUDA_COMPILER} ${CMAKE_CUDA_FLAGS} -ptx ${CMAKE_CURRENT_SOURCE_DIR}/${source_file} -o ${CMAKE_BINARY_DIR}/${source_file_we}.ptx
-        DEPENDS ${source_file}
-        COMMENT "Generating PTX for ${source_file}"
-        VERBATIM
-    )
-    list(APPEND PTX_FILES ${CMAKE_BINARY_DIR}/${source_file_we}.ptx)
-endforeach()
+# foreach(source_file ${KERNELS_OD_SRC} ${INITIALIZE_OD_SRC} ${MAIN_SRC})
+#     get_filename_component(source_file_we ${source_file} NAME_WE)
+#     add_custom_command(
+#         OUTPUT ${CMAKE_BINARY_DIR}/${source_file_we}.ptx
+#         COMMAND ${CMAKE_CUDA_COMPILER} ${CMAKE_CUDA_FLAGS} -ptx ${CMAKE_CURRENT_SOURCE_DIR}/${source_file} -o ${CMAKE_BINARY_DIR}/${source_file_we}.ptx
+#         DEPENDS ${source_file}
+#         COMMENT "Generating PTX for ${source_file}"
+#         VERBATIM
+#     )
+#     list(APPEND PTX_FILES ${CMAKE_BINARY_DIR}/${source_file_we}.ptx)
+# endforeach()
 
-# Add a custom target to build the PTX files
-add_custom_target(build_ptx ALL DEPENDS ${PTX_FILES})
+# # Add a custom target to build the PTX files
+# add_custom_target(build_ptx ALL DEPENDS ${PTX_FILES})
 
-# Ensure the executable depends on the PTX generation
-add_dependencies(imhd-debug build_ptx)
+# # Ensure the executable depends on the PTX generation
+# add_dependencies(imhd-debug build_ptx)
