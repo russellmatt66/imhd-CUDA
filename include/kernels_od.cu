@@ -89,6 +89,18 @@ __global__ void FluidAdvance(float* fluidvar_np1, const float* fluidvar, const f
                                                             + numericalDiffusion(i, j, k, fluidvar, D, dx, dy, dz, 6, Nx, Ny, Nz); // Bz
                 fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] =  LaxWendroffAdvE(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
                                                             + numericalDiffusion(i, j, k, fluidvar, D, dx, dy, dz, 7, Nx, Ny, Nz); // e
+                
+                if (isnan(fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size])){
+                    float LW_val = LaxWendroffAdvRhoVZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
+                    float dfn_val = numericalDiffusion(i, j, k, fluidvar, D, dx, dy, dz, 3, Nx, Ny, Nz);
+                    // printf("For (%d, %d, %d) the value of LWAdvance is %5.4f, and numericalDiffusion is %5.4f\n", i, j, k, LW_val, dfn_val);
+                    if (isnan(LW_val) && !isnan(dfn_val)){
+                        printf("LaxWendroffAdvance is the problem, for (%d, %d, %d) the value of fluidvar is %5.4f, intvar: %5.4f, XFRVZ: %5.4f, YFRVZ: %5.4f, ZFRVZ: %5.4f, XFRVZip1: %5.4f, YFRVZjp1: %5.4f, ZFRVZkp1: %5.4f\n", 
+                            i, j, k, fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size], intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size], 
+                            XFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz), YFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz), ZFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz), 
+                            XFluxRhoVZ(i + 1, j, k, intvar, Nx, Ny, Nz), YFluxRhoVZ(i, j + 1, k, intvar, Nx, Ny, Nz), ZFluxRhoVZ(i, j, k + 1, intvar, Nx, Ny, Nz));
+                    }
+                } 
             }
         }
     }

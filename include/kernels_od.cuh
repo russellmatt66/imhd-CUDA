@@ -13,7 +13,7 @@ partitioned into two sets:
 */ 
 
 // physical constants
-#define gamma 5.0 / 3.0
+#define gamma (5.0 / 3.0)
 
 // Global kernels
 __global__ void SwapSimData(float* fluidvar, const float* fluidvar_np1, const int Nx, const int Ny, const int Nz); 

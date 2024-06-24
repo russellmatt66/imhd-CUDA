@@ -1,5 +1,9 @@
+#include <stdio.h>
+
+#include "kernels_od.cuh"
 #include "kernels_od_fluxes.cuh"
 #include "kernels_od_intvar.cuh"
+#include "helper_functions.cuh"
 
 #define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx * Ny) + (i) * Ny + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
@@ -30,9 +34,24 @@ __global__ void ComputeIntermediateVariables(const float* fluidvar, float* intva
                     intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = intBy(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
                     intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = intBz(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
                     intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = intE(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
+                
+                    if (isnan(intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size])){
+                        // printf("For (%d, %d, %d), the value of fluidvar is: %5.4f, XFRVZ: %5.4f, YFRVZ: %5.4f, ZFRVZ: %5.4f, XFRVZim1: %5.4f, YFRVZjm1: %5.4f, ZFRVZkm1: %5.4f\n",
+                        //     i, j, k, fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size], 
+                        //     XFluxRhoVZ(i, j, k, fluidvar, Nx, Ny, Nz), YFluxRhoVZ(i, j, k, fluidvar, Nx, Ny, Nz), ZFluxRhoVZ(i, j, k, fluidvar, Nx, Ny, Nz),
+                        //     XFluxRhoVZ(i-1, j, k, fluidvar, Nx, Ny, Nz), YFluxRhoVZ(i, j-1, k, fluidvar, Nx, Ny, Nz), ZFluxRhoVZ(i, j, k-1, fluidvar, Nx, Ny, Nz));
+                        float Bsq = B_sq(i, j, k, fluidvar, Nx, Ny, Nz);
+                        float ke = KE(i, j, k, fluidvar, Nx, Ny, Nz);
+                        float pressure = p(i, j, k, fluidvar, Bsq, ke, Nx, Ny, Nz);
+                        // float g = gamma;
+                        printf("For (%d, %d, %d), the value of pressure is: %5.4f, Bsq: %5.4f, ke: %5.4f, mhd energy: %5.4f, gamma: %f\n", 
+                            i, j, k, pressure, Bsq, ke, fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size], gamma);
+                    }
                 }
             }
         }
+
+
         return;
     }
 
