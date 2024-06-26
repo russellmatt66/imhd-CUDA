@@ -90,8 +90,8 @@ __global__ void PrintFluidvar(const float* fluidvar, const size_t Nx, const size
                 float pressure = p(i, j, k, fluidvar, Bsq, ke, Nx, Ny, Nz);
                 printf("Printing fluidvar values. " 
                     "For (%d, %d, %d), the value of pressure is: %5.4f, Bsq: %5.4f, ke: %5.4f, " 
-                    "int. rho: %5.4f, int. rhovx: %5.4f, int. rhovy: %5.4f, int. rhovz: %5.4f, " 
-                    "int. Bx: %5.4f, int. By: %5.4f, int. Bz: %5.4f, int. energy: %5.4f, "
+                    "rho: %5.4f, rhovx: %5.4f, rhovy: %5.4f, rhovz: %5.4f, " 
+                    "Bx: %5.4f, By: %5.4f, Bz: %5.4f, energy: %5.4f, "
                     "gamma: %f\n", 
                     i, j, k, pressure, Bsq, ke, 
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)], fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) +  cube_size], 

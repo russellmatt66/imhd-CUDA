@@ -9,7 +9,6 @@
 // row-major, column-minor order
 #define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx * Ny) + (i) * Ny + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
-
 /* 
 Needed to be refactored to compactify all data into three arrays:
 (1) float *fluidvar
@@ -132,98 +131,98 @@ __global__ void BoundaryConditions(volatile float* fluidvar_np1, const float* fl
                                                         - 0.5 * (dt / dx) * (XFluxRho(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxRho(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxRho(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxRho(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxRho(i, j, k + 1, intvar, Nx, Ny, Nz) - ZFluxRho(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 0, Nx, Ny, Nz);
+                                                        + numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 0, Nx, Ny, Nz);
 
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size])
                                                         - 0.5 * (dt / dx) * (XFluxRhoVX(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxRhoVX(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxRhoVX(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxRhoVX(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxRhoVX(i, j, k + 1, intvar, Nx, Ny, Nz) - ZFluxRhoVX(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 1, Nx, Ny, Nz);
+                                                        + numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 1, Nx, Ny, Nz);
             
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size])
                                                         - 0.5 * (dt / dx) * (XFluxRhoVY(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxRhoVY(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxRhoVY(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxRhoVY(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxRhoVY(i, j, k + 1, intvar, Nx, Ny, Nz) - ZFluxRhoVY(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 2, Nx, Ny, Nz);
+                                                        + numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 2, Nx, Ny, Nz);
 
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size])
                                                         - 0.5 * (dt / dx) * (XFluxRhoVZ(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxRhoVZ(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxRhoVZ(i, j, k + 1, intvar, Nx, Ny, Nz) - ZFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 3, Nx, Ny, Nz);
+                                                        + numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 3, Nx, Ny, Nz);
 
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size])
                                                         - 0.5 * (dt / dx) * (XFluxBX(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxBX(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxBX(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxBX(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxBX(i, j, k + 1, intvar, Nx, Ny, Nz) - ZFluxBX(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 4, Nx, Ny, Nz);
+                                                        + numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 4, Nx, Ny, Nz);
 
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size])
                                                         - 0.5 * (dt / dx) * (XFluxBY(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxBY(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxBY(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxBY(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxBY(i, j, k + 1, intvar, Nx, Ny, Nz) - ZFluxBY(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 5, Nx, Ny, Nz);
+                                                        + numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 5, Nx, Ny, Nz);
 
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size])
                                                         - 0.5 * (dt / dx) * (XFluxBZ(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxBZ(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxBZ(i, j, k + 1, intvar, Nx, Ny, Nz) - ZFluxBZ(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 6, Nx, Ny, Nz);
+                                                        + numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 6, Nx, Ny, Nz);
 
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size])
                                                         - 0.5 * (dt / dx) * (XFluxE(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxE(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxE(i, j, k + 1, intvar, Nx, Ny, Nz) - ZFluxBZ(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 7, Nx, Ny, Nz);
+                                                        + numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 7, Nx, Ny, Nz);
 
             k = Nz - 1;
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] + intvar[IDX3D(i, j, k, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (XFluxRho(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxRho(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxRho(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxRho(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxRho(i, j, 1, intvar, Nx, Ny, Nz) - ZFluxRho(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 0, Nx, Ny, Nz);
+                                                        + numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 0, Nx, Ny, Nz);
 
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size])
                                                         - 0.5 * (dt / dx) * (XFluxRhoVX(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxRhoVX(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxRhoVX(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxRhoVX(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxRhoVX(i, j, 1, intvar, Nx, Ny, Nz) - ZFluxRhoVX(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 1, Nx, Ny, Nz);
+                                                        + numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 1, Nx, Ny, Nz);
             
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size])
                                                         - 0.5 * (dt / dx) * (XFluxRhoVY(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxRhoVY(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxRhoVY(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxRhoVY(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxRhoVY(i, j, 1, intvar, Nx, Ny, Nz) - ZFluxRhoVY(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 2, Nx, Ny, Nz);
+                                                        + numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 2, Nx, Ny, Nz);
 
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size])
                                                         - 0.5 * (dt / dx) * (XFluxRhoVZ(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxRhoVZ(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxRhoVZ(i, j, 1, intvar, Nx, Ny, Nz) - ZFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 3, Nx, Ny, Nz);
+                                                        + numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 3, Nx, Ny, Nz);
 
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size])
                                                         - 0.5 * (dt / dx) * (XFluxBX(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxBX(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxBX(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxBX(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxBX(i, j, 1, intvar, Nx, Ny, Nz) - ZFluxBX(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 4, Nx, Ny, Nz);
+                                                        + numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 4, Nx, Ny, Nz);
 
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size])
                                                         - 0.5 * (dt / dx) * (XFluxBY(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxBY(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxBY(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxBY(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxBY(i, j, 1, intvar, Nx, Ny, Nz) - ZFluxBY(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 5, Nx, Ny, Nz);
+                                                        + numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 5, Nx, Ny, Nz);
 
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size])
                                                         - 0.5 * (dt / dx) * (XFluxBZ(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxBZ(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxBZ(i, j, 1, intvar, Nx, Ny, Nz) - ZFluxBZ(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 6, Nx, Ny, Nz);
+                                                        + numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 6, Nx, Ny, Nz);
 
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size])
                                                         - 0.5 * (dt / dx) * (XFluxE(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxE(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxE(i, j, 1, intvar, Nx, Ny, Nz) - ZFluxBZ(i, j, k, intvar, Nx, Ny, Nz));
-                                                        - numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 7, Nx, Ny, Nz);
+                                                        + numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 7, Nx, Ny, Nz);
             
             // THEN, ACCUMULATE THE RESULTS ONTO ONE FACE, MAP AROUND TO THE OTHER, AND CONTINUE
             for (int ivf = 0; ivf < 8; ivf++){
@@ -251,7 +250,7 @@ __global__ void BoundaryConditions(volatile float* fluidvar_np1, const float* fl
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0; // Perfectly-conducting wall
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0; 
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
-            fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = p(i, j, k, fluidvar, 0.0, 0.0, Nx, Ny, Nz);
+            fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = p(i, j, k, fluidvar, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
 
             i = Nx - 1;
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0001; /* Magic vacuum number */
@@ -261,7 +260,7 @@ __global__ void BoundaryConditions(volatile float* fluidvar_np1, const float* fl
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0; // Perfectly-conducting wall
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0; 
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
-            fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = p(i, j, k, fluidvar, 0.0, 0.0, Nx, Ny, Nz);
+            fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = p(i, j, k, fluidvar, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
         }
     }
 

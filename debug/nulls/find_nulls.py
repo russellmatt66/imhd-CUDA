@@ -14,7 +14,7 @@ except FileNotFoundError:
     print("Argument needs to provide full path to the data file")
     sys.exit()
 
-null_rows = gdf[gdf['val'].isnull() or gdf['val'].isnan()]
+null_rows = gdf[gdf['val'].isnull()]
 print(type(null_rows))
 print(null_rows.head())
 

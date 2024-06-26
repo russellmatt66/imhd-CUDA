@@ -208,9 +208,8 @@ int main(int argc, char* argv[]){
 				}
 			}
 		}
-		if (it == 2){
-			PrintIntvar<<<grid_dimensions, block_dims_intvar>>>(intvar, fluidvar, Nx, Ny, Nz);
-		}
+		PrintIntvar<<<grid_dimensions, block_dims_intvar>>>(intvar, fluidvar, Nx, Ny, Nz);
+		PrintFluidvar<<<grid_dimensions, block_dims_fluid>>>(fluidvar, Nx, Ny, Nz);
 		checkCuda(cudaDeviceSynchronize());
 		
 		// Transfer future timestep data to current timestep in order to avoid race conditions
@@ -218,10 +217,6 @@ int main(int argc, char* argv[]){
 		SwapSimData<<<grid_dimensions, block_dims_intvar>>>(fluidvar, fluidvar_np1, Nx, Ny, Nz);
 		ComputeIntermediateVariables<<<grid_dimensions, block_dims_intvar>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
 		ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dims_intvar>>>(fluidvar_np1, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
-		
-		if (it == 2) { 		
-			PrintFluidvar<<<grid_dimensions, block_dims_fluid>>>(fluidvar, Nx, Ny, Nz);
-		}
 		checkCuda(cudaDeviceSynchronize());
 	}
 

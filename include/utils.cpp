@@ -6,7 +6,7 @@
 
 #include "utils.hpp"
 
-#define IDX3D(i, j, k, Nx, Ny, Nz) (k * (Nx * Ny) + i * Ny + j) // row-major, column-minor order
+#define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx * Ny) + (i) * Ny + j) // row-major, column-minor order
 
 void writeGrid(const std::vector<std::string> file_names, const float* x_grid, const float* y_grid, const float* z_grid, const size_t Nx, const size_t Ny, const size_t Nz){
     /* 
