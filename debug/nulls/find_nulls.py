@@ -1,6 +1,10 @@
 # Find the locations where there are null values in the output data
 import sys
-import cudf
+try:
+    import cudf
+except ModuleNotFoundError:
+    pass
+import pandas as pd
 
 out_file = sys.argv[1]
 var_name = out_file.split('data/')[1].split('/var_')[0]
@@ -13,6 +17,8 @@ try:
 except FileNotFoundError:
     print("Argument needs to provide full path to the data file")
     sys.exit()
+except NameError:
+    gdf = pd.read_csv(out_file)
 
 null_rows = gdf[gdf['val'].isnull()]
 print(type(null_rows))

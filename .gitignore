@@ -9,7 +9,7 @@
 /build/*.log
 /build/test.*
 
-# HIDING DATA FILES
+# HIDING DATA FILES - BUT NOT READMEs b/c folders are necessary for sim operation
 /data/rho/*
 /data/rhovx/*
 /data/rhovy/*
@@ -19,6 +19,40 @@
 /data/Bz/*
 /data/e/*
 /data/grid/*
+!/data/rho/README.md
+!/data/rhovx/README.md
+!/data/rhovy/README.md
+!/data/rhovz/README.md
+!/data/Bx/README.md
+!/data/By/README.md
+!/data/Bz/README.md
+!/data/e/README.md
+!/data/grid/README.md
+
+# HIDING THE DATA FILES IN DEBUG
+/debug/nulls/data/*
+!/debug/nulls/data/README.md
+/debug/infs/data/*
+!/debug/infs/data/README.md
+
+/debug/data/rho/*
+/debug/data/rhovx/*
+/debug/data/rhovy/*
+/debug/data/rhovz/*
+/debug/data/Bx/*
+/debug/data/By/*
+/debug/data/Bz/*
+/debug/data/e/*
+/debug/data/grid/*
+!/debug/data/rho/README.md
+!/debug/data/rhovx/README.md
+!/debug/data/rhovy/README.md
+!/debug/data/rhovz/README.md
+!/debug/data/Bx/README.md
+!/debug/data/By/README.md
+!/debug/data/Bz/README.md
+!/debug/data/e/README.md
+!/debug/data/grid/README.md
 
 # HIDING CMAKE FILES FROM `./debug/`
 /debug/build/CMakeFiles/*

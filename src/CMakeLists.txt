@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 project(imhd-CUDA LANGUAGES CUDA CXX)
 
-find_package(CUDAToolkit REQUIRED)
+# find_package(CUDAToolkit REQUIRED)
+find_package(CUDA REQUIRED)
 
 # set(CMAKE_VERBOSE_MAKEFILE on)
 
