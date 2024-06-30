@@ -46,7 +46,7 @@ __global__ void InitialConditions(float* fluidvar, const float J0, const float* 
                     
                     r = sqrtf(pow(grid_x[i], 2) + pow(grid_y[j], 2));
                     
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0001;
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0;
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0;
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
@@ -56,7 +56,7 @@ __global__ void InitialConditions(float* fluidvar, const float J0, const float* 
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.0;        
                     
                     if (r < r_pinch){
-                        fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0;
+                        fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 10.0;
                         fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0;
                         fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
                         fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = J0 * (1.0 - pow(r, 2) / pow(r_pinch, 2));
