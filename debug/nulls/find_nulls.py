@@ -28,10 +28,8 @@ num_nulls = null_rows.shape[0]
 print(num_nulls)
 
 null_rows[['i', 'j', 'k']].to_csv('./data/nulls_' + var_name + nt + '.csv', index=False)
-# print(null_rows['i'].unique())
-# indices = ['i', 'j', 'k']
 
-# unique_values = {index: null_rows[index].unique() for index in indices}
-
-# for index, unique_vals in unique_values.items():
-#     print(f"Unique values for {index}: {unique_vals}")
+indices = ['i', 'j', 'k']
+unique_values = {index: null_rows[index].unique() for index in indices}
+for index, unique_vals in unique_values.items():
+    print(f"Unique values for {index}: {unique_vals}")

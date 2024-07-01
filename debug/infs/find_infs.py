@@ -33,8 +33,8 @@ print(ninf_rows.head())
 num_ninfs = ninf_rows.shape[0]
 print(num_ninfs)
 
-aln_threshold = 1e10
-aln_rows = gdf[gdf['val'] > aln_threshold]
+aln_threshold = 1e2
+aln_rows = gdf[(gdf['val'] > aln_threshold) & (gdf['val'] != np.inf) & (gdf['val'] != -np.inf)]
 print("Field values larger than the threshold")
 print(type(aln_rows))
 print(aln_rows.head())
@@ -43,12 +43,21 @@ num_alns = aln_rows.shape[0]
 print(num_alns)
 
 ninfaln_rows = cudf.concat([inf_rows, ninf_rows, aln_rows])
-
 ninfaln_rows[['i', 'j', 'k']].to_csv('./data/ninfalns_' + var_name + nt + '.csv', index=False)
-# print(null_rows['i'].unique())
-# indices = ['i', 'j', 'k']
 
-# unique_values = {index: null_rows[index].unique() for index in indices}
+indices = ['i', 'j', 'k']
+unique_values_ninfalns = {index: ninfaln_rows[index].unique() for index in indices}
+for index, unique_vals in unique_values_ninfalns.items():
+    print(f"Unique values in ninfaln_rows for {index}:\n {unique_vals}")
 
-# for index, unique_vals in unique_values.items():
-#     print(f"Unique values for {index}: {unique_vals}")
+unique_values_ninfs = {index: ninf_rows[index].unique() for index in indices}
+for index, unique_vals in unique_values_ninfs.items():
+    print(f"Unique values in ninf_rows for {index}:\n {unique_vals}")
+
+unique_values_infs = {index: inf_rows[index].unique() for index in indices}
+for index, unique_vals in unique_values_infs.items():
+    print(f"Unique values in inf_rows for {index}:\n {unique_vals}")
+
+unique_values_alns = {index: aln_rows[index].unique() for index in indices}
+for index, unique_vals in unique_values_alns.items():
+    print(f"Unique values in aln_rows for {index}:\n {unique_vals}")
