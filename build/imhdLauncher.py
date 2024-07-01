@@ -14,7 +14,10 @@ for data_dir in all_data_dirs:
     all_data_files = [f for f in listdir(data_path) if isfile(join(data_path, f))]
     print(all_data_files)
     for data_file in all_data_files:
-        remove(data_path + data_file)
+        if (data_file == 'README.md'):
+            pass
+        else:
+            remove(data_path + data_file)
 
 # Read `imhd-CUDA.inp`, and parse it.
 arg_list = []

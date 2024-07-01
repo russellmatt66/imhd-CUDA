@@ -243,7 +243,7 @@ __global__ void BoundaryConditions(volatile float* fluidvar_np1, const float* fl
     for (int k = tidz; k < Nz; k += zthreads){ 
         for (int j = tidy; j < Ny; j += ythreads){
             i = 0;
-            fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0001; /* Magic vacuum number */
+            fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0; /* Magic vacuum number */
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
@@ -253,7 +253,7 @@ __global__ void BoundaryConditions(volatile float* fluidvar_np1, const float* fl
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = p(i, j, k, fluidvar, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
 
             i = Nx - 1;
-            fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0001; /* Magic vacuum number */
+            fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0; /* Magic vacuum number */
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
@@ -275,7 +275,7 @@ __global__ void BoundaryConditions(volatile float* fluidvar_np1, const float* fl
     for (int k = tidz; k < Nz; k += zthreads){
         for (int i = tidx + 1; i < Nx - 1; i += xthreads){
             j = 0;
-            fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0001; /* Magic vacuum number */
+            fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0; /* Magic vacuum number */
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
@@ -285,7 +285,7 @@ __global__ void BoundaryConditions(volatile float* fluidvar_np1, const float* fl
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = p(i, j, k, fluidvar, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
             
             j = Ny - 1;
-            fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0001; /* Magic vacuum number */
+            fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0; /* Magic vacuum number */
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
             fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
