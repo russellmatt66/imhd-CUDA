@@ -22,9 +22,4 @@ inverse_map/
 - Python file to map from the linear index of the data arrays, l, to the tensor indices (i, j, k).
 
 # Current Tasks
-(1) Visualize initial conditions 
-- `./vtk/ics_test_gds`
--- Writes data directly to storage from the device
-- `./vtk/ics_test_hostbuf`
--- Writes data to storage via a bounce buffer through the host
 

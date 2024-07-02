@@ -74,19 +74,19 @@
 /visualization/build/*
 !/visualization/README.md
 
-# HIDING CMAKE AND DATA FILES from `/test/` 
-/test/library_test/CMakeFiles/*
-/test/library_test/*.cmake
-/test/library_test/Makefile
+# HIDING CMAKE AND DATA FILES from `/examples/` 
+/examples/library_test/CMakeFiles/*
+/examples/library_test/*.cmake
+/examples/library_test/Makefile
 
-/test/oop/grid_test/CMakeFiles/*
-/test/oop/grid_test/*.cmake
-/test/oop/grid_test/Makefile
-/test/oop/grid_test/CMakeCache.txt
+/examples/oop/grid_test/CMakeFiles/*
+/examples/oop/grid_test/*.cmake
+/examples/oop/grid_test/Makefile
+/examples/oop/grid_test/CMakeCache.txt
 
-/test/gds/write_cufilefunc_test/buf1.dat
-/test/gds/write_cufilefunc_test/buf2.dat
-/test/gds/write_cufilefunc_test/buf3.dat
+/examples/gds/write_cufilefunc_test/buf1.dat
+/examples/gds/write_cufilefunc_test/buf2.dat
+/examples/gds/write_cufilefunc_test/buf3.dat
 
 # /test/vtk/ics_test/CMakeFiles/*
 # /test/vtk/ics_test/Makefile
@@ -101,33 +101,33 @@
 # /test/vtk/ics_test/visualization/*.cmake
 # /test/vtk/ics_test/visualization/Makefile
 
-/test/vtk/ics_test_gds/CMakeFiles/*
-/test/vtk/ics_test_gds/Makefile
-/test/vtk/ics_test_gds/ReadPLOT3D/
-/test/vtk/ics_test_gds/CMakeCache.txt
-/test/vtk/ics_test_gds/*.cmake
-/test/vtk/ics_test_gds/*.a
-/test/vtk/ics_test_gds/*.dat
+/examples/vtk/ics_test_gds/CMakeFiles/*
+/examples/vtk/ics_test_gds/Makefile
+/examples/vtk/ics_test_gds/ReadPLOT3D/
+/examples/vtk/ics_test_gds/CMakeCache.txt
+/examples/vtk/ics_test_gds/*.cmake
+/examples/vtk/ics_test_gds/*.a
+/examples/vtk/ics_test_gds/*.dat
 
-/test/vtk/ics_test_gds/grid_vis/*.txt
-/test/vtk/ics_test_gds/grid_vis/CMakeFiles/*
-/test/vtk/ics_test_gds/grid_vis/*.cmake
-/test/vtk/ics_test_gds/grid_vis/Makefile
+/examples/vtk/ics_test_gds/grid_vis/*.txt
+/examples/vtk/ics_test_gds/grid_vis/CMakeFiles/*
+/examples/vtk/ics_test_gds/grid_vis/*.cmake
+/examples/vtk/ics_test_gds/grid_vis/Makefile
 
-/test/vtk/ics_test_gds/ics_vis/*.txt
-/test/vtk/ics_test_gds/ics_vis/CMakeFiles/*
-/test/vtk/ics_test_gds/ics_vis/*.cmake
-/test/vtk/ics_test_gds/ics_vis/Makefile
+/examples/vtk/ics_test_gds/ics_vis/*.txt
+/examples/vtk/ics_test_gds/ics_vis/CMakeFiles/*
+/examples/vtk/ics_test_gds/ics_vis/*.cmake
+/examples/vtk/ics_test_gds/ics_vis/Makefile
 
-/test/vtk/ics_test_hostbuf/CMakeFiles/*
-/test/vtk/ics_test_hostbuf/Makefile
-/test/vtk/ics_test_hostbuf/CMakeCache.txt
-/test/vtk/ics_test_hostbuf/*.cmake
-/test/vtk/ics_test_hostbuf/*.a
-/test/vtk/ics_test_hostbuf/data/*
+/examples/vtk/ics_test_hostbuf/CMakeFiles/*
+/examples/vtk/ics_test_hostbuf/Makefile
+/examples/vtk/ics_test_hostbuf/CMakeCache.txt
+/examples/vtk/ics_test_hostbuf/*.cmake
+/examples/vtk/ics_test_hostbuf/*.a
+/examples/vtk/ics_test_hostbuf/data/*
 
-/test/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/CMakeFiles/*
-/test/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/Makefile
-/test/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/CMakeCache.txt
-/test/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/*.cmake
-/test/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/*.a
+/examples/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/CMakeFiles/*
+/examples/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/Makefile
+/examples/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/CMakeCache.txt
+/examples/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/*.cmake
+/examples/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/*.a
