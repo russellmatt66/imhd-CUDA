@@ -11,6 +11,6 @@ Nzs[len(Nzs)-1] = 592
 
 print(f"Nxs: {Nxs}\n Nys: {Nys}\n Nzs: {Nzs}")
 
-# Run executable which writes data to file
+# Run executable which writes data to file using custom function, and RAPIDs bindings
 
-# Write same data to file
+# Load the data from both approaches, and compare

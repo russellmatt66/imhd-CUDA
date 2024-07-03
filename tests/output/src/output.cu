@@ -64,6 +64,8 @@ int main(int argc, char* argv[]){
 	InitialConditions<<<grid_dimensions, block_dims_init>>>(fluidvar, J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
 	checkCuda(cudaDeviceSynchronize());
 
+    /* USE RAPIDS bindings to write data out */
+
     // Prepare host data for writing out
 	std::vector<std::string> fluid_data_files (8); // 8 is the number of threads I'm going with
     std::string base_file = "../data/rho/";
@@ -202,6 +204,46 @@ int main(int argc, char* argv[]){
             }
         }
     }
-    checkCuda(cudaDeviceSynchronize());
+    // checkCuda(cudaDeviceSynchronize());
+    
+	checkCuda(cudaFree(fluidvar));
+    checkCuda(cudaFree(grid_x));
+	checkCuda(cudaFree(grid_y));
+	checkCuda(cudaFree(grid_z));
+
+    for (size_t ih = 0; ih < 8; ih++){
+		if (to_write_or_not[ih]){ // Don't forget to free the rest of the host buffers 
+			switch (ih)
+			{
+			case 0:
+				free(h_rho);
+				break;
+			case 1:
+				free(h_rhovx);
+				break;
+			case 2:
+				free(h_rhovy);
+				break;			
+			case 3:
+				free(h_rhovz);
+				break;			
+			case 4:
+				free(h_Bx);
+				break;			
+			case 5:
+				free(h_By);
+				break;			
+			case 6:
+				free(h_Bz);
+				break;			
+			case 7:
+				free(h_e);
+				break;			
+			default:
+				break;
+			}
+		}
+	}
+	free(to_write_or_not);
     return 0;
 }
