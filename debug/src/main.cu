@@ -71,7 +71,7 @@ int main(int argc, char* argv[]){
 	int* to_write_or_not;
 	to_write_or_not = (int*)malloc(8 * sizeof(int));
 
-	for (int i = 0; i < 8; i++){ /* COULD USE AN INT FOR THIS */
+	for (int i = 0; i < 8; i++){ /* COULD USE A CHAR FOR THIS */
 		to_write_or_not[i] = atoi(argv[21 + i]);
 	}
 

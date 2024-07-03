@@ -62,6 +62,14 @@
 /debug/build/imhd-debug
 /debug/build/CMakeCache.txt
 
+# HIDING CMAKE FILES FROM `./tests/`
+tests/output/build/CMakeCache.txt
+tests/output/build/CMakeFiles/*
+tests/output/build/Makefile
+tests/output/build/cmake_install.cmake
+tests/output/build/*.a
+tests/output/build/output-test
+
 # HIDING CMAKE FILES FROM `./benchmarking/`
 /benchmarking/build/CMakeFiles/*
 /benchmarking/build/*.cmake
