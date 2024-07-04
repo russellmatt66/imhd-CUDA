@@ -37,15 +37,20 @@ import pandas as pd
 def ConcatFragments(data_files_location: str, write_var: str, number_of_timesteps: int) -> None: 
     print("Inside ConcatFragments")
     all_data_files = [data_files_location + f for f in listdir(data_files_location) if isfile(join(data_files_location, f))] # grid fragments    
+    print(f"data_files_location = {data_files_location}")
+    try:
+        all_data_files.remove(data_files_location + 'README.md')
+    except ValueError:
+        pass
     print(f"all_data_files: {all_data_files}")
 
     it = 0
     while it < number_of_timesteps - 1: # initial timestep is it = 0
         df_list = []
         file_list = []
-
+        
         for data_file in all_data_files:
-            print(f"Timestep of data file: {data_file.split(write_var)[2].split('_')[0]}, it: {it}")
+            print(f"Data file: {data_file}, timestep of data file: {data_file.split(write_var)[2].split('_')[0]}, it: {it}")
             if data_file.split(write_var)[2].split('_')[0] == str(it):
                 df = pd.read_csv(data_file)
                 df_list.append(df)

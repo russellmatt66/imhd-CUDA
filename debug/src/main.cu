@@ -158,7 +158,7 @@ int main(int argc, char* argv[]){
 	}
 
 	/* Simulation loop */
-	for (size_t it = 0; it < Nt; it++){
+	for (size_t it = 1; it < Nt; it++){
 		std::cout << "Starting iteration " << it << std::endl;
 
 		/* Compute interior and boundaries*/
@@ -208,8 +208,8 @@ int main(int argc, char* argv[]){
 				}
 			}
 		}
-		PrintIntvar<<<grid_dimensions, block_dims_intvar>>>(intvar, fluidvar, Nx, Ny, Nz);
-		PrintFluidvar<<<grid_dimensions, block_dims_fluid>>>(fluidvar, Nx, Ny, Nz);
+		// PrintIntvar<<<grid_dimensions, block_dims_intvar>>>(intvar, fluidvar, Nx, Ny, Nz);
+		// PrintFluidvar<<<grid_dimensions, block_dims_fluid>>>(fluidvar, Nx, Ny, Nz);
 		checkCuda(cudaDeviceSynchronize());
 		
 		// Transfer future timestep data to current timestep in order to avoid race conditions
