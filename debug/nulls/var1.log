@@ -1,0 +1,10 @@
+rhovz
+1
+<class 'cudf.core.dataframe.DataFrame'>
+Empty DataFrame
+Columns: [val, i, j, k]
+Index: []
+0
+Unique values for i: Series([], Name: i, dtype: int64)
+Unique values for j: Series([], Name: j, dtype: int64)
+Unique values for k: Series([], Name: k, dtype: int64)
