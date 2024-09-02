@@ -3,7 +3,7 @@ execution_config/
 - Python snippets related to calculating execution configurations 
 
 gds/ 
-- Snippets related to GPU Direct Storage functionality
+- Proof of concept codes related to writing data out using GPU Direct Storage functionality
 
 vtk/
 - Code related to implementing VTK visualization codes
@@ -20,6 +20,10 @@ library_test/
 
 inverse_map/
 - Python file to map from the linear index of the data arrays, l, to the tensor indices (i, j, k).
+
+data_output/
+- Proof of concept codes related to writing GPU data to storage 
+- `gds/` is not in here because of historical reasons 
 
 # Current Tasks
 
