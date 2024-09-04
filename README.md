@@ -5,8 +5,9 @@ Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD sys
 [] = "Not yet accomplished"
 
 # Current Tasks
-(1) Debugging
-- Unit tests, see `tests/README.md`
+(1) Debugging and Tests
+- Unit tests of functional components, see `tests/README.md`
+- Numerical test problems
 
 (2) Profile simulation
 - Figure out how to profile `304x304x592` case
@@ -18,6 +19,12 @@ Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD sys
 - Kernels need to be refactored again for global memory coalescing
 - Execution configurations should go to 1B1T
 - Shared memory access needs to be implemented in kernels
+
+(5) Data output
+- Implement writing device data to storage in the form of hdf5 files with GDS VFD
+
+(6) Build Instructions
+- Develop document that describes how to build the project from a fresh install of Ubuntu 22.04
 
 # VCS
 - `v1.0`: (6/16/24) The project has reached a milestone where it passes the functional correctness testing of `compute-sanitizer` with all end-to-end components. This working draft needs further work to done to visualize the output, improve the performance, clean up the repo, and profile the production case of `304x304x592`. It is stored with a `git tag` of `v1.0`.
@@ -43,9 +50,6 @@ Calculations regarding the problem size which can be simulated can be found in `
 Numerical simulations of physical systems are best implemented in `non-dimensional` form. Essentially, this kind of way of writing a system of equations normalizes them in such a way that a set of numbers, e.g., Mach, Euler, Frobenius, etc., representing physical constants, are left behind.
 
 Fortunately, the Ideal MHD system is already written in such a way, with the only physical constant left behind being the adiabatic index, &gamma, which in general is related to the number of degrees of freedom that the particles of a gaseous system possess. Plasmas, being an electrically-charged gas which on macroscopic scales is roughly electrically-neutral as the abundance of free charge in the system acts in a way to shield electric potentials from the bulk, can be analyzed by considering the particles to have only translational degrees of freedom in three dimensions, which yields a &gamma = 5 / 3.    
-
-## Initial and Boundary Conditions
-The system that is currently implemented for simulation is a screw-pinch fusion plasma. The screw-pinch is a kind of magnetic confinement fusion (MCF) configuration which uses external magnets along with the `pinch` effect in order to heat, and confine, a plasma to fusion temperatures for long enough, and at high enough density, that breakeven is achieved. Currently, no screw-pinch, or MCF configuration for that matter, has achieved breakeven. 
 
 # Directory Structure
 WIP
