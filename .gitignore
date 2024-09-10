@@ -86,6 +86,8 @@ tests/output/build/output-test
 /examples/data_output/build/CMakeFiles/*
 /examples/data_output/build/*.cmake
 /examples/data_output/build/Makefile
+/examples/data_output/build/*.a
+/examples/data_output/build/h5write_serial
 /examples/data_output/data/*
 !/examples/data_output/data/README.md
 

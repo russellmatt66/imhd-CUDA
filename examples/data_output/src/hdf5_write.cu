@@ -111,25 +111,52 @@ Proof of Concept for library function
 
 Library version will need to store all the data
 */
-void writeH5File(std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz){
+void writeH5File(const std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz){
     hid_t file_id, dset_id, dspc_id;
+    hid_t attrdim_id, attrdim_dspc_id;
+    hid_t strtype_id;
+    
     hsize_t dim[1] = {Nx * Ny * Nz}; // 3D simulation data is stored in 1D  
+    hsize_t attrdim[1] = {3};
+    hsize_t cube_dimensions[3] = {Nx, Ny, Nz};
+    
     herr_t status;
+
+    const char *dimension_names[3] = {"Nx", "Ny", "Nz"}; 
 
     std::cout << "filename is: " << filename << std::endl;
     std::cout << "Where file is being written: " << filename.data() << std::endl;
 
+    // Create the file
     file_id = H5Fcreate(filename.data(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    
+    // Create the dataspace, and dataset
     dspc_id = H5Screate_simple(1, dim, NULL);
     dset_id = H5Dcreate(file_id, "fluid_data", H5T_NATIVE_FLOAT, dspc_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     
+    // Write to the dataset
     status = H5Dwrite(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, output_data);
 
+    // Add attribute for the dimensions of the data cube 
+    attrdim_dspc_id = H5Screate_simple(1, attrdim, NULL);
+    attrdim_id = H5Acreate(dset_id, "cubeDimensions", H5T_NATIVE_FLOAT, attrdim_dspc_id, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Awrite(attrdim_id, H5T_NATIVE_FLOAT, cube_dimensions);
+
+    /* Add an attribute which names which dimension is which */
+    strtype_id = H5Tcopy(H5T_C_S1);
+    H5Tset_size(strtype_id, H5T_VARIABLE);
+
+    attrdim_id = H5Acreate(dset_id, "cubeDimensionsNames", strtype_id, attrdim_dspc_id, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Awrite(attrdim_id, strtype_id, dimension_names);
+
+    // Close everything
+    status = H5Tclose(strtype_id);
+    status = H5Aclose(attrdim_id);
     status = H5Dclose(dset_id);
     status = H5Sclose(dspc_id);
+    status = H5Sclose(attrdim_dspc_id);
     status = H5Fclose(file_id);
     
     std::cout << ".h5 file written" << std::endl;
-    
     return;
 }
