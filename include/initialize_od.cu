@@ -2,8 +2,7 @@
 
 #include "initialize_od.cuh"
 
-#define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx * Ny) + (i) * Ny + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
-
+#define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx * Ny) + (i) * (Ny) + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
 // 16 registers / thread
 __global__ void InitializeGrid(const float x_min, const float x_max, const float y_min, const float y_max, const float z_min, const float z_max, 
@@ -75,6 +74,7 @@ __global__ void InitialConditions(float* fluidvar, const float J0, const float* 
                         Br = C2 / r;
                         Bphi = 0.5 * J0 * r * (1.0 - 0.5 * pow(r, 2) / pow(r_pinch, 2) + 2.0 / pow(r_pinch, 2) * C1); 
 
+                        // Calculated from equilibrium values
                         p = C3 
                             + (0.5 + C1 * pow(r_pinch, -2)) * pow(r,2) 
                             - (3.0 / (8.0 * pow(r_pinch, 2)) + C1 / (2.0 * pow(r_pinch, 4))) * pow(r, 4) 
