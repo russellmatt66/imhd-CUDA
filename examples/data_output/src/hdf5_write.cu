@@ -3,8 +3,9 @@ Proof of Concept:
 Write Initial Conditions (any device data) out with HDF5 
 */
 #include <string>
+#include <iostream>
 
-#include "initialize_od.cuh"
+#include "../../../include/initialize_od.cuh"
 #include "hdf5.h"
 
 void writeH5File(const std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz);
@@ -22,6 +23,8 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 int main(int argc, char* argv[]){
     // Launch with Python
+    std::cout << "Inside h5write_serial" << std::endl;
+
     std::string path_to_data = argv[1];
     int Nx = atoi(argv[2]);
 	int Ny = atoi(argv[3]);
@@ -68,21 +71,31 @@ int main(int argc, char* argv[]){
 	dim3 block_dims_init(8, 4, 4); // 256 < 923 threads per block
 
     // Call Initial Conditions Kernel
+    std::cout << "Initializing grid" << std::endl;
     InitializeGrid<<<execution_grid_dimensions, block_dims_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz,
 															grid_x, grid_y, grid_z, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());
 
+    std::cout << "Initializing simulation data" << std::endl;
 	InitialConditions<<<execution_grid_dimensions, block_dims_init>>>(fluidvar, J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
     checkCuda(cudaDeviceSynchronize());
 
     // Transfer Device data to Host
     float* h_fluidvar;
+
+    h_fluidvar = (float*)malloc(fluid_data_size);
     
+    std::cout << "Transferring device data to host" << std::endl;
     cudaMemcpy(h_fluidvar, fluidvar, fluid_data_size, cudaMemcpyDeviceToHost);
     checkCuda(cudaDeviceSynchronize());
 
     // Write .h5 file out
-    writeH5File(path_to_data + "fluid_data", h_fluidvar, Nx, Ny, Nz);
+    std::cout << "path_to_data: " << path_to_data << std::endl;
+    path_to_data += "fluid_data.h5";
+    std::cout << "path_to_data being passed to writeH5File(): " << path_to_data << std::endl;
+
+    std::cout << "Writing .h5 file" << std::endl;
+    writeH5File(path_to_data, h_fluidvar, Nx, Ny, Nz);
 
     // Free data
     cudaFree(fluidvar);
@@ -98,17 +111,25 @@ Proof of Concept for library function
 
 Library version will need to store all the data
 */
-void writeH5File(const std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz){
+void writeH5File(std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz){
     hid_t file_id, dset_id, dspc_id;
-    hsize_t num_x = Nx, num_y = Ny, num_z = Nz;
+    hsize_t dim[1] = {Nx * Ny * Nz}; // 3D simulation data is stored in 1D  
     herr_t status;
 
+    std::cout << "filename is: " << filename << std::endl;
+    std::cout << "Where file is being written: " << filename.data() << std::endl;
+
     file_id = H5Fcreate(filename.data(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    dset_id = H5Dcreate(file_id, "/fluid_data", H5T_NATIVE_FLOAT, dspc_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dspc_id = H5Screate_simple(1, dim, NULL);
+    dset_id = H5Dcreate(file_id, "fluid_data", H5T_NATIVE_FLOAT, dspc_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     
     status = H5Dwrite(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, output_data);
 
     status = H5Dclose(dset_id);
+    status = H5Sclose(dspc_id);
     status = H5Fclose(file_id);
+    
+    std::cout << ".h5 file written" << std::endl;
+    
     return;
 }

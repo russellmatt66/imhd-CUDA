@@ -83,6 +83,12 @@ tests/output/build/output-test
 !/visualization/README.md
 
 # HIDING CMAKE AND DATA FILES from `/examples/` 
+/examples/data_output/build/CMakeFiles/*
+/examples/data_output/build/*.cmake
+/examples/data_output/build/Makefile
+/examples/data_output/data/*
+!/examples/data_output/data/README.md
+
 /examples/library_test/CMakeFiles/*
 /examples/library_test/*.cmake
 /examples/library_test/Makefile

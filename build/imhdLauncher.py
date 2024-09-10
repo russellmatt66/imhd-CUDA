@@ -25,7 +25,7 @@ arg_list.append('./imhd-cuda')
 
 with open('imhd-cuda.inp', 'r') as input_file:
     for line in input_file:
-        cmd_arg = line.split('=')[1]
+        cmd_arg = line.split('=')[1].strip('\n')
         arg_list.append(cmd_arg)
 
 # Run `imhd_cuda` binary
