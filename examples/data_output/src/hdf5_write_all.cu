@@ -9,7 +9,7 @@ Write Initial Conditions (any device data) out with HDF5
 #include "hdf5.h"
 
 // Writes the data cube of a single fluid variable
-void writeH5File(const std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz);
+void writeH5FileAll(const std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz);
 
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define checkCuda(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]){
     h_fluidvar = (float*)malloc(fluid_data_size);
     
     std::cout << "Transferring device data to host" << std::endl;
-    cudaMemcpy(h_fluidvar, fluidvar, fluid_data_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_fluidvar, fluidvar, 8 * fluid_data_size, cudaMemcpyDeviceToHost);
     checkCuda(cudaDeviceSynchronize());
 
     // Write .h5 file out
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]){
     std::cout << "path_to_data being passed to writeH5File(): " << path_to_data << std::endl;
 
     std::cout << "Writing .h5 file" << std::endl;
-    writeH5File(path_to_data, h_fluidvar, Nx, Ny, Nz);
+    writeH5FileAll(path_to_data, h_fluidvar, Nx, Ny, Nz);
 
     // Free data
     cudaFree(fluidvar);
@@ -109,10 +109,8 @@ int main(int argc, char* argv[]){
 
 /* 
 Proof of Concept for library function 
-
-Library version will need to store all the data
 */
-void writeH5File(const std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz){
+void writeH5FileAll(const std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz){
     hid_t file_id, dset_id, dspc_id;
     hid_t attrdim_id, attrdim_dspc_id;
     hid_t attrstorage_id, attrstorage_dspc_id;
