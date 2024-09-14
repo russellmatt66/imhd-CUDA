@@ -1,15 +1,18 @@
 /* 
 Proof of Concept:
-Write Initial Conditions (any device data) out with HDF5 
+Write Initial Conditions (any device data) out with PHDF5 
 */
 #include <string>
 #include <iostream>
 
 #include "../../../include/initialize_od.cuh"
 #include "hdf5.h"
+#include "mpi.h"
 
-// Writes the data cube of a single fluid variable
+// Writes the data cubes of all the fluid variables using PHDF5
+// void writeH5FileAll(const std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz, int argc, char* argv[]);
 void writeH5FileAll(const std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz);
+std::string get_dset_name(int rank);
 
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define checkCuda(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -23,8 +26,14 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 }
 
 int main(int argc, char* argv[]){
+    if (argc < 19) {
+        std::cerr << "Error: Insufficient arguments provided!" << std::endl;
+        std::cerr << "Usage: <path_to_data> <Nx> <Ny> <Nz> <SM_mult_x> <SM_mult_y> <SM_mult_z> <num_threads_per_block_x> <num_threads_per_block_y> <num_threads_per_block_z> <J0> <D> <x_min> <x_max> <y_min> <y_max> <z_min> <z_max>" << std::endl;
+        return EXIT_FAILURE;
+    }
+
     // Launch with Python
-    std::cout << "Inside h5write_serial" << std::endl;
+    std::cout << "Inside h5write_par" << std::endl;
 
     std::string path_to_data = argv[1];
     int Nx = atoi(argv[2]);
@@ -84,7 +93,7 @@ int main(int argc, char* argv[]){
     // Transfer Device data to Host
     float* h_fluidvar;
 
-    h_fluidvar = (float*)malloc(fluid_data_size);
+    h_fluidvar = (float*)malloc(8 * fluid_data_size);
     
     std::cout << "Transferring device data to host" << std::endl;
     cudaMemcpy(h_fluidvar, fluidvar, 8 * fluid_data_size, cudaMemcpyDeviceToHost);
@@ -96,7 +105,10 @@ int main(int argc, char* argv[]){
     std::cout << "path_to_data being passed to writeH5File(): " << path_to_data << std::endl;
 
     std::cout << "Writing .h5 file" << std::endl;
+    MPI_Init(&argc, &argv);
     writeH5FileAll(path_to_data, h_fluidvar, Nx, Ny, Nz);
+    // writeH5FileAll(path_to_data, h_fluidvar, Nx, Ny, Nz, argc, argv);
+    MPI_Finalize();
 
     // Free data
     cudaFree(fluidvar);
@@ -109,14 +121,29 @@ int main(int argc, char* argv[]){
 
 /* 
 Proof of Concept for library function 
+Currently not working as envisioned, needs to write dataset for each fluid variable
+Writes all fluid variables to a single dataset
+I think the change is to go look at Hyperslabs
 */
+// void writeH5FileAll(const std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz, int argc, char* argv[]){
 void writeH5FileAll(const std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz){
+    // MPI_Init(&argc, &argv);
+    int world_size, rank;
+
+    MPI_Comm comm = MPI_COMM_WORLD;
+    MPI_Info info = MPI_INFO_NULL;
+    
+    MPI_Comm_size(comm, &world_size); 
+    MPI_Comm_rank(comm, &rank);
+    
+    hid_t plist_id;
     hid_t file_id, dset_id, dspc_id;
     hid_t attrdim_id, attrdim_dspc_id;
     hid_t attrstorage_id, attrstorage_dspc_id;
     hid_t strtype_id;
-    
-    hsize_t dim[1] = {Nx * Ny * Nz}; // 3D simulation data is stored in 1D  
+
+    hsize_t cube_size = Nx * Ny * Nz;
+    hsize_t dim[1] = {8 * cube_size}; // 3D simulation data is stored in 1D  
     hsize_t attrdim[1] = {3};
     hsize_t attrstorage[1] = {1};
     hsize_t cube_dimensions[3] = {Nx, Ny, Nz};
@@ -125,19 +152,29 @@ void writeH5FileAll(const std::string filename, const float* output_data, const 
 
     const char *dimension_names[3] = {"Nx", "Ny", "Nz"}; 
     const char *storage_pattern[1] = {"Row-major, depth-minor: l = k * (Nx * Ny) + i * Ny + j"};
+    
+    std::string dset_name = "";
+    dset_name = get_dset_name(rank);
 
     std::cout << "filename is: " << filename << std::endl;
     std::cout << "Where file is being written: " << filename.data() << std::endl;
 
+    // Creates an access template for the MPI communicator processes
+    plist_id = H5Pcreate(H5P_FILE_ACCESS);
+    H5Pset_fapl_mpio(plist_id, comm, info);
+
     // Create the file
-    file_id = H5Fcreate(filename.data(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    
+    file_id = H5Fcreate(filename.data(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
+
     // Create the dataspace, and dataset
     dspc_id = H5Screate_simple(1, dim, NULL);
-    dset_id = H5Dcreate(file_id, "fluid_data", H5T_NATIVE_FLOAT, dspc_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dset_id = H5Dcreate(file_id, dset_name.data(), H5T_NATIVE_FLOAT, dspc_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     
+    plist_id = H5Pcreate(H5P_DATASET_XFER);
+    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT);
+
     // Write to the dataset
-    status = H5Dwrite(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, output_data);
+    status = H5Dwrite(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, plist_id, output_data + rank * cube_size); // so that each process writes a different fluid variable
 
     // Add attribute for the dimensions of the data cube 
     attrdim_dspc_id = H5Screate_simple(1, attrdim, NULL);
@@ -157,13 +194,47 @@ void writeH5FileAll(const std::string filename, const float* output_data, const 
     status = H5Awrite(attrstorage_id, strtype_id, storage_pattern);
 
     // Close everything
+    status = H5Pclose(plist_id);
     status = H5Tclose(strtype_id);
     status = H5Aclose(attrdim_id);
     status = H5Dclose(dset_id);
     status = H5Sclose(dspc_id);
     status = H5Sclose(attrdim_dspc_id);
     status = H5Fclose(file_id);
-    
+
     std::cout << ".h5 file written" << std::endl;
     return;
+}
+
+std::string get_dset_name(int rank){
+    std::string dset_name = "";
+
+    switch (rank){
+        case 0:
+            dset_name = "rho";
+            break;
+        case 1:
+            dset_name = "rhovx";
+            break;
+        case 2:
+            dset_name = "rhovy";
+            break;
+        case 3:
+            dset_name = "rhovz";
+            break;
+        case 4: 
+            dset_name = "Bx";
+            break;
+        case 5:
+            dset_name = "By";
+            break;
+        case 6:
+            dset_name = "Bz";
+            break;
+        case 7:
+            dset_name = "e";
+            break;
+    }
+
+    return dset_name;
 }
