@@ -41,7 +41,7 @@ elif binary_name == "h5write_par":
     print(f"List of arguments is {arg_list}".format(arg_list))
     print(f"Command is {mpirun_command}".format(mpirun_command))
     try: 
-        result = subprocess.run(mpirun_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.run(mpirun_command, check=True, stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e: 
         print("Error with running mpirun:")
         print(e.stderr.decode())
