@@ -16,6 +16,7 @@ add_library(initialize_od_lib ${PROJECT_ROOT}/include/initialize_od.cu)
 
 add_executable(h5write_serial hdf5_write.cu)
 add_executable(h5write_par hdf5_write_all.cu)
+add_executable(phdf5_writeall phdf5_write.cpp)
 
 target_link_libraries(h5write_serial PRIVATE initialize_od_lib ${HDF5_LIBRARIES})
 target_link_libraries(h5write_par PRIVATE initialize_od_lib ${MPI_LIBRARIES} ${HDF5_LIBRARIES})
