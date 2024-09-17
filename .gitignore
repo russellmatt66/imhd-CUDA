@@ -90,6 +90,7 @@ tests/output/build/output-test
 /examples/data_output/build/CMakeCache.txt
 /examples/data_output/build/h5write_serial
 /examples/data_output/build/h5write_par
+/examples/data_output/build/phdf5_writeall
 /examples/data_output/data/*
 !/examples/data_output/data/README.md
 

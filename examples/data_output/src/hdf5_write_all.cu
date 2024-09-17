@@ -7,10 +7,13 @@ Write Initial Conditions (any device data) out with a fork to PHDF5 function
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/wait.h>
+#include <vector>
+#include <cstdlib>
 
 #include "../../../include/initialize_od.cuh"
 
-void callPHDF5(const std::string filename, const int Nx, const int Ny, const int Nz, const std::string shm_name, const size_t data_size, const std::string num_proc);
+void callPHDF5(const std::string filename, const int Nx, const int Ny, const int Nz, const std::string shm_name, const size_t data_size, const std::string num_proc, const std::string phdf5_bin_name);
 
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define checkCuda(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -116,7 +119,7 @@ int main(int argc, char* argv[]){
 
     /* FORK THE PHDF5 FUNCTION WITH MPIRUN SYSTEM CALL */
     std::cout << "Writing .h5 file" << std::endl;
-    callPHDF5(path_to_data, Nx, Ny, Nz, shm_name, fluid_data_size, num_proc);
+    callPHDF5(path_to_data, Nx, Ny, Nz, shm_name, fluid_data_size, num_proc, phdf5_bin_name);
 
     // Free data
     cudaFree(fluidvar);
@@ -134,8 +137,51 @@ void callPHDF5(const std::string filename, const int Nx, const int Ny, const int
     std::string mpirun_command = "mpirun -np " + num_proc + " ./" + phdf5_bin_name  
                                     + " " + filename + " " + std::to_string(Nx) + " "
                                     + std::to_string(Ny) + " " + std::to_string(Nz) + " "
-                                    + " " + shm_name + " " + std::to_string(data_size);
+                                    + shm_name + " " + std::to_string(data_size);
 
-    /* Fork to PHDF5 output binary */ 
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) != nullptr) {
+        std::cout << "Current working directory: " << cwd << std::endl;
+    } else {
+       std::cerr << "Failed to get current working directory" << std::endl;
+    }
+
+    /* Fork to PHDF5 output binary */
+    std::cout << "Executing command: " << mpirun_command << std::endl;
+    std::system(mpirun_command.data()); 
     return;
 }
+
+// void callPHDF5(const std::string filename, const int Nx, const int Ny, const int Nz, 
+//                const std::string shm_name, const size_t data_size, 
+//                const std::string num_proc, const std::string phdf5_bin_name){
+//     std::vector<std::string> args = {"mpirun", "-np", num_proc, "./" + phdf5_bin_name, filename, 
+//                                      std::to_string(Nx), std::to_string(Ny), 
+//                                      std::to_string(Nz), shm_name, std::to_string(data_size)};
+    
+//     // Convert args to char* for execvp
+//     std::vector<char*> exec_args;
+//     for (auto& arg : args) exec_args.push_back(&arg[0]);
+//     exec_args.push_back(nullptr); // Null-terminate for execvp
+
+//     pid_t pid = fork();
+//     if (pid == 0) {
+//         // Child process: replace with mpirun command
+//         if (execvp("mpirun", exec_args.data()) == -1) {
+//             std::cerr << "Failed to execute mpirun" << std::endl;
+//             std::exit(EXIT_FAILURE);
+//         }
+//     } else if (pid > 0) {
+//         // Parent process: wait for the child process to complete
+//         int status;
+//         waitpid(pid, &status, 0);
+//         if (WIFEXITED(status)) {
+//             std::cout << "mpirun completed with exit status: " << WEXITSTATUS(status) << std::endl;
+//         } else {
+//             std::cerr << "mpirun terminated abnormally" << std::endl;
+//         }
+//     } else {
+//         // Fork failed
+//         std::cerr << "Fork failed" << std::endl;
+//     }
+// }

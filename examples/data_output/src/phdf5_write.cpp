@@ -8,47 +8,86 @@ This necessitates the data be in shared memory
 #include <sys/mman.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <fstream>
 
 #include "hdf5.h"
 #include "mpi.h"
 
 void writeH5FileAll(const std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz);
-// void createH5File(const std::string filename);
 
 int main(int argc, char* argv[]){
     /* Parse arguments, and call writeH5FileAll with shared memory data */
     std::string filename = argv[1];
-    int Nx = int(argv[2]);
-    int Ny = int(argv[3]);
-    int Nz = int(argv[4]);
+    int Nx = atoi(argv[2]);
+    int Ny = atoi(argv[3]);
+    int Nz = atoi(argv[4]);
+    std::string shm_name = argv[5];
+    size_t data_size = atoi(argv[6]);
+
+    int shm_fd = shm_open(shm_name.data(), O_RDWR, 0666);
+    if (shm_fd == -1){
+        std::cerr << "Inside phdf5_writeall" << std::endl;
+        std::cerr << "Failed to open shared memory" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    float* shm_h_fluidvar = (float*)mmap(0, data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (shm_h_fluidvar == MAP_FAILED){
+        std::cerr << "Inside phdf5_writeall" << std::endl;
+        std::cerr << "Failed to connect pointer to shared memory" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // testWrite();
+    writeH5FileAll(filename, shm_h_fluidvar, Nx, Ny, Nz);
+
+    munmap(shm_h_fluidvar, data_size);
+    close(shm_fd);
     return 0;
 }
 
-/* It should work to just change file access mode from `H5F_ACC_TRUNC` to `H5F_ACC_RDWR` in `writeH5FileAll` */
-// void createH5File(const std::string filename){
-
-// }
-
+// EXAMPLE: https://cvw.cac.cornell.edu/parallel-io-libraries/phdf5/parallel_write.c 
+/* 
+DEVELOPMENT NOT DONE 
+Strange situation whereby my computer has 12 threads, but only 6 cores
+Been running with `mpirun -np 4`
+Need to check that data is actually getting written out
+*/
 void writeH5FileAll(const std::string filename, const float* output_data, const int Nx, const int Ny, const int Nz){
     MPI_Init(NULL, NULL);
     int world_size, rank;
-    
+
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
     
     MPI_Comm_size(comm, &world_size); 
     MPI_Comm_rank(comm, &rank);
+    
+    if (world_size > 8){
+        std::cerr << "Error: total number of processes for data output must be no more than 8" << std::endl;
+        MPI_Finalize();
+        return;
+    }
 
     std::cout << "Hello from process: " << rank << " out of " << world_size << std::endl;
-    // printf("Hello from process %d out of %d\n", rank, world_size);
 
     hid_t plist_id;
-    hid_t file_id, dspc_id;
+    hid_t file_id, dspc_id, mspace;
     hid_t attrdim_id, attrdim_dspc_id;
     hid_t attrstorage_id, attrstorage_dspc_id;
     hid_t strtype_id;
 
-    hid_t dset_id[8] = {0};
+    // hid_t dset_id[8] = {0};
+    // Because the above doesn't work
+    hid_t dset_id_rho, dset_id_rhovx, dset_id_rhovy, dset_id_rhovz, dset_id_Bx, dset_id_By, dset_id_Bz, dset_id_e;
+    char *dsn1 = "rho";
+    char *dsn2 = "rhovx";
+    char *dsn3 = "rhovy";
+    char *dsn4 = "rhovz";
+    char *dsn5 = "Bx";
+    char *dsn6 = "By";
+    char *dsn7 = "Bz";
+    char *dsn8 = "e";
 
     hsize_t cube_size = Nx * Ny * Nz;
     hsize_t dim[1] = {cube_size}; // 3D simulation data is stored in 1D  
@@ -61,7 +100,8 @@ void writeH5FileAll(const std::string filename, const float* output_data, const 
     const char *dimension_names[3] = {"Nx", "Ny", "Nz"}; 
     const char *storage_pattern[1] = {"Row-major, depth-minor: l = k * (Nx * Ny) + i * Ny + j"};
     
-    std::string dset_name[8] = {""};
+    std::string dset_name = "";
+    // std::string dset_name[8] = {""};
 
     std::cout << "filename is: " << filename << std::endl;
     std::cout << "Where file is being written: " << filename.data() << std::endl;
@@ -69,91 +109,88 @@ void writeH5FileAll(const std::string filename, const float* output_data, const 
     // Creates an access template for the MPI communicator processes
     plist_id = H5Pcreate(H5P_FILE_ACCESS);
     H5Pset_fapl_mpio(plist_id, comm, info);
-
+    
     // Create the file
-    file_id = H5Fcreate(filename.data(), H5F_ACC_RDWR, H5P_DEFAULT, plist_id);
+    file_id = H5Fcreate(filename.data(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
+    H5Pclose(plist_id);
 
     // Create the dataspace, and dataset
     dspc_id = H5Screate_simple(1, dim, NULL);
+    mspace = H5Screate_simple(1, dim, NULL);
 
-    for (int irank = rank; irank < 8; irank += world_size){
-        dset_name[irank] = get_dset_name(irank);
-        dset_id[irank] = H5Dcreate(file_id, dset_name[irank].data(), H5T_NATIVE_FLOAT, dspc_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    }
+    dset_id_rho = H5Dcreate(file_id, dsn1, H5T_NATIVE_FLOAT, dspc_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dset_id_rhovx = H5Dcreate(file_id, dsn2, H5T_NATIVE_FLOAT, dspc_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dset_id_rhovy = H5Dcreate(file_id, dsn3, H5T_NATIVE_FLOAT, dspc_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dset_id_rhovz = H5Dcreate(file_id, dsn4, H5T_NATIVE_FLOAT, dspc_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dset_id_Bx = H5Dcreate(file_id, dsn5, H5T_NATIVE_FLOAT, dspc_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dset_id_By = H5Dcreate(file_id, dsn6, H5T_NATIVE_FLOAT, dspc_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dset_id_Bz = H5Dcreate(file_id, dsn7, H5T_NATIVE_FLOAT, dspc_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    dset_id_e = H5Dcreate(file_id, dsn8, H5T_NATIVE_FLOAT, dspc_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     plist_id = H5Pcreate(H5P_DATASET_XFER);
-    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT);
+    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
 
     // Write to the dataset
-    for (int irank = rank; irank < 8; irank += world_size){
-        status = H5Dwrite(dset_id[irank], H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, plist_id, output_data + irank * cube_size); // so that each process writes a different fluid variable
-    
-        // Add attribute for the dimensions of the data cube 
-        attrdim_dspc_id = H5Screate_simple(1, attrdim, NULL);
-        attrdim_id = H5Acreate(dset_id[irank], "cubeDimensions", H5T_NATIVE_FLOAT, attrdim_dspc_id, H5P_DEFAULT, H5P_DEFAULT);
-        status = H5Awrite(attrdim_id, H5T_NATIVE_FLOAT, cube_dimensions);
-
-        // Add an attribute which names which dimension is which
-        strtype_id = H5Tcopy(H5T_C_S1);
-        H5Tset_size(strtype_id, H5T_VARIABLE);
-
-        attrdim_id = H5Acreate(dset_id[irank], "cubeDimensionsNames", strtype_id, attrdim_dspc_id, H5P_DEFAULT, H5P_DEFAULT);
-        status = H5Awrite(attrdim_id, strtype_id, dimension_names);
-
-        // Add an attribute for the storage pattern of the cube
-        attrstorage_dspc_id = H5Screate_simple(1, attrstorage, NULL);
-        attrstorage_id = H5Acreate(dset_id[irank], "storagePattern", strtype_id, attrstorage_dspc_id, H5P_DEFAULT, H5P_DEFAULT);
-        status = H5Awrite(attrstorage_id, strtype_id, storage_pattern);
+    if (rank == 0){
+        std::cout << "Process " << rank << " writing rho dataset" << std::endl;
+        status = H5Dwrite(dset_id_rho, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+    }
+    else if (rank == 1){
+        std::cout << "Process " << rank << " writing rhovx dataset" << std::endl;
+        status = H5Dwrite(dset_id_rhovx, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+    }
+    else if (rank == 2){
+        std::cout << "Process " << rank << " writing rhovy dataset" << std::endl;
+        status = H5Dwrite(dset_id_rhovy, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+    }
+    else if (rank == 3){
+        std::cout << "Process " << rank << " writing rhovz dataset" << std::endl;
+        status = H5Dwrite(dset_id_rhovz, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+    }
+    else if (rank == 4){
+        std::cout << "Process " << rank << " writing Bx dataset" << std::endl;
+        status = H5Dwrite(dset_id_Bx, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+    }
+    else if (rank == 5){
+        std::cout << "Process " << rank << " writing By dataset" << std::endl;
+        status = H5Dwrite(dset_id_By, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+    }
+    else if (rank == 6){
+        std::cout << "Process " << rank << " writing Bz dataset" << std::endl;
+        status = H5Dwrite(dset_id_Bz, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+    }
+    else if (rank == 7){
+        std::cout << "Process " << rank << " writing e dataset" << std::endl;
+        status = H5Dwrite(dset_id_e, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
     }
 
-    // Close everything
-    for (int irank = rank; irank < 8; irank += world_size){
-        status = H5Dclose(dset_id[irank]);
-    }
+    status = H5Dclose(dset_id_rho);
+    status = H5Dclose(dset_id_rhovx);
+    status = H5Dclose(dset_id_rhovy);
+    status = H5Dclose(dset_id_rhovz);
+    status = H5Dclose(dset_id_Bx);
+    status = H5Dclose(dset_id_By);
+    status = H5Dclose(dset_id_Bz);
+    status = H5Dclose(dset_id_e);
 
-    MPI_Barrier(MPI_COMM_WORLD);
-
+    std::cout << "Process: " << rank << " Closing property list" << std::endl;
     status = H5Pclose(plist_id);
-    status = H5Tclose(strtype_id);
-    status = H5Aclose(attrdim_id);
+
+    std::cout << "Process: " << rank << " Closing string type" << std::endl;
+    // status = H5Tclose(strtype_id);
+    
+    std::cout << "Process: " << rank << " Closing attribute dimension" << std::endl;
+    // status = H5Aclose(attrdim_id);
+    
+    std::cout << "Process: " << rank << " Closing dataspace, memspace, and attribute dataspace" << std::endl;
     status = H5Sclose(dspc_id);
-    status = H5Sclose(attrdim_dspc_id);
+    status = H5Sclose(mspace);
+    // status = H5Sclose(attrdim_dspc_id);
+    
+    std::cout << "Process: " << rank << " Closing file" << std::endl;
     status = H5Fclose(file_id);
 
     MPI_Finalize();
     std::cout << ".h5 file written" << std::endl;
     return;
-}
-
-std::string get_dset_name(int rank){
-    std::string dset_name = "";
-
-    switch (rank){
-        case 0:
-            dset_name = "rho";
-            break;
-        case 1:
-            dset_name = "rhovx";
-            break;
-        case 2:
-            dset_name = "rhovy";
-            break;
-        case 3:
-            dset_name = "rhovz";
-            break;
-        case 4: 
-            dset_name = "Bx";
-            break;
-        case 5:
-            dset_name = "By";
-            break;
-        case 6:
-            dset_name = "Bz";
-            break;
-        case 7:
-            dset_name = "e";
-            break;
-    }
-
-    return dset_name;
 }
