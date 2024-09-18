@@ -39,7 +39,11 @@ int main(int argc, char* argv[]){
     }
 
     // testWrite();
+    // Parallel HDF5 that writes datasets in parallel
     writeH5FileAll(filename, shm_h_fluidvar, Nx, Ny, Nz);
+
+    // Write attributes to the datasets in serial because PHDF5 attribute writing is a novice trap
+    // writeAttributes(filename, Nx, Ny, Nz);
 
     munmap(shm_h_fluidvar, data_size);
     close(shm_fd);
@@ -80,29 +84,29 @@ void writeH5FileAll(const std::string filename, const float* output_data, const 
     // hid_t dset_id[8] = {0};
     // Because the above doesn't work
     hid_t dset_id_rho, dset_id_rhovx, dset_id_rhovy, dset_id_rhovz, dset_id_Bx, dset_id_By, dset_id_Bz, dset_id_e;
-    char *dsn1 = "rho";
-    char *dsn2 = "rhovx";
-    char *dsn3 = "rhovy";
-    char *dsn4 = "rhovz";
-    char *dsn5 = "Bx";
-    char *dsn6 = "By";
-    char *dsn7 = "Bz";
-    char *dsn8 = "e";
+    // hid_t dset_id_attr_dim, dset_id_attr_storage;
+    
+    /* Can probably refactor this into an array */
+    const char *dsn1 = "rho";
+    const char *dsn2 = "rhovx";
+    const char *dsn3 = "rhovy";
+    const char *dsn4 = "rhovz";
+    const char *dsn5 = "Bx";
+    const char *dsn6 = "By";
+    const char *dsn7 = "Bz";
+    const char *dsn8 = "e";
 
     hsize_t cube_size = Nx * Ny * Nz;
     hsize_t dim[1] = {cube_size}; // 3D simulation data is stored in 1D  
-    hsize_t attrdim[1] = {3};
-    hsize_t attrstorage[1] = {1};
-    hsize_t cube_dimensions[3] = {Nx, Ny, Nz};
+    // hsize_t attrdim[1] = {3};
+    // hsize_t attrstorage[1] = {1}; // Dimension of the storage pattern attribute
+    // hsize_t cube_dimensions[3] = {Nx, Ny, Nz};
     
     herr_t status;
 
-    const char *dimension_names[3] = {"Nx", "Ny", "Nz"}; 
-    const char *storage_pattern[1] = {"Row-major, depth-minor: l = k * (Nx * Ny) + i * Ny + j"};
+    // const char *dimension_names[3] = {"Nx", "Ny", "Nz"}; 
+    // const char *storage_pattern[1] = {"Row-major, depth-minor: l = k * (Nx * Ny) + i * Ny + j"};
     
-    std::string dset_name = "";
-    // std::string dset_name[8] = {""};
-
     std::cout << "filename is: " << filename << std::endl;
     std::cout << "Where file is being written: " << filename.data() << std::endl;
 
@@ -131,38 +135,42 @@ void writeH5FileAll(const std::string filename, const float* output_data, const 
     H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
 
     // Write to the dataset
-    if (rank == 0){
-        std::cout << "Process " << rank << " writing rho dataset" << std::endl;
-        status = H5Dwrite(dset_id_rho, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+    // Handles the case where num_procs != 8
+    for (int irank = rank; irank < 8; irank += world_size){
+        if (rank == 0){
+            std::cout << "Process " << rank << " writing rho dataset" << std::endl;
+            status = H5Dwrite(dset_id_rho, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+        }
+        else if (rank == 1){
+            std::cout << "Process " << rank << " writing rhovx dataset" << std::endl;
+            status = H5Dwrite(dset_id_rhovx, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+        }
+        else if (rank == 2){
+            std::cout << "Process " << rank << " writing rhovy dataset" << std::endl;
+            status = H5Dwrite(dset_id_rhovy, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+        }
+        else if (rank == 3){
+            std::cout << "Process " << rank << " writing rhovz dataset" << std::endl;
+            status = H5Dwrite(dset_id_rhovz, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+        }
+        else if (rank == 4){
+            std::cout << "Process " << rank << " writing Bx dataset" << std::endl;
+            status = H5Dwrite(dset_id_Bx, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+        }
+        else if (rank == 5){
+            std::cout << "Process " << rank << " writing By dataset" << std::endl;
+            status = H5Dwrite(dset_id_By, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+        }
+        else if (rank == 6){
+            std::cout << "Process " << rank << " writing Bz dataset" << std::endl;
+            status = H5Dwrite(dset_id_Bz, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+        }
+        else if (rank == 7){
+            std::cout << "Process " << rank << " writing e dataset" << std::endl;
+            status = H5Dwrite(dset_id_e, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+        }
     }
-    else if (rank == 1){
-        std::cout << "Process " << rank << " writing rhovx dataset" << std::endl;
-        status = H5Dwrite(dset_id_rhovx, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
-    }
-    else if (rank == 2){
-        std::cout << "Process " << rank << " writing rhovy dataset" << std::endl;
-        status = H5Dwrite(dset_id_rhovy, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
-    }
-    else if (rank == 3){
-        std::cout << "Process " << rank << " writing rhovz dataset" << std::endl;
-        status = H5Dwrite(dset_id_rhovz, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
-    }
-    else if (rank == 4){
-        std::cout << "Process " << rank << " writing Bx dataset" << std::endl;
-        status = H5Dwrite(dset_id_Bx, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
-    }
-    else if (rank == 5){
-        std::cout << "Process " << rank << " writing By dataset" << std::endl;
-        status = H5Dwrite(dset_id_By, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
-    }
-    else if (rank == 6){
-        std::cout << "Process " << rank << " writing Bz dataset" << std::endl;
-        status = H5Dwrite(dset_id_Bz, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
-    }
-    else if (rank == 7){
-        std::cout << "Process " << rank << " writing e dataset" << std::endl;
-        status = H5Dwrite(dset_id_e, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
-    }
+    // MPI_Barrier(comm);
 
     status = H5Dclose(dset_id_rho);
     status = H5Dclose(dset_id_rhovx);
@@ -194,3 +202,4 @@ void writeH5FileAll(const std::string filename, const float* output_data, const 
     std::cout << ".h5 file written" << std::endl;
     return;
 }
+

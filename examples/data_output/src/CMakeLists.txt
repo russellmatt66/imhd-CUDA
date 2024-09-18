@@ -20,7 +20,7 @@ add_executable(phdf5_writeall phdf5_write.cpp)
 
 target_link_libraries(h5write_serial PRIVATE initialize_od_lib ${HDF5_LIBRARIES})
 # target_link_libraries(h5write_par PRIVATE initialize_od_lib ${MPI_LIBRARIES} ${HDF5_LIBRARIES})
-target_link_libraries(h5write_par PRIVATE initialize_od_lib)
+target_link_libraries(h5write_par PRIVATE initialize_od_lib ${HDF5_LIBRARIES})
 target_link_libraries(phdf5_writeall PRIVATE ${MPI_LIBRARIES} ${HDF5_LIBRARIES})
 
 set_target_properties(initialize_od_lib PROPERTIES CUDA_ARCHITECTURES 75)
