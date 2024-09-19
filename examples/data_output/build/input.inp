@@ -18,3 +18,4 @@ z_min=-3.14159
 z_max=3.14159
 num_proc=4
 phdf5_bin_name=phdf5_writeall
+attr_bin_name=add_attributes

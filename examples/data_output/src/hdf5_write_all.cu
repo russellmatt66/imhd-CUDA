@@ -15,8 +15,9 @@ Write Initial Conditions (any device data) out with a fork to PHDF5 function
 #include "../../../include/initialize_od.cuh"
 
 int callPHDF5(const std::string filename, const int Nx, const int Ny, const int Nz, const std::string shm_name, const size_t data_size, const std::string num_proc, const std::string phdf5_bin_name);
-void addAttributes(hid_t dset_id, const int Nx, const int Ny, const int Nz);
+int callAttributes(const std::string file_name, const int Nx, const int Ny, const int Nz, const std::string attr_binary);
 void writeAttributes(const std::string filename, const int Nx, const int Ny, const int Nz);
+void addAttributes(hid_t dset_id, const int Nx, const int Ny, const int Nz);
 void verifyAttributes(hid_t dset_id);
 
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
@@ -60,6 +61,7 @@ int main(int argc, char* argv[]){
     float z_max = atof(argv[18]);
     std::string num_proc = argv[19];
     std::string phdf5_bin_name = argv[20];
+    std::string attr_bin_name = argv[21];
 
     float dx = (x_max - x_min) / (Nx - 1);
     float dy = (y_max - y_min) / (Ny - 1);
@@ -131,7 +133,10 @@ int main(int argc, char* argv[]){
 
     // Write attributes serially to datasets - PHDF5 attribute writing is novice trap AFAIK
     std::cout << "Writing dataset attributes with HDF5" << std::endl;
-    writeAttributes(path_to_data, Nx, Ny, Nz);
+    ret = callAttributes(path_to_data, Nx, Ny, Nz, attr_bin_name); // trying to write attributes in current context doesn't work
+    if (ret != 0) {
+        std::cerr << "Error executing attribute command" << std::endl;
+    }
 
     // Free data
     cudaFree(fluidvar);
@@ -144,11 +149,11 @@ int main(int argc, char* argv[]){
 }
 
 // PHDF5 needs to be executed in MPI environment
-int callPHDF5(const std::string filename, const int Nx, const int Ny, const int Nz, 
+int callPHDF5(const std::string file_name, const int Nx, const int Ny, const int Nz, 
                 const std::string shm_name, const size_t data_size, 
                 const std::string num_proc, const std::string phdf5_bin_name){
     std::string mpirun_command = "mpirun -np " + num_proc + " ./" + phdf5_bin_name  
-                                    + " " + filename + " " + std::to_string(Nx) + " "
+                                    + " " + file_name + " " + std::to_string(Nx) + " "
                                     + std::to_string(Ny) + " " + std::to_string(Nz) + " "
                                     + shm_name + " " + std::to_string(data_size);
 
@@ -165,96 +170,114 @@ int callPHDF5(const std::string filename, const int Nx, const int Ny, const int 
     return ret;
 }
 
-void addAttributes(hid_t dset_id, const int Nx, const int Ny, const int Nz){
-    hid_t attrdim_id, attrdim_dspc_id;
-    hid_t attrstorage_id, attrstorage_dspc_id;
-    hid_t strtype_id;
-
-    hsize_t attrdim[1] = {3};
-    hsize_t attrstorage[1] = {1}; // Dimension of the storage pattern attribute
-    hsize_t cube_dimensions[3] = {Nx, Ny, Nz};
-
-    herr_t status;
-
-    const char *dimension_names[3] = {"Nx", "Ny", "Nz"}; 
-    const char *storage_pattern[1] = {"Row-major, depth-minor: l = k * (Nx * Ny) + i * Ny + j"};
-
-    // Need to store dimensionality of data
-    attrdim_dspc_id = H5Screate_simple(1, attrdim, NULL);
-    attrdim_id = H5Acreate(dset_id, "cubeDimensions", H5T_NATIVE_INT, attrdim_dspc_id, H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Awrite(attrdim_id, H5T_NATIVE_INT, cube_dimensions);    
-    if (status < 0) {
-        std::cerr << "Error writing attribute 'cubeDimensions'" << std::endl;
+// Running the code in this binary in the context of this process does not seem to add attributes to file_name, so give it a separate process
+int callAttributes(const std::string file_name, const int Nx, const int Ny, const int Nz, const std::string attr_bin_name){
+    std::string addatt_command = "./" + attr_bin_name + " " + file_name + " " + std::to_string(Nx) + " "
+                                    + std::to_string(Ny) + " " + std::to_string(Nz);
+    
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) != nullptr) {
+        std::cout << "Current working directory: " << cwd << std::endl;
+    } else {
+       std::cerr << "Failed to get current working directory" << std::endl;
     }
 
-    // To add an attribute that names which variable is which
-    strtype_id = H5Tcopy(H5T_C_S1);
-    H5Tset_size(strtype_id, H5T_VARIABLE);
-
-    attrdim_id = H5Acreate(dset_id, "cubeDimensionsNames", strtype_id, attrdim_dspc_id, H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Awrite(attrdim_id, strtype_id, dimension_names);
-    if (status < 0) {
-        std::cerr << "Error writing attribute 'cubeDimensionsNames'" << std::endl;
-    }
-
-    // Lastly, need to add an attribute for the storage pattern of the cube
-    attrstorage_dspc_id = H5Screate_simple(1, attrstorage, NULL);
-    attrstorage_id = H5Acreate(dset_id, "storagePattern", strtype_id, attrstorage_dspc_id, H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Awrite(attrstorage_id, strtype_id, storage_pattern);
-    if (status < 0) {
-        std::cerr << "Error writing attribute 'storagePattern'" << std::endl;
-    }
-
-    status = H5Tclose(strtype_id);
-    status = H5Aclose(attrdim_id);
-    status = H5Aclose(attrstorage_id);
-    status = H5Sclose(attrdim_dspc_id);
-    status = H5Sclose(attrstorage_dspc_id);
-    return;
+    std::cout << "Executing command: " << addatt_command << std::endl;
+    int ret = std::system(addatt_command.data()); 
+    return ret;
 }
 
-// PHDF5 attribute writing is a novice trap AFAIK
-void writeAttributes(const std::string filename, const int Nx, const int Ny, const int Nz){
-    hid_t file_id, dset_id;
+// The below was moved to a separate binary because the attributes weren't actually getting written from the current context
+// void addAttributes(hid_t dset_id, const int Nx, const int Ny, const int Nz){
+//     hid_t attrdim_id, attrdim_dspc_id;
+//     hid_t attrstorage_id, attrstorage_dspc_id;
+//     hid_t strtype_id;
 
-    herr_t status;
+//     hsize_t attrdim[1] = {3};
+//     hsize_t attrstorage[1] = {1}; // Dimension of the storage pattern attribute
+//     hsize_t cube_dimensions[3] = {Nx, Ny, Nz};
 
-    file_id = H5Fopen(filename.data(), H5F_ACC_RDWR, H5P_DEFAULT);
-    if (file_id < 0) {
-        std::cerr << "Error opening file: " << filename << std::endl;
-        return;
-    }
+//     herr_t status;
 
-    const char *dset_names[8] = {"rho", "rhovx", "rhovy", "rhovz", "Bx", "By", "Bz", "e"};
+//     const char *dimension_names[3] = {"Nx", "Ny", "Nz"}; 
+//     const char *storage_pattern[1] = {"Row-major, depth-minor: l = k * (Nx * Ny) + i * Ny + j"};
 
-    for (int idset = 0; idset < 8; idset++){
-        std::cout << "Opening dataset " << dset_names[idset] << " for attribute writing" << std::endl;
-        dset_id = H5Dopen(file_id, dset_names[idset], H5P_DEFAULT);
-        if (dset_id < 0) {
-            std::cerr << "Error opening dataset: " << dset_names[idset] << std::endl;
-            status = H5Fclose(file_id);
-            return;
-        }
-        addAttributes(dset_id, Nx, Ny, Nz);
-        verifyAttributes(dset_id);
-        // status = H5Dclose(dset_id);
-    }
+//     // Need to store dimensionality of data
+//     attrdim_dspc_id = H5Screate_simple(1, attrdim, NULL);
+//     attrdim_id = H5Acreate(dset_id, "cubeDimensions", H5T_NATIVE_INT, attrdim_dspc_id, H5P_DEFAULT, H5P_DEFAULT);
+//     status = H5Awrite(attrdim_id, H5T_NATIVE_INT, cube_dimensions);    
+//     if (status < 0) {
+//         std::cerr << "Error writing attribute 'cubeDimensions'" << std::endl;
+//     }
 
-    std::cout << "Closing dset_id, and file_id" << std::endl;
-    status = H5Dclose(dset_id); 
-    status = H5Fclose(file_id);
-    return;
-}
+//     // To add an attribute that names which variable is which
+//     strtype_id = H5Tcopy(H5T_C_S1);
+//     H5Tset_size(strtype_id, H5T_VARIABLE);
 
-void verifyAttributes(hid_t dset_id){
-    htri_t exists;
+//     attrdim_id = H5Acreate(dset_id, "cubeDimensionsNames", strtype_id, attrdim_dspc_id, H5P_DEFAULT, H5P_DEFAULT);
+//     status = H5Awrite(attrdim_id, strtype_id, dimension_names);
+//     if (status < 0) {
+//         std::cerr << "Error writing attribute 'cubeDimensionsNames'" << std::endl;
+//     }
 
-    exists = H5Aexists(dset_id, "cubeDimensions");
-    std::cout << "Attribute 'cubeDimensions' exists: " << (exists ? "Yes" : "No") << std::endl;
+//     // Lastly, need to add an attribute for the storage pattern of the cube
+//     attrstorage_dspc_id = H5Screate_simple(1, attrstorage, NULL);
+//     attrstorage_id = H5Acreate(dset_id, "storagePattern", strtype_id, attrstorage_dspc_id, H5P_DEFAULT, H5P_DEFAULT);
+//     status = H5Awrite(attrstorage_id, strtype_id, storage_pattern);
+//     if (status < 0) {
+//         std::cerr << "Error writing attribute 'storagePattern'" << std::endl;
+//     }
 
-    exists = H5Aexists(dset_id, "cubeDimensionsNames");
-    std::cout << "Attribute 'cubeDimensionsNames' exists: " << (exists ? "Yes" : "No") << std::endl;
+//     status = H5Tclose(strtype_id);
+//     status = H5Aclose(attrdim_id);
+//     status = H5Aclose(attrstorage_id);
+//     status = H5Sclose(attrdim_dspc_id);
+//     status = H5Sclose(attrstorage_dspc_id);
+//     return;
+// }
 
-    exists = H5Aexists(dset_id, "storagePattern");
-    std::cout << "Attribute 'storagePattern' exists: " << (exists ? "Yes" : "No") << std::endl;
-}
+// // PHDF5 attribute writing is a novice trap AFAIK
+// void writeAttributes(const std::string filename, const int Nx, const int Ny, const int Nz){
+//     hid_t file_id, dset_id;
+
+//     herr_t status;
+
+//     file_id = H5Fopen(filename.data(), H5F_ACC_RDWR, H5P_DEFAULT);
+//     if (file_id < 0) {
+//         std::cerr << "Error opening file: " << filename << std::endl;
+//         return;
+//     }
+
+//     const char *dset_names[8] = {"rho", "rhovx", "rhovy", "rhovz", "Bx", "By", "Bz", "e"};
+
+//     for (int idset = 0; idset < 8; idset++){
+//         std::cout << "Opening dataset " << dset_names[idset] << " for attribute writing" << std::endl;
+//         dset_id = H5Dopen(file_id, dset_names[idset], H5P_DEFAULT);
+//         if (dset_id < 0) {
+//             std::cerr << "Error opening dataset: " << dset_names[idset] << std::endl;
+//             status = H5Fclose(file_id);
+//             return;
+//         }
+//         addAttributes(dset_id, Nx, Ny, Nz);
+//         verifyAttributes(dset_id);
+//         // status = H5Dclose(dset_id);
+//     }
+
+//     std::cout << "Closing dset_id, and file_id" << std::endl;
+//     status = H5Dclose(dset_id); 
+//     status = H5Fclose(file_id);
+//     return;
+// }
+
+// void verifyAttributes(hid_t dset_id){
+//     htri_t exists;
+
+//     exists = H5Aexists(dset_id, "cubeDimensions");
+//     std::cout << "Attribute 'cubeDimensions' exists: " << (exists ? "Yes" : "No") << std::endl;
+
+//     exists = H5Aexists(dset_id, "cubeDimensionsNames");
+//     std::cout << "Attribute 'cubeDimensionsNames' exists: " << (exists ? "Yes" : "No") << std::endl;
+
+//     exists = H5Aexists(dset_id, "storagePattern");
+//     std::cout << "Attribute 'storagePattern' exists: " << (exists ? "Yes" : "No") << std::endl;
+// }

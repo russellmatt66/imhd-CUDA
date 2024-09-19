@@ -29,7 +29,7 @@ if binary_name == "h5write_serial":
         for line in input_file:
             cmd_arg = line.split('=')[1].strip('\n')
             arg_list.append(cmd_arg)
-    arg_list = arg_list[:(len(arg_list) - 2)] # serial version doesn't need same number of args as parallel
+    arg_list = arg_list[:(len(arg_list) - 3)] # serial version doesn't need same number of args as parallel
     print("Launching h5write_serial from Python")
     print(f"List of arguments is {arg_list}".format(arg_list))
     subprocess.run(arg_list)
