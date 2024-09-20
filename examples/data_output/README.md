@@ -1,5 +1,5 @@
 `src/`
-- Source code for the different PoC output methods
+- Source code for the different Proof-of-Concept (PoC) output methods
 
 `build/`
 - Binaries are in here

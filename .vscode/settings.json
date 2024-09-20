@@ -75,6 +75,7 @@
         "list": "cpp",
         "typeindex": "cpp",
         "variant": "cpp",
-        "*.txx": "cpp"
+        "*.txx": "cpp",
+        "valarray": "cpp"
     }
 }
