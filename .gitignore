@@ -83,6 +83,15 @@ tests/output/build/output-test
 !/visualization/README.md
 
 # HIDING CMAKE AND DATA FILES from `/examples/` 
+/examples/flux_jacobians/build/CMakeFiles/*
+/examples/flux_jacobians/build/*.cmake
+/examples/flux_jacobians/build/Makefile
+/examples/flux_jacobians/build/*.a
+/examples/flux_jacobians/build/CMakeCache.txt
+/examples/flux_jacobians/build/CMakeCache.txt
+/examples/flux_jacobians/build/fj_evs_compute
+/examples/flux_jacobians/build/fj_evs_cu
+
 /examples/data_output/build/CMakeFiles/*
 /examples/data_output/build/*.cmake
 /examples/data_output/build/Makefile

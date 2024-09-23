@@ -1,3 +1,7 @@
+/*
+Proof of Concept computing the eigenvalues of the flux Jacobians at a given point
+Next step is to compute the evs for all points
+*/
 #include <iostream>
 #include <string>
 #include <sys/mman.h>
@@ -22,22 +26,23 @@ int main(int argc, char* argv[]){
     int Nz = atoi(argv[4]);
 
     int cube_size = Nx * Ny * Nz;
-    int data_size = 8 * cube_size; // 8 fluid variables, Nx*Ny*Nz values per fluidvar
+    int fluid_data_size = 8 * sizeof(float) * cube_size; // 8 fluid variables, Nx*Ny*Nz values per fluidvar
 
     int shm_fd = shm_open(shm_name.data(), O_RDWR, 0666);
     if (shm_fd == -1){
-        std::cerr << "Inside phdf5_writeall" << std::endl;
+        std::cerr << "Inside fj_evs_compute" << std::endl;
         std::cerr << "Failed to open shared memory" << std::endl;
         return EXIT_FAILURE;
     }
 
-    float* shm_h_fluidvar = (float*)mmap(0, data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    float* shm_h_fluidvar = (float*)mmap(0, fluid_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (shm_h_fluidvar == MAP_FAILED){
         std::cerr << "Inside phdf5_writeall" << std::endl;
         std::cerr << "Failed to connect pointer to shared memory" << std::endl;
         return EXIT_FAILURE;
     }
-    /* Define and instantiate Flux Jacobian Matrices */
+
+    // Define and instantiate Flux Jacobian Matrices
     Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> A, B, C; // I just really like row-major order
 
     float fluid_point[8] = {0.0};
@@ -50,10 +55,15 @@ int main(int argc, char* argv[]){
     computeB(B, fluid_point);
     computeC(C, fluid_point);
 
-    /* Compute eigenvalues with Eigen library */
+    // Compute eigenvalues with Eigen library
+    Eigen::VectorXcf eivals_A = A.eigenvalues(), eivals_B = B.eigenvalues(), eivals_C = C.eigenvalues();
     
+    std::cout << "The eigenvalues of A: " << std::endl << eivals_A << std::endl;
+    std::cout << "The eigenvalues of B: " << std::endl << eivals_B << std::endl; 
+    std::cout << "The eigenvalues of C: " << std::endl << eivals_C << std::endl; 
+
     // Free EVERYTHING
-    munmap(shm_h_fluidvar, data_size);
+    munmap(shm_h_fluidvar, fluid_data_size);
     close(shm_fd);
     return 0;
 }
@@ -175,21 +185,74 @@ void computeB(Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &B, const floa
 
     float p = (gamma - 1.0) * (e - 0.5 * rho * usq - 0.5 * Bsq);
 
-    // First Row of Y-Flux Jacobian
+    // First and Sixth Rows of Y-Flux Jacobian
+    for (int ic = 0; ic < NCOLS; ic++){
+        B(0, ic) = 0.0;
+        B(5, ic) = 0.0;
+    }
+    B(0, 2) = 1.0;
     
     // Second Row of Y-Flux Jacobian
+    B(1,0) = -u * v;
+    B(1,1) = v;
+    B(1,2) = u;
+    B(1,3) = 0.0;
+    B(1,4) = -By;
+    B(1,5) = -Bx;
+    B(1,6) = 0.0;
+    B(1,7) = 0.0;
 
     // Third Row of Y-Flux Jacobian
-    
+    B(2,0) = 0.5 * (gamma - 1.0) * usq - pow(v,2); 
+    B(2,1) = (1.0 - gamma) * u;
+    B(2,2) = (3.0 - gamma) * v;
+    B(2,3) = (1.0 - gamma) * w;
+    B(2,4) = (2.0 - gamma) * Bx;
+    B(2,5) = -gamma * By;
+    B(2,6) = (2.0 - gamma) * Bz;
+    B(2,7) = gamma - 1.0;
+
     // Fourth Row of Y-Flux Jacobian
-    
+    B(3,0) = -v * w;
+    B(3,1) = 0.0;
+    B(3,2) = w;
+    B(3,3) = v;
+    B(3,4) = 0.0;
+    B(3,5) = -Bz;
+    B(3,6) = -By;
+    B(3,7) = 0.0;
+
     // Fifth Row of Y-Flux Jacobian
-    
-    // Sixth Row of Y-Flux Jacobian
-    
+    B(4,0) = (1.0 / rho) * (v * Bx - u * By);
+    B(4,1) = By / rho;
+    B(4,2) = -Bx / rho;
+    B(4,3) = 0.0;
+    B(4,4) = -v; 
+    B(4,5) = u;
+    B(4,6) = 0.0;
+    B(4,7) = 0.0;
+
     // Seventh Row of Y-Flux Jacobian
-    
+    B(6,0) = (1.0 / rho) * (v * Bz - w * By);
+    B(6,1) = 0.0;
+    B(6,2) = -Bz / rho;
+    B(6,3) = By / rho;
+    B(6,4) = 0.0;
+    B(6,5) = w;
+    B(6,6) = -v;
+    B(6,7) = 0.0;
+
     // Eighth Row of Y-Flux Jacobian
+    float B_81 = v * ((gamma - 1.0) * usq - (1.0 / rho) * (gamma * e + (2.0 - gamma) * Bsq * 0.5)) + By * Bdotu / rho;
+    float B_83 = (1.0 / rho) * (gamma * e + (2.0 - gamma) * Bsq * 0.5) + (1.0 - gamma) * (pow(v,2) + 0.5 * usq) - pow(By, 2) / rho;
+    B(7,0) = B_81;
+    B(7,1) = (1.0 - gamma) * u * v - Bx * By / rho;
+    B(7,2) = B_83;
+    B(7,3) = (1.0 - gamma) * v * w - By * Bz / rho;
+    B(7,4) = (2.0 - gamma) * v * Bx - u * By;
+    B(7,5) = (1.0 - gamma) * v * By + By * Bdotu;
+    B(7,6) = (2.0 - gamma) * v * Bz - w * By;
+    B(7,7) = v * gamma;
     return;
 }
 
@@ -214,20 +277,74 @@ void computeC(Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &C, const floa
 
     float p = (gamma - 1.0) * (e - 0.5 * rho * usq - 0.5 * Bsq);
 
-    // First Row of Z-Flux Jacobian
+    // First and Seventh Row of Z-Flux Jacobian
+    for (int ic = 0; ic < NCOLS; ic++){
+        C(0, ic) = 0.0;
+        C(6, ic) = 0.0;
+    }
+    C(0, 3) = 1.0;
     
     // Second Row of Z-Flux Jacobian
+    C(1,0) = -u * w;
+    C(1,1) = w;
+    C(1,2) = 0.0;
+    C(1,3) = u;
+    C(1,4) = -Bz;
+    C(1,5) = 0.0;
+    C(1,6) = -Bx;
+    C(1,7) = 0.0;
 
     // Third Row of Z-Flux Jacobian
-    
+    C(2,0) = -v * w;
+    C(2,1) = 0.0;
+    C(2,2) = w;
+    C(2,3) = v;
+    C(2,4) = -Bz;
+    C(2,5) = 0.0;
+    C(2,6) = -Bx;
+    C(2,7) = 0.0;
+
     // Fourth Row of Z-Flux Jacobian
-    
+    C(3,0) = 0.5 * (gamma - 1.0) * usq - pow(w,2);
+    C(3,1) = (1.0 - gamma) * u;
+    C(3,2) = (1.0 - gamma) * v;
+    C(3,3) = (3.0 - gamma) * w;
+    C(3,4) = (2.0 - gamma) * Bx;
+    C(3,5) = (2.0 - gamma) * By;
+    C(3,6) = -gamma * By;
+    C(3,7) = gamma - 1.0; 
+
     // Fifth Row of Z-Flux Jacobian
-    
+    C(4,0) = (1.0 / rho) * (w * Bx - u * Bz);
+    C(4,1) = Bz / rho;
+    C(4,2) = 0.0;
+    C(4,3) = -Bx/ rho;
+    C(4,4) = -w;
+    C(4,5) = 0.0;
+    C(4,6) = u;
+    C(4,7) = 0.0;
+
     // Sixth Row of Z-Flux Jacobian
-    
-    // Seventh Row of Z-Flux Jacobian
+    C(5,0) = (1.0 / rho) * (w * By - v * Bz);
+    C(5,1) = 0.0;
+    C(5,2) = Bz / rho;
+    C(5,3) = -By / rho;
+    C(5,4) = 0.0;
+    C(5,5) = -w;
+    C(5,6) = v;
+    C(5,7) = 0.0;    
     
     // Eighth Row of Z-Flux Jacobian
+    float C_81 = w * ((gamma - 1.0) * usq - (1.0 / rho) * (gamma * e + (2.0 - gamma) * Bsq * 0.5)) + Bz * Bdotu / rho;
+    float C_84 = (1.0 / rho) * (gamma * e + (2.0 - gamma) * Bsq * 0.5) + (1.0 - gamma) * (pow(w,2) + 0.5 * usq) - pow(Bz, 2) / rho;
+    C(7,0) = C_81;
+    C(7,1) = (1.0 - gamma) * u * w - Bx * Bz / rho;
+    C(7,2) = (1.0 - gamma) * v * w - By * Bz / rho;
+    C(7,3) = C_84;
+    C(7,4) = (2.0 - gamma) * w * Bx - u * Bz;
+    C(7,5) = (2.0 - gamma) * w * By - v * Bz;
+    C(7,6) = (1.0 - gamma) * w * Bz - Bdotu;
+    C(7,7) = w * gamma; 
+
     return;
 }

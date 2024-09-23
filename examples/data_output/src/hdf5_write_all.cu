@@ -107,7 +107,7 @@ int main(int argc, char* argv[]){
         std::cerr << "Failed to create shared memory!" << std::endl;
         return EXIT_FAILURE;
     }
-    ftruncate(shm_fd, 8 * fluid_data_size);
+    ftruncate(shm_fd, fluid_data_size);
     float* shm_h_fluidvar = (float*)mmap(0, fluid_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (shm_h_fluidvar == MAP_FAILED) {
         std::cerr << "mmap failed!" << std::endl;

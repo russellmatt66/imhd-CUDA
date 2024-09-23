@@ -32,6 +32,7 @@ with open('imhd-cuda.inp', 'r') as input_file:
 subprocess.run(arg_list)
 
 # Concat the datafiles from each timestep together
+''' Refactor this out using HDF5 '''
 import pandas as pd
 
 def ConcatFragments(data_files_location: str, write_var: str, number_of_timesteps: int) -> None: 
