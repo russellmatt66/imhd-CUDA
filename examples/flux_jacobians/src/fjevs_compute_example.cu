@@ -11,7 +11,9 @@ Compute eigenvalues of the Flux Jacobians for a given state
 
 #include "../../../include/initialize_od.cuh"
 
-int callEigen(const std::string shm_name, const int Nx, const int Ny, const int Nz, const std::string bin_name);
+int callEigen(const std::string shm_name, const int Nx, const int Ny, const int Nz, const std::string bin_name, 
+    const float dt, const float dx, const float dy, const float dz, 
+    const std::string shm_name_gridx, const std::string shm_name_gridy, const std::string shm_name_gridz);
 
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define checkCuda(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -46,6 +48,7 @@ int main(int argc, char* argv[]){
 	float y_max = atof(argv[16]);
 	float z_min = atof(argv[17]);
 	float z_max = atof(argv[18]);
+    float dt = atof(argv[19]);
 
     float dx = (x_max - x_min) / (Nx - 1);
 	float dy = (y_max - y_min) / (Ny - 1);
@@ -94,7 +97,7 @@ int main(int argc, char* argv[]){
     ftruncate(shm_fd, fluid_data_size);
     float* shm_h_fluidvar = (float*)mmap(0, fluid_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (shm_h_fluidvar == MAP_FAILED) {
-        std::cerr << "mmap failed!" << std::endl;
+        std::cerr << "mmap failed for fluidvar!" << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -102,8 +105,40 @@ int main(int argc, char* argv[]){
     cudaMemcpy(shm_h_fluidvar, fluidvar, fluid_data_size, cudaMemcpyDeviceToHost);
     checkCuda(cudaDeviceSynchronize());
 
+    // Allocate grid data to shared memory
+    std::string shm_name_gridx = "/shared_h_gridx";
+    shm_fd = shm_open(shm_name_gridx.data(), O_CREAT | O_RDWR, 0666);
+    ftruncate(shm_fd, sizeof(float) * Nx);
+    float* shm_h_gridx = (float*)mmap(0, sizeof(float) * Nx, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (shm_h_gridx == MAP_FAILED) {
+        std::cerr << "mmap failed for grid_x!" << std::endl;
+        return EXIT_FAILURE;
+    }
+    cudaMemcpy(shm_h_gridx, grid_x, sizeof(float) * Nx, cudaMemcpyDeviceToHost);
+
+    std::string shm_name_gridy = "/shared_h_gridy";
+    shm_fd = shm_open(shm_name_gridy.data(), O_CREAT | O_RDWR, 0666);
+    ftruncate(shm_fd, sizeof(float) * Ny);
+    float* shm_h_gridy = (float*)mmap(0, sizeof(float) * Ny, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (shm_h_gridy == MAP_FAILED) {
+        std::cerr << "mmap failed for grid_y!" << std::endl;
+        return EXIT_FAILURE;
+    }
+    cudaMemcpy(shm_h_gridy, grid_y, sizeof(float) * Ny, cudaMemcpyDeviceToHost);
+
+    std::string shm_name_gridz = "/shared_h_gridz";
+    shm_fd = shm_open(shm_name_gridz.data(), O_CREAT | O_RDWR, 0666);
+    ftruncate(shm_fd, sizeof(float) * Nz);
+    float* shm_h_gridz = (float*)mmap(0, sizeof(float) * Nz, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (shm_h_gridz == MAP_FAILED) {
+        std::cerr << "mmap failed for grid_z!" << std::endl;
+        return EXIT_FAILURE;
+    }
+    cudaMemcpy(shm_h_gridz, grid_z, sizeof(float) * Nz, cudaMemcpyDeviceToHost);
+
+
     std::cout << "Forking to flux jacobian eigenvalue computation binary" << std::endl;
-    int ret = callEigen(shm_name, Nx, Ny, Nz, eigen_bin_name);
+    int ret = callEigen(shm_name, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
     if (ret != 0) {
         std::cerr << "Error executing Eigen command" << std::endl;
     }
@@ -119,9 +154,13 @@ int main(int argc, char* argv[]){
     return 0;
 }
 
-int callEigen(const std::string shm_name, const int Nx, const int Ny, const int Nz, const std::string bin_name){
+int callEigen(const std::string shm_name, const int Nx, const int Ny, const int Nz, const std::string bin_name, 
+    const float dt, const float dx, const float dy, const float dz, 
+    const std::string shm_name_gridx, const std::string shm_name_gridy, const std::string shm_name_gridz){
     std::string eigen_command = "./" + bin_name + " " + shm_name + " " + std::to_string(Nx) + " "
-                                    + std::to_string(Ny) + " " + std::to_string(Nz);
+                                    + std::to_string(Ny) + " " + std::to_string(Nz) + " " + std::to_string(dt)
+                                    + " " + std::to_string(dx) + " " + std::to_string(dy) + " " + std::to_string(dz)
+                                    + " " + shm_name_gridx + " " + shm_name_gridy + " " + shm_name_gridz;
     
     char cwd[1024];
     if (getcwd(cwd, sizeof(cwd)) != nullptr) {

@@ -1,6 +1,6 @@
 /*
-Proof of Concept computing the eigenvalues of the flux Jacobians at a given point
-Next step is to compute the evs for all points
+Proof of Concept computing the eigenvalues of the flux Jacobians across the entire mesh
+Purpose is to determine where stability criterion is violated, and update timestep accordingly
 */
 #include <iostream>
 #include <string>
@@ -97,20 +97,22 @@ int main(int argc, char* argv[]){
     
     // Define and instantiate Flux Jacobian Matrices
     Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> A, B, C; // I just really like row-major order
+    Eigen::Vector3f largest_evs = {0.0, 0.0, 0.0};
     
-    std::vector<Eigen::Vector3f> points_of_instability; 
+    std::vector<Eigen::Vector3f> points_of_instability; // Not sure if these are necessary in production version
     std::vector<Eigen::Vector3i> indices_of_instability;
 
     float fluid_point[8] = {0.0};
     float mesh_spacing[3] = {dx, dy, dz};
-    float stabcrit_LHS = 0.0;
+    float stabcrit_LHS = 0.0, max_stabcritLHS = 0.0;
     size_t lidx = 0;
 
-    // Scan through entire mesh, and determine points of instability
+    // Scan through entire mesh, determine points of instability, and the largest violation of the criterion
     for (int k = 0; k < Nz; k++){
         for (int i = 0; i < Nx; i++){
             for (int j = 0; j < Ny; j++){
                 for (int ifv = 0; ifv < 8; ifv++){
+                    std::cout << "Computing stability for (i,j,k) = (" << i << "," << j << "," << k << ")" << std::endl; 
                     lidx = IDX3D(i, j, k, Nx, Ny, Nz);
                     fluid_point[ifv] = shm_h_fluidvar[lidx + ifv * cube_size];
                     stabcrit_LHS = computeStabilityCriterionLHS(A, B, C, fluid_point, dt, mesh_spacing);
@@ -119,11 +121,26 @@ int main(int argc, char* argv[]){
                         std::cout << "(i,j,k) = (" << i << "," << j << "," << k << ")" << std::endl; 
                         points_of_instability.push_back(Eigen::Vector3f(shm_h_xgrid[i], shm_h_ygrid[j], shm_h_zgrid[k]));
                         indices_of_instability.push_back(Eigen::Vector3i(i, j, k));
+                        
+                        // The below can be done more efficiently by having the evs on hand
+                        if (stabcrit_LHS > max_stabcritLHS) { 
+                            max_stabcritLHS = stabcrit_LHS; 
+                            largest_evs = getLargestEVs(A, B, C, fluid_point); // these might be unecessary as well
+                        }
                     }
                 }
             }
         }
     }
+
+    // Update timestep
+    float alpha = 0.1; // we want to change dt s.t. this is the new value of the largest violation
+    
+    float dt_new = alpha * dt / max_stabcritLHS; // just algebra
+    float stab_coeff = (1.0 / dx) * abs(largest_evs[0]) + (1.0 / dy) * abs(largest_evs[1]) + (1.0 / dz) * abs(largest_evs[2]);
+
+    std::cout << "New timestep: " << dt_new << std::endl;
+    std::cout << "Value of (previous) largest violation: " << dt_new * stab_coeff << std::endl;
 
     // Free EVERYTHING
     munmap(shm_h_fluidvar, fluid_data_size);
@@ -136,25 +153,27 @@ int main(int argc, char* argv[]){
 
 float computeStabilityCriterionLHS(Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &A, Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &B,
     Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &C, const float fluid_point[8], const float dt, const float mesh_spacing[3]){
-        Eigen::Vector3f largest_evs = getLargestEVs(A, B, C, fluid_point);
+        Eigen::Vector3cf largest_evs = getLargestEVs(A, B, C, fluid_point);
         float dx = mesh_spacing[0], dy = mesh_spacing[1], dz = mesh_spacing[2];
 
         return (dt / dx) * abs(largest_evs[0]) + (dt / dy) * abs(largest_evs[1]) + (dt / dz) * abs(largest_evs[2]);
     }
 
 Eigen::Vector3f getLargestEVs(Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &A, Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &B,
-    Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &C, const float fluid_point[8]){
+    Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &C, const float fluid_point[8]){ 
         Eigen::Vector3f largest_evs (0.0, 0.0, 0.0); // Ideal MHD is a hyperbolic system - real eigenvalues
         
         computeA(A, fluid_point);
         computeB(B, fluid_point);
         computeC(C, fluid_point);
 
-        Eigen::VectorXf eivals_A = A.eigenvalues(), eivals_B = B.eigenvalues(), eivals_C = C.eigenvalues();
+        Eigen::VectorXcf eivals_A = A.eigenvalues(), eivals_B = B.eigenvalues(), eivals_C = C.eigenvalues();
 
-        largest_evs[0] = eivals_A.maxCoeff();
-        largest_evs[1] = eivals_B.maxCoeff();
-        largest_evs[2] = eivals_C.maxCoeff();
+        Eigen::VectorXf evA_mag = eivals_A.array().abs(), evB_mag = eivals_B.array().abs(), evC_mag = eivals_C.array().abs();
+
+        largest_evs[0] = evA_mag.maxCoeff();
+        largest_evs[1] = evB_mag.maxCoeff();
+        largest_evs[2] = evC_mag.maxCoeff();
 
         return largest_evs;
     }
