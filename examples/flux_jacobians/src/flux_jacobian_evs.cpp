@@ -15,15 +15,26 @@ Next step is to compute the evs for all points
 #define STORAGE_PATTERN Eigen::StorageOptions::RowMajor
 #define IDX3D(i, j, k, Nx, Ny, Nz) (k) * (Nx) * (Ny) + (i) * (Ny) + j
 
-void computeA(Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &A, const float fluidvars[8]);
-void computeB(Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &B, const float fluidvars[8]);
-void computeC(Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &C, const float fluidvars[8]);
+float computeStabilityCriterionLHS(Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &A, Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &B,
+    Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &C, const float fluid_point[8], const float dt, const float mesh_spacing[3]);
+Eigen::Vector3f getLargestEVs(Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &A, Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &B,
+    Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &C, const float fluid_point[8]);
+void computeA(Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &A, const float fluid_point[8]);
+void computeB(Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &B, const float fluid_point[8]);
+void computeC(Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &C, const float fluid_point[8]);
 
 int main(int argc, char* argv[]){
     std::string shm_name = argv[1]; // Parent process is CUDA initialization program 
     int Nx = atoi(argv[2]);
     int Ny = atoi(argv[3]);
     int Nz = atoi(argv[4]);
+    float dt = atof(argv[5]);
+    float dx = atof(argv[6]);
+    float dy = atof(argv[7]);
+    float dz = atof(argv[8]);
+    std::string shm_grid_name_x = argv[9];
+    std::string shm_grid_name_y = argv[10];
+    std::string shm_grid_name_z = argv[11];
 
     int cube_size = Nx * Ny * Nz;
     int fluid_data_size = 8 * sizeof(float) * cube_size; // 8 fluid variables, Nx*Ny*Nz values per fluidvar
@@ -31,42 +42,122 @@ int main(int argc, char* argv[]){
     int shm_fd = shm_open(shm_name.data(), O_RDWR, 0666);
     if (shm_fd == -1){
         std::cerr << "Inside fj_evs_compute" << std::endl;
-        std::cerr << "Failed to open shared memory" << std::endl;
+        std::cerr << "Failed to open shared memory for fluid data" << std::endl;
         return EXIT_FAILURE;
     }
 
     float* shm_h_fluidvar = (float*)mmap(0, fluid_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (shm_h_fluidvar == MAP_FAILED){
-        std::cerr << "Inside phdf5_writeall" << std::endl;
-        std::cerr << "Failed to connect pointer to shared memory" << std::endl;
+        std::cerr << "Inside fj_evs_compute" << std::endl;
+        std::cerr << "Failed to connect pointer to shared memory for fluid data" << std::endl;
         return EXIT_FAILURE;
     }
 
-    // Define and instantiate Flux Jacobian Matrices
-    Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> A, B, C; // I just really like row-major order
-
-    float fluid_point[8] = {0.0};
-
-    for (int ifv = 0; ifv < 8; ifv++){
-        fluid_point[ifv] = shm_h_fluidvar[ifv * cube_size];
+    shm_fd = shm_open(shm_grid_name_x.data(), O_RDWR, 0666);
+    if (shm_fd == -1){
+        std::cerr << "Inside fj_evs_compute" << std::endl;
+        std::cerr << "Failed to open shared memory for x_grid data" << std::endl;
+        return EXIT_FAILURE;
     }
 
-    computeA(A, fluid_point);
-    computeB(B, fluid_point);
-    computeC(C, fluid_point);
-
-    // Compute eigenvalues with Eigen library
-    Eigen::VectorXcf eivals_A = A.eigenvalues(), eivals_B = B.eigenvalues(), eivals_C = C.eigenvalues();
+    float* shm_h_xgrid = (float*)mmap(0, sizeof(float) * Nx, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (shm_h_xgrid == MAP_FAILED){
+        std::cerr << "Inside fj_evs_compute" << std::endl;
+        std::cerr << "Failed to connect pointer to shared memory for x_grid data" << std::endl;
+        return EXIT_FAILURE;
+    }
     
-    std::cout << "The eigenvalues of A: " << std::endl << eivals_A << std::endl;
-    std::cout << "The eigenvalues of B: " << std::endl << eivals_B << std::endl; 
-    std::cout << "The eigenvalues of C: " << std::endl << eivals_C << std::endl; 
+    shm_fd = shm_open(shm_grid_name_y.data(), O_RDWR, 0666);
+    if (shm_fd == -1){
+        std::cerr << "Inside fj_evs_compute" << std::endl;
+        std::cerr << "Failed to open shared memory for y_grid data" << std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    float* shm_h_ygrid = (float*)mmap(0, sizeof(float) * Ny, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (shm_h_ygrid == MAP_FAILED){
+        std::cerr << "Inside fj_evs_compute" << std::endl;
+        std::cerr << "Failed to connect pointer to shared memory for y_grid data" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    shm_fd = shm_open(shm_grid_name_z.data(), O_RDWR, 0666);
+    if (shm_fd == -1){
+        std::cerr << "Inside fj_evs_compute" << std::endl;
+        std::cerr << "Failed to open shared memory for z_grid data" << std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    float* shm_h_zgrid = (float*)mmap(0, sizeof(float) * Nz, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (shm_h_zgrid == MAP_FAILED){
+        std::cerr << "Inside fj_evs_compute" << std::endl;
+        std::cerr << "Failed to connect pointer to shared memory for z_grid data" << std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    // Define and instantiate Flux Jacobian Matrices
+    Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> A, B, C; // I just really like row-major order
+    
+    std::vector<Eigen::Vector3f> points_of_instability; 
+    std::vector<Eigen::Vector3i> indices_of_instability;
+
+    float fluid_point[8] = {0.0};
+    float mesh_spacing[3] = {dx, dy, dz};
+    float stabcrit_LHS = 0.0;
+    size_t lidx = 0;
+
+    // Scan through entire mesh, and determine points of instability
+    for (int k = 0; k < Nz; k++){
+        for (int i = 0; i < Nx; i++){
+            for (int j = 0; j < Ny; j++){
+                for (int ifv = 0; ifv < 8; ifv++){
+                    lidx = IDX3D(i, j, k, Nx, Ny, Nz);
+                    fluid_point[ifv] = shm_h_fluidvar[lidx + ifv * cube_size];
+                    stabcrit_LHS = computeStabilityCriterionLHS(A, B, C, fluid_point, dt, mesh_spacing);
+                    if (stabcrit_LHS >= 1.0){ // VIOLATED
+                        std::cout << "Stability criterion violated at (x,y,z) = (" << shm_h_xgrid[i] << "," << shm_h_ygrid[j] << "," << shm_h_zgrid[k] << ")" << std::endl;
+                        std::cout << "(i,j,k) = (" << i << "," << j << "," << k << ")" << std::endl; 
+                        points_of_instability.push_back(Eigen::Vector3f(shm_h_xgrid[i], shm_h_ygrid[j], shm_h_zgrid[k]));
+                        indices_of_instability.push_back(Eigen::Vector3i(i, j, k));
+                    }
+                }
+            }
+        }
+    }
 
     // Free EVERYTHING
     munmap(shm_h_fluidvar, fluid_data_size);
+    munmap(shm_h_xgrid, sizeof(float) * Nx);
+    munmap(shm_h_ygrid, sizeof(float) * Ny);
+    munmap(shm_h_zgrid, sizeof(float) * Nz);
     close(shm_fd);
     return 0;
 }
+
+float computeStabilityCriterionLHS(Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &A, Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &B,
+    Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &C, const float fluid_point[8], const float dt, const float mesh_spacing[3]){
+        Eigen::Vector3f largest_evs = getLargestEVs(A, B, C, fluid_point);
+        float dx = mesh_spacing[0], dy = mesh_spacing[1], dz = mesh_spacing[2];
+
+        return (dt / dx) * abs(largest_evs[0]) + (dt / dy) * abs(largest_evs[1]) + (dt / dz) * abs(largest_evs[2]);
+    }
+
+Eigen::Vector3f getLargestEVs(Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &A, Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &B,
+    Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> &C, const float fluid_point[8]){
+        Eigen::Vector3f largest_evs (0.0, 0.0, 0.0); // Ideal MHD is a hyperbolic system - real eigenvalues
+        
+        computeA(A, fluid_point);
+        computeB(B, fluid_point);
+        computeC(C, fluid_point);
+
+        Eigen::VectorXf eivals_A = A.eigenvalues(), eivals_B = B.eigenvalues(), eivals_C = C.eigenvalues();
+
+        largest_evs[0] = eivals_A.maxCoeff();
+        largest_evs[1] = eivals_B.maxCoeff();
+        largest_evs[2] = eivals_C.maxCoeff();
+
+        return largest_evs;
+    }
 
 // SPECIFY THE VALUES OF THE FLUX JACOBIANS
 // Abandon all hope of non-hardcoded code, ye who enter here
