@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unistd.h>
 #include <string>
 
 #include "hdf5.h"
@@ -9,8 +10,17 @@ Visualizes the initial density, rho
 Future work can implement feature for visualizing any of the variables
 */
 int main(int argc, char* argv[]){
+    std::cout << "Inside visualization program" << std::endl;
+
     std::string file_name = argv[1];
     std::string dset_name = argv[2]; // This will be called from within a Python context, so the dataset name will be known
+
+    if (access(file_name.data(), F_OK) != 0) {
+        std::cout << "File does not exist: " << file_name.data() << std::endl;
+        return 1;
+    } else {
+        std::cout << "File exists: " << file_name.data() << std::endl;
+    }
     // int Nx = atoi(argv[3]);
     // int Ny = atoi(argv[4]);
     // int Nz = atoi(argv[5]);
@@ -18,9 +28,25 @@ int main(int argc, char* argv[]){
     /* Read .h5 dataset data into buffer */
     hid_t file_id, dset_id, dspc_id;
 
+    std::cout << "Opening file: " << file_name.data() << std::endl;
     file_id = H5Fopen(file_name.data(), H5F_ACC_RDONLY, H5P_DEFAULT);
+    // H5Eprint(H5E_DEFAULT, stderr);
+    std::cout << file_id << std::endl;
+    if (file_id < 0) {
+        std::cout << "Failed to open the data file." << std::endl;
+        return 1;
+    }
+    std::cout << "File: " << file_name.data() << " opened successfully" << std::endl;
 
+    std::cout << "Opening dataset: " << dset_name.data() << std::endl;
     dset_id = H5Dopen(file_id, dset_name.data(), H5P_DEFAULT);
+    if (dset_id < 0) {
+        std::cout << "Failed to open the dataset." << std::endl;
+        H5Fclose(file_id);
+        return 1;
+    }
+    std::cout << "Dataset: " << dset_name.data() << " opened successfully" << std::endl;
+
     dspc_id = H5Dget_space(dset_id);
     int num_points = H5Sget_simple_extent_npoints(dspc_id);
 
@@ -30,15 +56,17 @@ int main(int argc, char* argv[]){
     H5Dread(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, fluid_var);
 
     int num_attrs = H5Aget_num_attrs(dset_id);
+    std::cout << "There are " << num_attrs << " associated with the dataset" << std::endl;
     // Iterate over attributes and print their names and values
-    for (int i = 0; i < num_attrs; ++i) {
+    for (int i = 0; i < num_attrs; i++) {
         // Open the attribute by index
         hid_t attr_id = H5Aopen_by_idx(dset_id, ".", H5_INDEX_NAME, H5_ITER_NATIVE, (hsize_t)i, H5P_DEFAULT, H5P_DEFAULT);
 
         // Get the name of the attribute
         char attr_name[256];
         H5Aget_name(attr_id, sizeof(attr_name), attr_name);
-        printf("Attribute %d: %s\n", i + 1, attr_name);
+        // printf("Attribute %d: %s\n", i + 1, attr_name);
+        std::cout << "Attribute " << i+1 << ": " << attr_name << std::endl;
 
         // Get the datatype and dataspace of the attribute
         hid_t attr_type = H5Aget_type(attr_id);
