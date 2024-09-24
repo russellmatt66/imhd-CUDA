@@ -83,6 +83,9 @@ tests/output/build/output-test
 !/visualization/README.md
 
 # HIDING CMAKE AND DATA FILES from `/examples/` 
+/examples/visualization/build/*
+!/examples/visualization/build/call.py
+
 /examples/flux_jacobians/build/CMakeFiles/*
 /examples/flux_jacobians/build/*.cmake
 /examples/flux_jacobians/build/Makefile
