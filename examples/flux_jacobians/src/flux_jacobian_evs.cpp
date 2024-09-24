@@ -99,34 +99,38 @@ int main(int argc, char* argv[]){
     Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> A, B, C; // I just really like row-major order
     Eigen::Vector3f largest_evs = {0.0, 0.0, 0.0};
     
-    std::vector<Eigen::Vector3f> points_of_instability; // Not sure if these are necessary in production version
-    std::vector<Eigen::Vector3i> indices_of_instability;
+    // std::vector<Eigen::Vector3f> points_of_instability; // Not sure if these are necessary in production version
+    // std::vector<Eigen::Vector3i> indices_of_instability;
+    // Below used to be inside the loop
+    // std::cout << "Stability criterion violated at (x,y,z) = (" << shm_h_xgrid[i] << "," << shm_h_ygrid[j] << "," << shm_h_zgrid[k] << "), ";
+    // std::cout << "(i,j,k) = (" << i << "," << j << "," << k << ")" << std::endl; 
+    // points_of_instability.push_back(Eigen::Vector3f(shm_h_xgrid[i], shm_h_ygrid[j], shm_h_zgrid[k]));
+    // indices_of_instability.push_back(Eigen::Vector3i(i, j, k));
 
     float fluid_point[8] = {0.0};
     float mesh_spacing[3] = {dx, dy, dz};
     float stabcrit_LHS = 0.0, max_stabcritLHS = 0.0;
-    size_t lidx = 0;
+    size_t lidx = 0, num_violations = 0;
 
     // Scan through entire mesh, determine points of instability, and the largest violation of the criterion
     for (int k = 0; k < Nz; k++){
+        std::cout << "Scanning k = " << k << " plane for stability violations" << std::endl;
         for (int i = 0; i < Nx; i++){
             for (int j = 0; j < Ny; j++){
                 for (int ifv = 0; ifv < 8; ifv++){
-                    std::cout << "Computing stability for (i,j,k) = (" << i << "," << j << "," << k << ")" << std::endl; 
                     lidx = IDX3D(i, j, k, Nx, Ny, Nz);
                     fluid_point[ifv] = shm_h_fluidvar[lidx + ifv * cube_size];
-                    stabcrit_LHS = computeStabilityCriterionLHS(A, B, C, fluid_point, dt, mesh_spacing);
-                    if (stabcrit_LHS >= 1.0){ // VIOLATED
-                        std::cout << "Stability criterion violated at (x,y,z) = (" << shm_h_xgrid[i] << "," << shm_h_ygrid[j] << "," << shm_h_zgrid[k] << ")" << std::endl;
-                        std::cout << "(i,j,k) = (" << i << "," << j << "," << k << ")" << std::endl; 
-                        points_of_instability.push_back(Eigen::Vector3f(shm_h_xgrid[i], shm_h_ygrid[j], shm_h_zgrid[k]));
-                        indices_of_instability.push_back(Eigen::Vector3i(i, j, k));
-                        
-                        // The below can be done more efficiently by having the evs on hand
-                        if (stabcrit_LHS > max_stabcritLHS) { 
-                            max_stabcritLHS = stabcrit_LHS; 
-                            largest_evs = getLargestEVs(A, B, C, fluid_point); // these might be unecessary as well
-                        }
+                }
+                stabcrit_LHS = computeStabilityCriterionLHS(A, B, C, fluid_point, dt, mesh_spacing);
+                if (stabcrit_LHS >= 1.0){ // VIOLATED
+                    num_violations++;
+                    // The below can be done more efficiently by having the evs on hand
+                    if (stabcrit_LHS > max_stabcritLHS) { 
+                        std::cout << "New largest violation detected at (x,y,z) = (" << shm_h_xgrid[i] << "," << shm_h_ygrid[j] << "," << shm_h_zgrid[k] << "), ";
+                        std::cout << "(i,j,k) = (" << i << "," << j << "," << k << ")" << std::endl;
+                        std::cout << "Size of previous violation = " << max_stabcritLHS << ", size of new violation = " << stabcrit_LHS << std::endl;
+                        max_stabcritLHS = stabcrit_LHS; 
+                        largest_evs = getLargestEVs(A, B, C, fluid_point); // these might be unecessary as well
                     }
                 }
             }
@@ -139,8 +143,11 @@ int main(int argc, char* argv[]){
     float dt_new = alpha * dt / max_stabcritLHS; // just algebra
     float stab_coeff = (1.0 / dx) * abs(largest_evs[0]) + (1.0 / dy) * abs(largest_evs[1]) + (1.0 / dz) * abs(largest_evs[2]);
 
+    std::cout << "Old timestep: " << dt << std::endl;
+    std::cout << "Largest violation: " << max_stabcritLHS << std::endl;
     std::cout << "New timestep: " << dt_new << std::endl;
-    std::cout << "Value of (previous) largest violation: " << dt_new * stab_coeff << std::endl;
+    std::cout << "Updated value of the previous largest violation: " << dt_new * stab_coeff << std::endl;
+    std::cout << "Total number of stability violations detected: " << num_violations << std::endl; 
 
     // Free EVERYTHING
     munmap(shm_h_fluidvar, fluid_data_size);

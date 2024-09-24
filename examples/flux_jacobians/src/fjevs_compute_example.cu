@@ -136,7 +136,6 @@ int main(int argc, char* argv[]){
     }
     cudaMemcpy(shm_h_gridz, grid_z, sizeof(float) * Nz, cudaMemcpyDeviceToHost);
 
-
     std::cout << "Forking to flux jacobian eigenvalue computation binary" << std::endl;
     int ret = callEigen(shm_name, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
     if (ret != 0) {
