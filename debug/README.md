@@ -1,5 +1,5 @@
 # Overview
-This is where the debugging happens
+This is where the debugging happens - very long argument list to main executable necessitates refactoring the code to remove Python launcher
 
 # Directory Structure
 `src/`

@@ -5,23 +5,23 @@ Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD sys
 [] = "Not yet accomplished"
 
 # Current Tasks
-(1) Debugging and Tests
+(1) Refactor
+- Integrate PoC functionality to scan for numerical instability points using `Eigen`, and write data out with `PHDF5`
+
+(2) Debugging and Tests
 - Unit tests of functional components, see `tests/README.md`
 - Numerical test problems
 
-(2) Profile simulation
+(3) Profile simulation
 - Figure out how to profile `304x304x592` case
 
-(3) Run simulation and visualize results
+(4) Run simulation and visualize results
 - Finish `visualization/create_video_csv.cpp`
 
-(4) Optimize
+(5) Optimize
 - Kernels need to be refactored again for global memory coalescing
-- Execution configurations should go to 1B1T
+- Execution configurations should go to 1B1T (test this)
 - Shared memory access needs to be implemented in kernels
-
-(5) Data output
-- Implement writing device data to storage in the form of hdf5 files with GDS VFD
 
 (6) Build Instructions
 - Develop document that describes how to build the project from a fresh install of Ubuntu 22.04

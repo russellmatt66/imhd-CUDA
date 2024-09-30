@@ -1,3 +1,11 @@
+# HIDING CMAKE FILES FROM `./benchmarking/`
+/benchmarking/build/CMakeFiles/*
+/benchmarking/build/*.cmake
+/benchmarking/build/Makefile
+/benchmarking/build/*.a
+/benchmarking/build/imhd-cuda_bench
+/benchmarking/build/CMakeCache.txt
+
 # HIDING BUILD CMAKE FILES AND BINARY
 /build/CMakeFiles/*
 /build/Makefile
@@ -62,6 +70,27 @@
 /debug/build/imhd-debug
 /debug/build/CMakeCache.txt
 
+# HIDING DEPRECATED CMAKE FILES AND BINARY
+/deprecated/build/CMakeFiles/*
+/deprecated/build/Makefile
+/deprecated/build/*.cmake
+/deprecated/build/*.a
+/deprecated/build/CMakeCache.txt
+/deprecated/build/imhd-cuda
+/deprecated/build/write-grid
+/deprecated/build/*.log
+/deprecated/build/test.*
+
+/deprecated/examples/visualization/build/CMakeFiles/*
+/deprecated/examples/visualization/build/*.cmake
+/deprecated/examples/visualization/build/CMakeCache.txt
+/deprecated/examples/visualization/build/Makefile
+
+/deprecated/examples/visualization/debug/CMakeFiles/*
+/deprecated/examples/visualization/debug/*.cmake
+/deprecated/examples/visualization/debug/CMakeCache.txt
+/deprecated/examples/visualization/debug/Makefile
+
 # HIDING CMAKE FILES FROM `./tests/`
 tests/output/build/CMakeCache.txt
 tests/output/build/CMakeFiles/*
@@ -69,14 +98,6 @@ tests/output/build/Makefile
 tests/output/build/cmake_install.cmake
 tests/output/build/*.a
 tests/output/build/output-test
-
-# HIDING CMAKE FILES FROM `./benchmarking/`
-/benchmarking/build/CMakeFiles/*
-/benchmarking/build/*.cmake
-/benchmarking/build/Makefile
-/benchmarking/build/*.a
-/benchmarking/build/imhd-cuda_bench
-/benchmarking/build/CMakeCache.txt
 
 # HIDING CMAKE FILES FROM `./visualization/`
 /visualization/build/*
