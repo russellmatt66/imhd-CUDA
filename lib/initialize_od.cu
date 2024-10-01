@@ -23,7 +23,7 @@ __global__ void InitializeGrid(const float x_min, const float x_max, const float
     }
 
 // 56 registers / thread
-__global__ void InitialConditions(float* fluidvar, const float J0, const float* grid_x, const float* grid_y, const float* grid_z, 
+__global__ void ScrewPinch(float* fluidvar, const float J0, const float* grid_x, const float* grid_y, const float* grid_z, 
     const int Nx, const int Ny, const int Nz)
     {
         int tidx = threadIdx.x + blockDim.x * blockIdx.x;

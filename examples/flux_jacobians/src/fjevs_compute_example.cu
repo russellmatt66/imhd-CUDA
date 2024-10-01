@@ -84,7 +84,7 @@ int main(int argc, char* argv[]){
 	checkCuda(cudaDeviceSynchronize());
 
     std::cout << "Initializing simulation data" << std::endl;
-	InitialConditions<<<execution_grid_dimensions, block_dims_init>>>(fluidvar, J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
+	ScrewPinch<<<execution_grid_dimensions, block_dims_init>>>(fluidvar, J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
     checkCuda(cudaDeviceSynchronize());
 
     // TRANSFER DEVICE DATA TO SHARED MEMORY REGION
@@ -149,7 +149,13 @@ int main(int argc, char* argv[]){
     cudaFree(grid_y);
     cudaFree(grid_z);
     munmap(shm_h_fluidvar, 8 * fluid_data_size);
+    munmap(shm_h_gridx, sizeof(float) * Nx);
+    munmap(shm_h_gridy, sizeof(float) * Ny);
+    munmap(shm_h_gridz, sizeof(float) * Nz);
     shm_unlink(shm_name.data());  
+    shm_unlink(shm_name_gridx.data());
+    shm_unlink(shm_name_gridy.data());
+    shm_unlink(shm_name_gridz.data());
     return 0;
 }
 

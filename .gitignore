@@ -12,10 +12,12 @@
 /build/*.cmake
 /build/*.a
 /build/CMakeCache.txt
-/build/imhd-cuda
-/build/write-grid
 /build/*.log
 /build/test.*
+/build/imhd-cuda
+/build/add_attributes
+/build/fj_evs_compute
+/build/phdf5_write_all
 
 # HIDING DATA FILES - BUT NOT READMEs b/c folders are necessary for sim operation
 /data/rho/*

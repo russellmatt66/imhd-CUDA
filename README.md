@@ -51,5 +51,9 @@ Numerical simulations of physical systems are best implemented in `non-dimension
 
 Fortunately, the Ideal MHD system is already written in such a way, with the only physical constant left behind being the adiabatic index, &gamma, which in general is related to the number of degrees of freedom that the particles of a gaseous system possess. Plasmas, being an electrically-charged gas which on macroscopic scales is roughly electrically-neutral as the abundance of free charge in the system acts in a way to shield electric potentials from the bulk, can be analyzed by considering the particles to have only translational degrees of freedom in three dimensions, which yields a &gamma = 5 / 3.    
 
-# Directory Structure
+## Directory Structure
 WIP
+
+## Misc
+`git ls-files '*.cpp' '*.hpp' '*.cu' '*.cuh' '*.py' | xargs wc -l`
+- Check # of relevant LoC
