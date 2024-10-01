@@ -83,6 +83,25 @@
 /deprecated/build/*.log
 /deprecated/build/test.*
 
+/deprecated/data/rho/*
+/deprecated/data/rhovx/*
+/deprecated/data/rhovy/*
+/deprecated/data/rhovz/*
+/deprecated/data/Bx/*
+/deprecated/data/By/*
+/deprecated/data/Bz/*
+/deprecated/data/e/*
+/deprecated/data/grid/*
+!/deprecated/data/rho/README.md
+!/deprecated/data/rhovx/README.md
+!/deprecated/data/rhovy/README.md
+!/deprecated/data/rhovz/README.md
+!/deprecated/data/Bx/README.md
+!/deprecated/data/By/README.md
+!/deprecated/data/Bz/README.md
+!/deprecated/data/e/README.md
+!/deprecated/data/grid/README.md
+
 /deprecated/examples/visualization/build/CMakeFiles/*
 /deprecated/examples/visualization/build/*.cmake
 /deprecated/examples/visualization/build/CMakeCache.txt
