@@ -4,7 +4,7 @@
 
 #include "utils.hpp"
 
-int callBinary_Attributes(const std::string file_name, const int Nx, const int Ny, const int Nz, const std::string attr_bin_name){
+int callBinary_AttrWrite(const std::string file_name, const int Nx, const int Ny, const int Nz, const std::string attr_bin_name){
     std::string addatt_command = "./" + attr_bin_name + " " + file_name + " " + std::to_string(Nx) + " "
                                     + std::to_string(Ny) + " " + std::to_string(Nz);
     

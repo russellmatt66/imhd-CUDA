@@ -195,8 +195,11 @@ void writeH5FileAll(const std::string file_name, const float* output_data, const
     std::cout << "Process: " << rank << " Closing file" << std::endl;
     status = H5Fclose(file_id);
 
+    if (rank == 0){
+        std::cout << ".h5 file written" << std::endl;
+    }
+    
     MPI_Finalize();
-    std::cout << ".h5 file written" << std::endl;
     return;
 }
 

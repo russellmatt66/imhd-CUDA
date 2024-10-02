@@ -1,7 +1,8 @@
-#include <assert.h>
-#include <cstdlib>
-#include <stdio.h>
 #include <iostream>
+#include <cstdlib>
+#include <cstring>
+#include <assert.h>
+#include <stdio.h>
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -46,6 +47,7 @@ int main(int argc, char* argv[]){
    std::string phdf5_bin_name = argv[15];
    std::string attr_bin_name = argv[16];
    std::string eigen_bin_name = argv[17];
+   std::string num_proc = argv[18];
 
    /* 
    CUDA BOILERPLATE 
@@ -114,17 +116,16 @@ int main(int argc, char* argv[]){
    cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);
    checkCuda(cudaDeviceSynchronize());
 
-   // 4 is the magic number b/c 8 fluid variables need to be written out in parallel, and not every machine has 8 cores
-   std::string filename_fluidvar = path_to_data + "fluidvar0.h5";
+   std::string filename_fluidvar = path_to_data + "fluidvars_0.h5";
 
    std::cout << "Writing Screw-Pinch ICs out with PHDF5" << std::endl;
-   int ret = callBinary_PHDF5Write(filename_fluidvar, Nx, Ny, Nz, shm_name_fluidvar, fluid_data_size, std::to_string(4), phdf5_bin_name); 
+   int ret = callBinary_PHDF5Write(filename_fluidvar, Nx, Ny, Nz, shm_name_fluidvar, fluid_data_size, num_proc, phdf5_bin_name); 
    if (ret != 0) {
         std::cerr << "Error executing PHDF5 command" << std::endl;
    }
 
    std::cout << "Writing attributes to the dataset with HDF5" << std::endl;
-   ret = callBinary_Attributes(filename_fluidvar, Nx, Ny, Nz, attr_bin_name); // inadvisable to write attributes in a PHDF5 context
+   ret = callBinary_AttrWrite(filename_fluidvar, Nx, Ny, Nz, attr_bin_name); // inadvisable to write attributes in a PHDF5 context
    if (ret != 0) {
         std::cerr << "Error executing attribute command" << std::endl;
    }
@@ -162,25 +163,47 @@ int main(int argc, char* argv[]){
    cudaMemcpy(shm_h_gridz, z_grid, sizeof(float) * Nz, cudaMemcpyDeviceToHost);
    checkCuda(cudaDeviceSynchronize());
 
-   std::cout << "Forking to process for computing stability" << std::endl;
-   ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
-   if (ret != 0) {
-        std::cerr << "Error executing Eigen command" << std::endl;
+   /* WRITE grid data TO .h5 FILE */
+
+   // Compute stability
+   if (!(eigen_bin_name == "none")){
+      std::cout << "Forking to process for checking stability" << std::endl;
+      ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
+      if (ret != 0) {
+         std::cerr << "Error executing Eigen command" << std::endl;
+      }
    }
 
-
    /* SIMULATION LOOP */
-   for (int it = 0; it < Nt; it++){
+   for (int it = 1; it < Nt; it++){
       std::cout << "Starting timestep " << it << std::endl;
-      /* UPDATE fluidvars_np1 USING fluidvars */
-      /* COPY fluidvars TO HOST */
-      checkCuda(cudaDeviceSynchronize());
 
-      /* COMPUTE fluidvars_int */
-      /* WRITE fluidvars_np1 INTO fluidvars */
-      /* WRITE .h5 file TO STORAGE USING fluidvars_np1 */   
+      std::cout << "Launching kernels for computing fluid variables on interior and boundary" << std::endl;
+      FluidAdvance<<<exec_grid_dims, fluid_block_dims>>>(fluidvars_np1, fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      BoundaryConditions<<<exec_grid_dims, fluid_block_dims>>>(fluidvars_np1, fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       
+      std::cout << "Kernels for computing fluid variables completed" << std::endl;
+      std::cout << "Launching kernels for computing intermediate variables on interior and boundary" << std::endl; 
+      ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, dt, dx, dy, dz, Nx, Ny, Nz); // Compute fluidvars_int
+      ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, dt, dx, dy, dz, Nx, Ny, Nz);
+
+      std::cout << "Launching kernel for writing updated fluid data into current timestep fluid data" << std::endl;
+      SwapSimData<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_np1, Nx, Ny, Nz); // Write fluidvars_np1 into fluidvars
+
+      std::cout << "Transferring updated fluid data to host" << std::endl;
+      cudaMemcpy(shm_h_fluidvar, fluidvars_np1, fluid_data_size, cudaMemcpyDeviceToHost);
+      checkCuda(cudaDeviceSynchronize());
+
+      /* WRITE .h5 file TO STORAGE USING fluidvars_np1 */        
+      std::cout << "Kernels for intermediate variables, buffer write, and D2H transfer complete" << std::endl; 
+      std::cout << "Writing updated fluid data out" << std::endl;
+      filename_fluidvar = path_to_data + "fluidvars_" + std::to_string(it) + ".h5";
+      ret = callBinary_PHDF5Write(filename_fluidvar, Nx, Ny, Nz, shm_name_fluidvar, fluid_data_size, num_proc, phdf5_bin_name);
+      if (ret != 0) {
+         std::cerr << "Error forking PHDF5Write binary on timestep " << std::to_string(it) << std::endl;
+      }  
+
       std::cout << "Timestep " << it << " complete" << std::endl;
    }
 

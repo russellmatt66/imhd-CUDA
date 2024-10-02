@@ -20,24 +20,8 @@
 /build/phdf5_write_all
 
 # HIDING DATA FILES - BUT NOT READMEs b/c folders are necessary for sim operation
-/data/rho/*
-/data/rhovx/*
-/data/rhovy/*
-/data/rhovz/*
-/data/Bx/*
-/data/By/*
-/data/Bz/*
-/data/e/*
-/data/grid/*
-!/data/rho/README.md
-!/data/rhovx/README.md
-!/data/rhovy/README.md
-!/data/rhovz/README.md
-!/data/Bx/README.md
-!/data/By/README.md
-!/data/Bz/README.md
-!/data/e/README.md
-!/data/grid/README.md
+/data/*
+!/data/README.md
 
 # HIDING THE DATA FILES IN DEBUG
 /debug/nulls/data/*
