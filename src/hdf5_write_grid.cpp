@@ -67,6 +67,10 @@ int main(int argc, char* argv[]){
     }
 
     writeGrid(file_name, shm_x_grid, shm_y_grid, shm_z_grid, Nx, Ny, Nz);
+    munmap(shm_x_grid, sizeof(float) * Nx);
+    munmap(shm_y_grid, sizeof(float) * Ny);
+    munmap(shm_z_grid, sizeof(float) * Nz);
+    close(shm_fd);
     return 0;
 }
 
@@ -110,12 +114,28 @@ void writeGrid(const std::string file_name, const float *shm_x_grid, const float
 
     attr_id = H5Acreate(dset_id_x, "spacing", H5T_NATIVE_FLOAT, aspc_id, H5P_DEFAULT, H5P_DEFAULT);
     status = H5Awrite(attr_id, H5T_NATIVE_FLOAT, &dx);
+
+    std::cout << "Writing dimension for x_grid" << std::endl;
+    std::cout << "Nx = " << Nx << std::endl;
+    attr_id = H5Acreate(dset_id_x, "dimension", H5T_NATIVE_INT, aspc_id, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Awrite(attr_id, H5T_NATIVE_INT, &Nx);
+    // status = H5Awrite(attr_id, H5T_NATIVE_FLOAT, &xdim);
     
+    std::cout << "Writing dimension for y_grid" << std::endl;
+    std::cout << "Ny = " << Nx << std::endl;
     attr_id = H5Acreate(dset_id_y, "spacing", H5T_NATIVE_FLOAT, aspc_id, H5P_DEFAULT, H5P_DEFAULT);
     status = H5Awrite(attr_id, H5T_NATIVE_FLOAT, &dy);
+    attr_id = H5Acreate(dset_id_y, "dimension", H5T_NATIVE_INT, aspc_id, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Awrite(attr_id, H5T_NATIVE_INT, &Ny);
+    // status = H5Awrite(attr_id, H5T_NATIVE_FLOAT, &ydim);
 
+    std::cout << "Writing dimension for z_grid" << std::endl;
+    std::cout << "Nz = " << Nz << std::endl;
     attr_id = H5Acreate(dset_id_z, "spacing", H5T_NATIVE_FLOAT, aspc_id, H5P_DEFAULT, H5P_DEFAULT);
     status = H5Awrite(attr_id, H5T_NATIVE_FLOAT, &dz);
+    attr_id = H5Acreate(dset_id_z, "dimension", H5T_NATIVE_INT, aspc_id, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Awrite(attr_id, H5T_NATIVE_INT, &Nz);
+    // status = H5Awrite(attr_id, H5T_NATIVE_FLOAT, &zdim);
 
     status = H5Fclose(file_id);
     status = H5Sclose(dspc_id_x);

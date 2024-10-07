@@ -195,3 +195,7 @@ tests/output/build/output-test
 /examples/old/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/CMakeCache.txt
 /examples/old/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/*.cmake
 /examples/old/vtk/ics_test_hostbuf/ics_vis_cpp/vertex/*.a
+
+# Hiding build files in `visualization/`
+/visualization/build/*
+!/visualization/build/README.md

@@ -102,7 +102,7 @@ int main(int argc, char* argv[]){
    /* WRITE INITIAL DATA OUT */
    std::string shm_name_fluidvar = "/shared_h_fluidvar";
    int shm_fd = shm_open(shm_name_fluidvar.data(), O_CREAT | O_RDWR, 0666);
-      if (shm_fd == -1) {
+   if (shm_fd == -1) {
       std::cerr << "Failed to create shared memory!" << std::endl;
       return EXIT_FAILURE;
    }
@@ -164,16 +164,13 @@ int main(int argc, char* argv[]){
    cudaMemcpy(shm_h_gridz, z_grid, sizeof(float) * Nz, cudaMemcpyDeviceToHost);
    checkCuda(cudaDeviceSynchronize());
 
-   // WRITE grid data TO .h5 FILE
    std::cout << "Forking to process for writing grid to storage" << std::endl;
-   // ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
    ret = callBinary_WriteGrid(wgrid_bin_name, path_to_data, shm_name_gridx, shm_name_gridy, shm_name_gridz, Nx, Ny, Nz);
    if (ret != 0) {
-         std::cerr << "Error executing Eigen binary: " << eigen_bin_name << std::endl;
+         std::cerr << "Error executing writegrid binary: " << eigen_bin_name << std::endl;
    }
 
-   // Compute stability
-   if (!(eigen_bin_name == "none")){
+   if (!(eigen_bin_name == "none")){ // Don't always want to check stability - expensive raster scan
       std::cout << "Forking to process for checking stability" << std::endl;
       ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
       if (ret != 0) {
