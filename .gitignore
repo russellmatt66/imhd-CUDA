@@ -96,6 +96,9 @@
 /deprecated/examples/visualization/debug/CMakeCache.txt
 /deprecated/examples/visualization/debug/Makefile
 
+/deprecated/visualization/build/*
+!/deprecated/visualization/build/README.md
+
 # HIDING CMAKE FILES FROM `./tests/`
 tests/output/build/CMakeCache.txt
 tests/output/build/CMakeFiles/*

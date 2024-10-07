@@ -41,6 +41,23 @@ int callBinary_PHDF5Write(const std::string file_name, const int Nx, const int N
     return ret;
 }
 
+int callBinary_WriteGrid(const std::string bin_name, const std::string file_name, const std::string shm_name_gridx, const std::string shm_name_gridy, const std::string shm_name_gridz, 
+    const int Nx, const int Ny, const int Nz){
+    std::string writegrid_command = "./" + bin_name + " " + std::to_string(Nx) + " " + std::to_string(Ny) + " " + std::to_string(Nz) + " " 
+        + " " + shm_name_gridx + " " + shm_name_gridy + " " + shm_name_gridz + " " + file_name; 
+    
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) != nullptr) {
+        std::cout << "Current working directory: " << cwd << std::endl;
+    } else {
+       std::cerr << "Failed to get current working directory" << std::endl;
+    }
+
+    std::cout << "Executing command: " << writegrid_command << std::endl;
+    int ret = std::system(writegrid_command.data());
+    return ret;
+}
+
 int callBinary_EigenSC(const std::string shm_name, const int Nx, const int Ny, const int Nz, const std::string bin_name, 
     const float dt, const float dx, const float dy, const float dz, 
     const std::string shm_name_gridx, const std::string shm_name_gridy, const std::string shm_name_gridz){
@@ -59,5 +76,4 @@ int callBinary_EigenSC(const std::string shm_name, const int Nx, const int Ny, c
     std::cout << "Executing command: " << eigen_command << std::endl;
     int ret = std::system(eigen_command.data()); 
     return ret;
-    return 0;
 }

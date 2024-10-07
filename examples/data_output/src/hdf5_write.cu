@@ -78,7 +78,7 @@ int main(int argc, char* argv[]){
 	checkCuda(cudaDeviceSynchronize());
 
     std::cout << "Initializing simulation data" << std::endl;
-	InitialConditions<<<execution_grid_dimensions, block_dims_init>>>(fluidvar, J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
+	ScrewPinch<<<execution_grid_dimensions, block_dims_init>>>(fluidvar, J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
     checkCuda(cudaDeviceSynchronize());
 
     // Transfer Device data to Host
