@@ -3,6 +3,8 @@ project(imhd-visualize LANGUAGES CXX C)
 
 find_package(HDF5 REQUIRED COMPONENTS C HL)
 find_package(VTK REQUIRED)
+find_package(VTK REQUIRED COMPONENTS 
+    RenderingVolumeOpenGL2)
 
 include_directories(${HDF5_INCLUDE_DIRS})
 
@@ -14,3 +16,8 @@ add_executable(view_frame view_frame/view_frame.cpp)
 
 target_link_libraries(viewframe_driver PRIVATE ${HDF5_LIBRARIES})
 target_link_libraries(view_frame PRIVATE ${VTK_LIBRARIES})
+
+vtk_module_autoinit(
+    TARGETS view_frame
+    MODULES ${VTK_LIBRARIES}
+)

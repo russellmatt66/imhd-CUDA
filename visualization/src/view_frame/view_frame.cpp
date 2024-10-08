@@ -2,18 +2,18 @@
 Based on https://examples.vtk.org/site/Cxx/Images/ImageImport/
 */
 
-#include <vtkImageActor.h>
+#include <vtkCamera.h>
+#include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkImageImport.h>
-#include <vtkImageMapToColors.h>
-#include <vtkInteractorStyleImage.h>
-#include <vtkLookupTable.h>
-#include <vtkNamedColors.h>
 #include <vtkNew.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
-#include <vtkXMLImageDataWriter.h>
+#include <vtkSmartVolumeMapper.h>
+#include <vtkVolume.h>
+#include <vtkVolumeProperty.h>
 
 #include <sys/mman.h>
 #include <unistd.h>
@@ -50,9 +50,6 @@ int main(int argc, char* argv[]){
 
     float* shm_fluidvar = (float*)mmap(0, fluid_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
 
-    vtkNew<vtkNamedColors> colors;
-
-    // Convert the c-style image to a vtkImageData
     vtkNew<vtkImageImport> imageImport;
     imageImport->SetDataSpacing(dx, dy, dz);
     imageImport->SetDataOrigin(0, 0, 0);
@@ -63,52 +60,51 @@ int main(int argc, char* argv[]){
     imageImport->SetImportVoidPointer(shm_fluidvar);
     imageImport->Update();
 
-    double scalarRange[2];
-    imageImport->GetOutput()->GetScalarRange(scalarRange);
-    std::cout << "Scalar range: [" << scalarRange[0] << ", " << scalarRange[1] << "]" << std::endl;
+    // Create volume mapper
+    vtkNew<vtkSmartVolumeMapper> volumeMapper;
+    volumeMapper->SetInputConnection(imageImport->GetOutputPort());
 
-    // Create an actor
-    vtkNew<vtkImageActor> actor;
-    // actor->SetInputData(imageImport->GetOutput());
+    // Create volume actor
+    vtkNew<vtkVolume> volumeActor;
+    volumeActor->SetMapper(volumeMapper);
 
-    // Create a lookup table to map scalar values to colors
-    vtkNew<vtkLookupTable> lookupTable;
-    lookupTable->SetRange(scalarRange);  // Set the range of your scalar values
-    lookupTable->Build();
+    // Setup color transfer function
+    vtkNew<vtkColorTransferFunction> colorTransfer;
+    colorTransfer->AddRGBPoint(0, 1.0, 0.0, 0.0);   // Red
+    colorTransfer->AddRGBPoint(0.1667, 1.0, 0.5, 0.0); // Orange
+    colorTransfer->AddRGBPoint(0.3333, 1.0, 1.0, 0.0); // Yellow
+    colorTransfer->AddRGBPoint(0.5, 0.0, 1.0, 0.0);    // Green
+    colorTransfer->AddRGBPoint(0.6667, 0.0, 0.0, 1.0); // Blue
+    colorTransfer->AddRGBPoint(0.8333, 0.5, 0.0, 1.0); // Indigo
+    colorTransfer->AddRGBPoint(1, 1.0, 0.0, 1.0);       // Violet
+    
+    // Setup opacity transfer function
+    vtkNew<vtkPiecewiseFunction> opacityTransfer;
+    opacityTransfer->AddPoint(0, 0.0);  // Adjust opacity points based on your data
+    opacityTransfer->AddPoint(1, 1.0);
+    
+    volumeActor->GetProperty()->SetScalarOpacity(opacityTransfer);
+    volumeActor->GetProperty()->SetColor(colorTransfer);
 
-    // Create a mapper to map the image data through the lookup table
-    vtkNew<vtkImageMapToColors> mapColors;
-    mapColors->SetInputData(imageImport->GetOutput());
-    mapColors->SetLookupTable(lookupTable);
-    mapColors->Update();
-
-    actor->SetInputData(mapColors->GetOutput());
-
-    // Assign the color-mapped image to the actor
-    // actor->GetMapper()->SetInputConnection(mapColors->GetOutputPort());
-
-    // Setup renderer
+    // Set up the Renderer, RenderWindow, and Interactor
     vtkNew<vtkRenderer> renderer;
-    renderer->AddActor(actor);
-    renderer->ResetCamera();
-    renderer->SetBackground(1.0, 1.0, 1.0);
-
-    // Setup render window
     vtkNew<vtkRenderWindow> renderWindow;
     renderWindow->AddRenderer(renderer);
-    renderWindow->SetWindowName("ImageImport");
-
-    // Setup render window interactor
     vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
-    vtkNew<vtkInteractorStyleImage> style;
-
-    renderWindowInteractor->SetInteractorStyle(style);
-
-    // Render and start interaction
     renderWindowInteractor->SetRenderWindow(renderWindow);
-    renderWindow->Render();
-    renderWindowInteractor->Initialize();
 
+    vtkNew<vtkCamera> camera;
+    camera->SetPosition(10, 10, 10); // X, Y, Z coordinates; adjust as needed
+    camera->SetFocalPoint(0, 0, 0); // Center of the volume
+    camera->SetViewUp(1, 0, 0); // z-axis is along pinch
+    renderer->SetActiveCamera(camera);
+
+    // Add the volume actor to the scene
+    renderer->AddVolume(volumeActor);
+    renderer->SetBackground(0.0, 0.0, 0.0); // Background color
+
+    // Render and interact
+    renderWindow->Render();
     renderWindowInteractor->Start();
 
     munmap(shm_fluidvar, fluid_data_size);
