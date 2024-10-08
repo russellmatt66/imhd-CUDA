@@ -12,17 +12,19 @@
 
 int main(int argc, char* argv[]){
     std::cout << "Inside viewframe_driver" << std::endl;
-    /* Accept name of .h5 file to view */
-    std::string fluidvar_name = argv[1]; // name of variable to render
+
+    std::string fluidvar_name = argv[1]; // name of dataset to open in fluidvar .h5 file
     std::string filename_frame = argv[2];
     std::string filename_grid = argv[3];
 
-    hsize_t Nx = 0, Ny = 0, Nz = 0;
+    hsize_t Nx = 0, Ny = 0, Nz = 0; // Need this information for the `view_frame` binary
 
-    float dx = 0.0, dy = 0.0, dz = 0.0;
+    float dx = 0.0, dy = 0.0, dz = 0.0; // "
     float x_min = 0.0, x_max = 0.0, y_min = 0.0, y_max = 0.0, z_min = 0.0, z_max = 0.0;
 
-    /* Error checking for `fluidvar_name` */
+    /* 
+    Error checking for `fluidvar_name` 
+    */
 
     // Open grid file and get dimensionality, and spacing attributes
     // It's just easier for this to be "spaghetti"
@@ -195,7 +197,11 @@ int main(int argc, char* argv[]){
     std::cout << "Dataset: " << fluidvar_name.data() << " opened successfully" << std::endl;
 
     status = H5Dread(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, shm_h_fluidvar);
-
+    if (status < 0){
+        std::cerr << "Failed to read dataset successfully" << std::endl;
+    }
+    std::cout << "Dataset read successfully" << std::endl;
+    
     /* 
     Fork process to run `view_frame` 
     Needs:

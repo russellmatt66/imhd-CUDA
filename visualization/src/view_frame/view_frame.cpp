@@ -5,7 +5,9 @@ Based on https://examples.vtk.org/site/Cxx/Images/ImageImport/
 #include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkImageImport.h>
+#include <vtkImageMapToColors.h>
 #include <vtkInteractorStyleImage.h>
+#include <vtkLookupTable.h>
 #include <vtkNamedColors.h>
 #include <vtkNew.h>
 #include <vtkRenderWindow.h>
@@ -17,8 +19,9 @@ Based on https://examples.vtk.org/site/Cxx/Images/ImageImport/
 #include <unistd.h>
 #include <fcntl.h>
 
-
 int main(int argc, char* argv[]){
+    std::cout << "Inside view_frame" << std::endl;
+
     int Nx = atoi(argv[1]);
     int Ny = atoi(argv[2]);
     int Nz = atoi(argv[3]);
@@ -40,7 +43,7 @@ int main(int argc, char* argv[]){
 
     int shm_fd = shm_open(shm_name_fluidvar.data(), O_RDWR, 0666);
     if (shm_fd == -1){
-        std::cerr << "Inside visualize_frame" << std::endl;
+        std::cerr << "Inside view_frame" << std::endl;
         std::cerr << "Failed to open shared memory for fluidvar data" << std::endl;
         return EXIT_FAILURE;
     }
@@ -53,22 +56,42 @@ int main(int argc, char* argv[]){
     vtkNew<vtkImageImport> imageImport;
     imageImport->SetDataSpacing(dx, dy, dz);
     imageImport->SetDataOrigin(0, 0, 0);
-    imageImport->SetWholeExtent(x_min, x_max, y_min, y_max, z_min, z_max);
+    imageImport->SetWholeExtent(0, Nx - 1, 0, Ny - 1, 0, Nz - 1);
     imageImport->SetDataExtentToWholeExtent();
-    imageImport->SetDataScalarTypeToUnsignedChar();
+    imageImport->SetDataScalarTypeToFloat();  
     imageImport->SetNumberOfScalarComponents(1);
     imageImport->SetImportVoidPointer(shm_fluidvar);
     imageImport->Update();
 
+    double scalarRange[2];
+    imageImport->GetOutput()->GetScalarRange(scalarRange);
+    std::cout << "Scalar range: [" << scalarRange[0] << ", " << scalarRange[1] << "]" << std::endl;
+
     // Create an actor
     vtkNew<vtkImageActor> actor;
-    actor->SetInputData(imageImport->GetOutput());
+    // actor->SetInputData(imageImport->GetOutput());
+
+    // Create a lookup table to map scalar values to colors
+    vtkNew<vtkLookupTable> lookupTable;
+    lookupTable->SetRange(scalarRange);  // Set the range of your scalar values
+    lookupTable->Build();
+
+    // Create a mapper to map the image data through the lookup table
+    vtkNew<vtkImageMapToColors> mapColors;
+    mapColors->SetInputData(imageImport->GetOutput());
+    mapColors->SetLookupTable(lookupTable);
+    mapColors->Update();
+
+    actor->SetInputData(mapColors->GetOutput());
+
+    // Assign the color-mapped image to the actor
+    // actor->GetMapper()->SetInputConnection(mapColors->GetOutputPort());
 
     // Setup renderer
     vtkNew<vtkRenderer> renderer;
     renderer->AddActor(actor);
     renderer->ResetCamera();
-    renderer->SetBackground(colors->GetColor3d("SaddleBrown").GetData());
+    renderer->SetBackground(1.0, 1.0, 1.0);
 
     // Setup render window
     vtkNew<vtkRenderWindow> renderWindow;

@@ -96,6 +96,9 @@
 /deprecated/examples/visualization/debug/CMakeCache.txt
 /deprecated/examples/visualization/debug/Makefile
 
+/deprecated/tests/output/build/*
+!/deprecated/tests/output/build/README.md
+
 /deprecated/visualization/build/*
 !/deprecated/visualization/build/README.md
 

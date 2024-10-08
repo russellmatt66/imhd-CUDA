@@ -54,24 +54,15 @@ int main(int argc, char* argv[]){
     int SM_mult_z = 1;
 
 	dim3 grid_dimensions(SM_mult_x * numberOfSMs, SM_mult_y * numberOfSMs, SM_mult_z * numberOfSMs);
-	dim3 block_dims_grid(32, 16, 2); // 1024 threads per block
-	dim3 block_dims_init(8, 4, 4); // 256 < 923 threads per block
+	dim3 block_dims_grid(4, 4, 4);  
+	dim3 block_dims_init(4, 4, 4);
 
 	InitializeGrid<<<grid_dimensions, block_dims_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz,
 															grid_x, grid_y, grid_z, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());
 
-	InitialConditions<<<grid_dimensions, block_dims_init>>>(fluidvar, J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
+	ScrewPinch<<<grid_dimensions, block_dims_init>>>(fluidvar, J0, grid_x, grid_y, grid_z, Nx, Ny, Nz); // Screw-pinch
 	checkCuda(cudaDeviceSynchronize());
-
-    /* USE RAPIDS bindings to write data out */
-
-    // Prepare host data for writing out
-	std::vector<std::string> fluid_data_files (8); // 8 is the number of threads I'm going with
-    std::string base_file = "../data/rho/";
-    for (size_t i = 0; i < fluid_data_files.size(); i++){
-        fluid_data_files[i] = base_file + std::to_string(i) + ".csv";
-    }   
 
 	float *h_rho, *h_rhovx, *h_rhovy, *h_rhovz, *h_Bx, *h_By, *h_Bz, *h_e;
 
@@ -84,166 +75,22 @@ int main(int argc, char* argv[]){
 	h_Bz = (float*)malloc(fluid_data_size);
 	h_e = (float*)malloc(fluid_data_size);
 
-    int* to_write_or_not;
-	to_write_or_not = (int*)malloc(8 * sizeof(int));
+    /* Transfer device data to host, and write to .h5 file */
 
-	for (int i = 0; i < 8; i++){ /* COULD USE A CHAR FOR THIS */
-		to_write_or_not[i] = atoi(argv[4 + i]);
-	}
-
-    for (size_t ih = 0; ih < 8; ih++){
-		if (!to_write_or_not[ih]){ // No need for the host memory if it's not being written out
-			switch (ih)
-			{
-			case 0:
-				free(h_rho);
-				break;
-			case 1:
-				free(h_rhovx);
-				break;
-			case 2:
-				free(h_rhovy);
-				break;			
-			case 3:
-				free(h_rhovz);
-				break;			
-			case 4:
-				free(h_Bx);
-				break;			
-			case 5:
-				free(h_By);
-				break;			
-			case 6:
-				free(h_Bz);
-				break;			
-			case 7:
-				free(h_e);
-				break;			
-			default:
-				break;
-			}
-		}
-	}
-
-    for (size_t iv = 0; iv < 8; iv++){ 
-        if (to_write_or_not[iv]){  
-            switch (iv)
-            {
-            case 0:
-                cudaMemcpy(h_rho, fluidvar, fluid_data_size, cudaMemcpyDeviceToHost);
-                break;
-            case 1:
-                // cudaMemcpy(h_rhovx, fluidvar + fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
-                cudaMemcpy(h_rhovx, fluidvar + cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
-                break;
-            case 2:
-                // cudaMemcpy(h_rhovy, fluidvar + 2 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
-                cudaMemcpy(h_rhovy, fluidvar + 2 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
-                break;
-            case 3:
-                // cudaMemcpy(h_rhovz, fluidvar + 3 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
-                cudaMemcpy(h_rhovz, fluidvar + 3 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
-                break;			
-            case 4:
-                // cudaMemcpy(h_Bx, fluidvar + 4 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
-                cudaMemcpy(h_Bx, fluidvar + 4 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
-                break;				
-            case 5:
-                // cudaMemcpy(h_By, fluidvar + 5 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
-                cudaMemcpy(h_By, fluidvar + 5 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
-                break;				
-            case 6:
-                // cudaMemcpy(h_Bz, fluidvar + 6 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
-                cudaMemcpy(h_Bz, fluidvar + 6 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
-                break;				
-            case 7:
-                // cudaMemcpy(h_e, fluidvar + 7 * fluid_data_size, fluid_data_size, cudaMemcpyDeviceToHost);
-                cudaMemcpy(h_e, fluidvar + 7 * cube_size, fluid_data_size, cudaMemcpyDeviceToHost);
-                break;				
-            default:
-                break;
-            }
-        }
-    }
     checkCuda(cudaDeviceSynchronize());
-
-    for (size_t iv = 0; iv < 8; iv++){ 
-        if (to_write_or_not[iv]){ 
-            base_file = getNewBaseDataLoc(iv);
-            for (size_t i = 0; i < fluid_data_files.size(); i++){
-                fluid_data_files[i] = base_file + "_" + std::to_string(i) + ".csv";
-            }  
-            switch (iv)
-            {
-                case 0:
-                    writeFluidVars(fluid_data_files, h_rho, Nx, Ny, Nz);					
-                    break;
-                case 1:
-                    writeFluidVars(fluid_data_files, h_rhovx, Nx, Ny, Nz);					
-                    break;
-                case 2:
-                    writeFluidVars(fluid_data_files, h_rhovy, Nx, Ny, Nz);					
-                    break;
-                case 3:
-                    writeFluidVars(fluid_data_files, h_rhovz, Nx, Ny, Nz);					
-                    break;			
-                case 4:
-                    writeFluidVars(fluid_data_files, h_Bx, Nx, Ny, Nz);					
-                    break;				
-                case 5:
-                    writeFluidVars(fluid_data_files, h_By, Nx, Ny, Nz);					
-                    break;				
-                case 6:
-                    writeFluidVars(fluid_data_files, h_Bz, Nx, Ny, Nz);					
-                    break;				
-                case 7:
-                    writeFluidVars(fluid_data_files, h_e, Nx, Ny, Nz);					
-                    break;				
-                default:
-                    break;
-            }
-        }
-    }
-    // checkCuda(cudaDeviceSynchronize());
     
 	checkCuda(cudaFree(fluidvar));
     checkCuda(cudaFree(grid_x));
 	checkCuda(cudaFree(grid_y));
 	checkCuda(cudaFree(grid_z));
 
-    for (size_t ih = 0; ih < 8; ih++){
-		if (to_write_or_not[ih]){ // Don't forget to free the rest of the host buffers 
-			switch (ih)
-			{
-			case 0:
-				free(h_rho);
-				break;
-			case 1:
-				free(h_rhovx);
-				break;
-			case 2:
-				free(h_rhovy);
-				break;			
-			case 3:
-				free(h_rhovz);
-				break;			
-			case 4:
-				free(h_Bx);
-				break;			
-			case 5:
-				free(h_By);
-				break;			
-			case 6:
-				free(h_Bz);
-				break;			
-			case 7:
-				free(h_e);
-				break;			
-			default:
-				break;
-			}
-		}
-	}
-	free(to_write_or_not);
+    free(h_rho);
+    free(h_rhovx);
+    free(h_rhovy);
+    free(h_rhovz);
+    free(h_Bx);
+    free(h_By);
+    free(h_Bz);
+    free(h_e);
     return 0;
 }
