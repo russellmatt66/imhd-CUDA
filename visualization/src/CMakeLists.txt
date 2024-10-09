@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.12)
 project(imhd-visualize LANGUAGES CXX C)
 
 find_package(HDF5 REQUIRED COMPONENTS C HL)
-find_package(VTK REQUIRED)
 find_package(VTK REQUIRED COMPONENTS 
     RenderingVolumeOpenGL2)
 
