@@ -238,35 +238,3 @@ int main(int argc, char* argv[]){
     close(shm_fd);
     return 0;
 }
-
-// This returns the number of datacubes that you have to offset to get to the desired information
-// int fluidvarNameMap(std::string fluidvar_name){
-//     int key = 0;
-
-//     if (fluidvar_name == "rho"){
-//         key = 0;
-//     }
-//     else if (fluidvar_name == "rhovx"){
-//         key = 1;
-//     }
-//     else if (fluidvar_name == "rhovy"){
-//         key = 2;
-//     }
-//     else if (fluidvar_name == "rhovz"){
-//         key = 3;
-//     }
-//     else if (fluidvar_name == "Bx"){
-//         key = 4;
-//     }
-//     else if (fluidvar_name == "By"){
-//         key = 5;
-//     }
-//     else if (fluidvar_name == "Bz"){
-//         key = 6;
-//     }
-//     else if (fluidvar_name == "e"){
-//         key = 7;
-//     }
-
-//     return key;
-// }
