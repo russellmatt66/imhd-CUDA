@@ -53,7 +53,7 @@ int main(int argc, char* argv[]){
     int Nx = (int)shm_gridattr[0], Ny = (int)shm_gridattr[1], Nz = (int)shm_gridattr[2];
     float dx = shm_gridattr[3], dy = shm_gridattr[4], dz = shm_gridattr[5];
 
-    std::cout << "Returned successfully from process. Attribute values are:" << std::endl;
+    std::cout << "Returned successfully from process. Attribute values are: " << std::endl;
     std::cout << "(Nx, Ny, Nz) = " << "(" << Nx << "," << Ny << "," << Nz << ")" << std::endl;
     std::cout << "(dx, dy, dz) = " << "(" << dx << "," << dy << "," << dz << ")" << std::endl; 
 
@@ -85,11 +85,12 @@ int main(int argc, char* argv[]){
 
     /* Loop over frames, and make video */
     std::string load_fluidvar_command = "";
-    // for (int i = 0; i <= Nt; i++){
+    for (int i = 0; i <= Nt; i++){
+        std::cout << "Writing frame " << i << " to video" << std::endl;
         /* Fork process to load fluidvar data from .h5 file */
         std::system(load_fluidvar_command.data());
         frame_data->SetImportVoidPointer(shm_fluidvar);
-    // }
+    }
 
     // Manage memory
     shm_unlink(shm_gridattr_name.data());
