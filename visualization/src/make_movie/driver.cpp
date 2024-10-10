@@ -20,8 +20,8 @@
 int main(int argc, char* argv[]){
     std::cout << "Inside make_movie driver" << std::endl;
 
-    std::string dset_name = argv[1]; // specific fluid variable to visualize
-    std::string path_to_data = argv[2];
+    std::string path_to_data = argv[1];
+    std::string dset_name = argv[2]; // specific fluid variable to visualize
     std::string filename_grid = argv[3];
     size_t Nt = atoi(argv[4]);
 
@@ -53,6 +53,7 @@ int main(int argc, char* argv[]){
     int Nx = (int)shm_gridattr[0], Ny = (int)shm_gridattr[1], Nz = (int)shm_gridattr[2];
     float dx = shm_gridattr[3], dy = shm_gridattr[4], dz = shm_gridattr[5];
 
+    std::cout << "Returned successfully from process. Attribute values are:" << std::endl;
     std::cout << "(Nx, Ny, Nz) = " << "(" << Nx << "," << Ny << "," << Nz << ")" << std::endl;
     std::cout << "(dx, dy, dz) = " << "(" << dx << "," << dy << "," << dz << ")" << std::endl; 
 
