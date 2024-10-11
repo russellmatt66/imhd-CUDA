@@ -3,7 +3,15 @@ project(imhd-visualize LANGUAGES CXX C)
 
 find_package(HDF5 REQUIRED COMPONENTS C HL)
 find_package(VTK REQUIRED COMPONENTS 
-    RenderingVolumeOpenGL2)
+    IOFFMPEG
+    RenderingContextOpenGL2
+    RenderingCore
+    RenderingFreeType
+    RenderingGL2PSOpenGL2
+    RenderingOpenGL2
+    RenderingVolume
+    RenderingVolumeOpenGL2
+    )
 
 include_directories(${HDF5_INCLUDE_DIRS})
 
@@ -27,6 +35,6 @@ target_link_libraries(read_fluid_data PRIVATE ${HDF5_LIBRARIES})
 target_link_libraries(read_grid_data PRIVATE ${HDF5_LIBRARIES})
 
 vtk_module_autoinit(
-    TARGETS view_frame
+    TARGETS view_frame makemovie_driver
     MODULES ${VTK_LIBRARIES}
 )

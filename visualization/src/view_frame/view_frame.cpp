@@ -94,14 +94,14 @@ int main(int argc, char* argv[]){
     renderWindowInteractor->SetRenderWindow(renderWindow);
 
     vtkNew<vtkCamera> camera;
-    camera->SetPosition(10, 10, 10); // X, Y, Z coordinates; adjust as needed
-    camera->SetFocalPoint(0, 0, 0); // Center of the volume
+    camera->SetPosition(10, 10, 10); // is 2pi to a side
+    camera->SetFocalPoint(0, 0, 0); // Origin of the volume
     camera->SetViewUp(1, 0, 0); // z-axis is along pinch
     renderer->SetActiveCamera(camera);
 
     // Add the volume actor to the scene
     renderer->AddVolume(volumeActor);
-    renderer->SetBackground(0.0, 0.0, 0.0); // Background color
+    renderer->SetBackground(0.0, 0.0, 0.0); // Black makes the colors show up better 
 
     // Render and interact
     renderWindow->Render();
