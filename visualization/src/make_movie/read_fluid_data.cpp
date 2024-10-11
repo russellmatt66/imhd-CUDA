@@ -21,7 +21,6 @@ int main(int argc, char* argv[]){
     /* Open fluidvar shared memory created by `driver.cpp` */
     int shm_fluidvar_fd = shm_open(shm_fluidvar_name.data(), O_RDWR, 0666);
     if (shm_fluidvar_fd == -1){
-        std::cerr << "Inside read_fluid_data" << std::endl;
         std::cerr << "Failed to open shared memory for fluidvar data" << std::endl;
         return EXIT_FAILURE;
     }

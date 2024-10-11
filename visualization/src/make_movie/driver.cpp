@@ -11,6 +11,8 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSmartVolumeMapper.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 #include <vtkWindowToImageFilter.h>
@@ -106,6 +108,14 @@ int main(int argc, char* argv[]){
     volumeActor->SetMapper(volumeMapper);
     std::cout << "volumeActor instantiated, mapper set to volumeMapper" << std::endl;
 
+    std::cout << "Instantiating textActor" << std::endl;
+    vtkNew<vtkTextActor> frame_text;
+    frame_text->GetPositionCoordinate()->SetCoordinateSystemToNormalizedDisplay();
+    frame_text->SetPosition(0.1, 0.9);
+    frame_text->GetTextProperty()->SetFontSize(24);
+    frame_text->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
+    std::cout << "textActor instantiated" << std::endl;
+
     /* Needs wrapper that does the scaling using min and max values */
     std::cout << "Instantiating colorTransfer" << std::endl;
     vtkNew<vtkColorTransferFunction> colorTransfer;
@@ -132,11 +142,12 @@ int main(int argc, char* argv[]){
     vtkNew<vtkRenderer> renderer;
     vtkNew<vtkRenderWindow> renderWindow;
     renderWindow->AddRenderer(renderer);
+    // renderWindow->Render();
     std::cout << "renderer, and renderWindow instantiated" << std::endl;
 
     std::cout << "Instantiating camera" << std::endl;
     vtkNew<vtkCamera> camera;
-    camera->SetPosition(10, 10, 10);
+    camera->SetPosition(15, 15, 15);
     camera->SetFocalPoint(0, 0, 0);
     camera->SetViewUp(1, 0, 0);
     std::cout << "camera instantiated" << std::endl;
@@ -145,19 +156,21 @@ int main(int argc, char* argv[]){
     renderer->SetActiveCamera(camera);
     renderer->SetBackground(0.0, 0.0, 0.0);
     renderer->AddVolume(volumeActor);
+    renderer->AddActor(frame_text);
     std::cout << "camera and volumeActor connected to renderer" << std::endl;
     
     std::cout << "Instantiating windowToImageFilter" << std::endl;
     vtkNew<vtkWindowToImageFilter> windowToImageFilter;
     windowToImageFilter->SetInput(renderWindow);
-    windowToImageFilter->Update();
+    // windowToImageFilter->Update();
     std::cout << "windowToImageFilter instantiated - renderWindow connected" << std::endl;
 
     std::cout << "Instantiating videoWriter" << std::endl;
-    std::string video_filename = "../" + dset_name + "_" + std::to_string(Nx) + std::to_string(Ny) + std::to_string(Nz) + ".mp4"; // Being run from inside 'build/'
+    std::string video_filename = "../" + dset_name + "_Nx" + std::to_string(Nx) + "Ny" + std::to_string(Ny) + "Nz" + std::to_string(Nz) + ".avi"; // Being run from inside 'build/'
     vtkNew<vtkFFMPEGWriter> videoWriter;
     videoWriter->SetInputConnection(windowToImageFilter->GetOutputPort());
     videoWriter->SetFileName(video_filename.data());
+    videoWriter->SetRate(1); /* Speed this up later */
     videoWriter->Start();
     std::cout << "videoWriter instantiated" << std::endl;
 
@@ -172,8 +185,9 @@ int main(int argc, char* argv[]){
         fluidvar_filename = path_to_data + "fluidvars_" + std::to_string(i) + ".h5";
         std::cout << "fluidvar_filename is: " << fluidvar_filename << std::endl;
 
-        load_fluidvar_command = "./read_fluid_data " + fluidvar_filename + " " + dset_name + " " + fluidvar_filename 
+        load_fluidvar_command = "./read_fluid_data " + shm_fluidvar_name + " " + dset_name + " " + fluidvar_filename 
             + " " + std::to_string(Nx) + " " + std::to_string(Ny) + " " + std::to_string(Nz);
+
         std::cout << "Forking to read_fluid_data binary with: " << load_fluidvar_command << std::endl;
         ret = std::system(load_fluidvar_command.data());
         if (ret != 0) {
@@ -181,12 +195,17 @@ int main(int argc, char* argv[]){
             return 1;
         }
 
-        /* Write frame to video */
+        // Modify data, and write window to video
         frame_data->SetImportVoidPointer(shm_fluidvar);
+        frame_data->Modified();
+
+        frame_text->SetInput(fluidvar_filename.data());
+
         renderWindow->Render();
 
         windowToImageFilter->Modified();
-        
+        windowToImageFilter->Update();
+
         videoWriter->Write();
     }
 
@@ -201,6 +220,5 @@ int main(int argc, char* argv[]){
     munmap(shm_fluidvar, fluid_data_size);
     close(shm_fd_gridattr);
     close(shm_fd_fluidvar);
-
     return 0;
 }

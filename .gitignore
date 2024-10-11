@@ -201,5 +201,6 @@ tests/output/build/output-test
 
 # Hiding build files in `visualization/`
 /visualization/build/*
+/visualization/*.avi
 !/visualization/build/README.md
 !/visualization/build/launcher_makemovie.py
