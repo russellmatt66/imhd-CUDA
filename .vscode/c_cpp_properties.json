@@ -4,6 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/*",
                 "/usr/local/cuda-12.3/targets/x86_64-linux/include",
                 "/usr/local/include/vtk-9.3",
                 "/usr/local/include"

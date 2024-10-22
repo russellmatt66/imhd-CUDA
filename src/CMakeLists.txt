@@ -9,22 +9,22 @@ find_package(HDF5 REQUIRED COMPONENTS C HL)
 
 set(PROJECT_ROOT "..")
 
-include_directories(${PROJECT_ROOT}/include)
+include_directories(${PROJECT_ROOT}/include/)
+include_directories(${PROJECT_ROOT}/include/on-device)
 include_directories(${HDF5_INCLUDE_DIRS})
 include_directories(${MPI_INCLUDE_PATH})
-# add_definitions(-DLIB_DIR=\"${PROJECT_ROOT}/include\")
 
 # set(CMAKE_VERBOSE_MAKEFILE on)
 
 # set(CMAKE_CXX_KEEP_INTERMEDIATE_OBJECTS 1)
 # set(CMAKE_CUDA_KEEP_INTERMEDIATE_OBJECTS 1)
 
-add_library(helper_lib ${PROJECT_ROOT}/lib/helper_functions.cu)
-add_library(diffusion_lib ${PROJECT_ROOT}/lib/diffusion.cu)
-add_library(fluxes_lib ${PROJECT_ROOT}/lib/kernels_od_fluxes.cu)
-add_library(kernels_od_lib ${PROJECT_ROOT}/lib/kernels_od.cu)
-add_library(initialize_od_lib ${PROJECT_ROOT}/lib/initialize_od.cu)
-add_library(intvar_lib ${PROJECT_ROOT}/lib/kernels_od_intvar.cu)
+add_library(helper_lib ${PROJECT_ROOT}/lib/on-device/helper_functions.cu)
+add_library(diffusion_lib ${PROJECT_ROOT}/lib/on-device/diffusion.cu)
+add_library(fluxes_lib ${PROJECT_ROOT}/lib/on-device/kernels_od_fluxes.cu)
+add_library(kernels_od_lib ${PROJECT_ROOT}/lib/on-device/kernels_od.cu)
+add_library(initialize_od_lib ${PROJECT_ROOT}/lib/on-device/initialize_od.cu)
+add_library(intvar_lib ${PROJECT_ROOT}/lib/on-device/kernels_od_intvar.cu)
 add_library(utils_lib ${PROJECT_ROOT}/lib/utils.cpp)
 
 add_executable(imhd-cuda main.cu)

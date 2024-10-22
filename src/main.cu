@@ -7,29 +7,13 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "../include/kernels_od.cuh"
-#include "../include/kernels_od_intvar.cuh"
-#include "../include/initialize_od.cuh"
-#include "../include/gds.cuh"
+#include "../include/on-device/initialize_od.cuh"
+#include "kernels_od.cuh"
+#include "kernels_od_intvar.cuh"
+#include "../include/utils.cuh"
 #include "../include/utils.hpp"
 
-// https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
-/* This REALLY needs to be a library somewhere */
-#define checkCuda(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
-{
-   if (code != cudaSuccess) 
-   {
-      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-      if (abort) exit(code);
-   }
-}
-
-/* REFACTOR THIS ACCORDING TO REFACTORED LIBRARIES */
 int main(int argc, char* argv[]){
-	/* 
-   PARSE ARGUMENTS 
-   */
    int Nt = atoi(argv[1]);
    int Nx = atoi(argv[2]);
    int Ny = atoi(argv[3]);
@@ -59,7 +43,7 @@ int main(int argc, char* argv[]){
    cudaGetDevice(&deviceId);
    cudaDeviceGetAttribute(&numberOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
 
-   /* SPECIFY EXECUTION CONFIGURATIONS */
+   // SPECIFY EXECUTION CONFIGURATIONS
    dim3 exec_grid_dims(numberOfSMs, numberOfSMs, numberOfSMs);
    dim3 mesh_block_dims(8,8,8);
    dim3 init_block_dims(8,8,8);
@@ -78,7 +62,7 @@ int main(int argc, char* argv[]){
    checkCuda(cudaMalloc(&fluidvars, fluid_data_size));
    checkCuda(cudaMalloc(&fluidvars_np1, fluid_data_size));
    checkCuda(cudaMalloc(&fluidvars_int, fluid_data_size));
-
+   
    float *x_grid, *y_grid, *z_grid;
 
    checkCuda(cudaMalloc(&x_grid, sizeof(float) * Nx));
