@@ -1,11 +1,25 @@
 # Overview
-Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD system.
+Project to implement the Lax-Wendroff scheme with CUDA in order to solve the Ideal MHD system using GPUs.
 
-[O] = "(O)ccomplished"
-[] = "Not yet accomplished"
+# Build Instructions
+See `build/README.md`
+
+## Directory Structure
+WIP
 
 # Current Tasks
-(1) Clean up project and QoL Refactor
+[O] = "Occomplished"
+[] = "(Not Occomplished)"
+
+(1) Build Refactor
+- Separate each solver architecture into its own space [O]
+-- `src/`
+-- `include/`
+-- `lib/`
+- Change launcher (?)
+-- Should there be an input file for each architecture?
+
+(1b) Clean up project and QoL Refactor
 - Go through and update all READMEs
 - Go through and clean up stray comments
 - QoL:
@@ -45,8 +59,6 @@ Project to implement the Lax-Wendroff scheme in order to solve the Ideal MHD sys
 -- HDF5
 -- CUDA
 
-# Build Instructions
-
 # VCS
 - `v1.1`: (10/11/24) End-to-end pipeline is complete. Data is written to .h5 files, and a high-performance visualization pipeline renders both individual frames, as well as the totality as a `.avi` file. 
 
@@ -74,9 +86,6 @@ Numerical simulations of physical systems are best implemented in `non-dimension
 
 Fortunately, the Ideal MHD system is already written in such a way, with the only physical constant left behind being the adiabatic index, &gamma, which in general is related to the number of degrees of freedom that the particles of a gaseous system possess. Plasmas, being an electrically-charged gas which on macroscopic scales is roughly electrically-neutral as the abundance of free charge in the system acts in a way to shield electric potentials from the bulk, can be analyzed by considering the particles to have only translational degrees of freedom in three dimensions, which yields a &gamma = 5 / 3.    
 
-## Directory Structure
-WIP
-
-## Misc
+# Misc
 `git ls-files '*.cpp' '*.hpp' '*.cu' '*.cuh' '*.py' | xargs wc -l`
 - Check # of relevant LoC

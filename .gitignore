@@ -14,10 +14,9 @@
 /build/CMakeCache.txt
 /build/*.log
 /build/test.*
-/build/imhd-cuda
-/build/add_attributes
-/build/fj_evs_compute
-/build/phdf5_write_all
+/build/on-device/*
+!/build/on-device/README.md
+!/build/on-device/input.inp
 
 # HIDING DATA FILES - BUT NOT READMEs b/c folders are necessary for sim operation
 /data/*

@@ -1,5 +1,5 @@
 # Overview
-Source directory
+Source directory for the drivers
 
 # Directory Structure
 `main.cu`

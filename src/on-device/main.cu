@@ -7,52 +7,68 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "../include/on-device/initialize_od.cuh"
+#include "initialize_od.cuh"
 #include "kernels_od.cuh"
 #include "kernels_od_intvar.cuh"
-#include "../include/utils.cuh"
-#include "../include/utils.hpp"
+
+#include "utils.cuh"
+#include "utils.hpp"
 
 int main(int argc, char* argv[]){
    int Nt = atoi(argv[1]);
    int Nx = atoi(argv[2]);
    int Ny = atoi(argv[3]);
    int Nz = atoi(argv[4]);
+
    float J0 = atof(argv[5]); // amplitude of the current
 	float D = atof(argv[6]); // coefficient of numerical diffusion
-	float x_min = atof(argv[7]);
+	
+   float x_min = atof(argv[7]);
 	float x_max = atof(argv[8]);
 	float y_min = atof(argv[9]);
 	float y_max = atof(argv[10]);
 	float z_min = atof(argv[11]);
 	float z_max = atof(argv[12]);
 	float dt = atof(argv[13]);
+   
    std::string path_to_data = argv[14];
    std::string phdf5_bin_name = argv[15];
    std::string attr_bin_name = argv[16];
-   std::string wgrid_bin_name = argv[17];
+   std::string write_grid_bin_name = argv[17];
    std::string eigen_bin_name = argv[18];
    std::string num_proc = argv[19];
 
-   /* 
-   CUDA BOILERPLATE 
-   */
+   int meshblockdims_xthreads = atoi(argv[20]);
+   int meshblockdims_ythreads = atoi(argv[21]);
+   int meshblockdims_zthreads = atoi(argv[22]);
+
+   int initblockdims_xthreads = atoi(argv[23]);
+   int initblockdims_ythreads = atoi(argv[24]);
+   int initblockdims_zthreads = atoi(argv[25]);
+   
+   int intvarblockdims_xthreads = atoi(argv[26]);
+   int intvarblockdims_ythreads = atoi(argv[27]);
+   int intvarblockdims_zthreads = atoi(argv[28]);
+
+   int fluidblockdims_xthreads = atoi(argv[29]);
+   int fluidblockdims_ythreads = atoi(argv[30]);
+   int fluidblockdims_zthreads = atoi(argv[31]);
+
+   // CUDA BOILERPLATE 
    int deviceId;
    int numberOfSMs;
 
-   cudaGetDevice(&deviceId);
+   cudaGetDevice(&deviceId); // number of blocks should be a multiple of the number of device SMs
    cudaDeviceGetAttribute(&numberOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
 
    // SPECIFY EXECUTION CONFIGURATIONS
    dim3 exec_grid_dims(numberOfSMs, numberOfSMs, numberOfSMs);
-   dim3 mesh_block_dims(8,8,8);
-   dim3 init_block_dims(8,8,8);
-   dim3 intvar_block_dims(8,8,8);
-   dim3 fluid_block_dims(8,8,8);
+   dim3 mesh_block_dims(meshblockdims_xthreads, meshblockdims_ythreads, meshblockdims_zthreads);
+   dim3 init_block_dims(initblockdims_xthreads, initblockdims_ythreads, initblockdims_zthreads);
+   dim3 intvar_block_dims(intvarblockdims_xthreads, intvarblockdims_ythreads, intvarblockdims_zthreads);
+   dim3 fluid_block_dims(fluidblockdims_xthreads, fluidblockdims_ythreads, fluidblockdims_zthreads);
 
-   /* 
-   INITIALIZE SIMULATION DATA
-   */
+   // INITIALIZE SIMULATION DATA
    size_t cube_size = Nx * Ny * Nz;
    size_t fluidvar_size = sizeof(float) * cube_size;
    size_t fluid_data_size = 8 * fluidvar_size;
@@ -149,7 +165,7 @@ int main(int argc, char* argv[]){
    checkCuda(cudaDeviceSynchronize());
 
    std::cout << "Forking to process for writing grid to storage" << std::endl;
-   ret = callBinary_WriteGrid(wgrid_bin_name, path_to_data, shm_name_gridx, shm_name_gridy, shm_name_gridz, Nx, Ny, Nz);
+   ret = callBinary_WriteGrid(write_grid_bin_name, path_to_data, shm_name_gridx, shm_name_gridy, shm_name_gridz, Nx, Ny, Nz);
    if (ret != 0) {
          std::cerr << "Error executing writegrid binary: " << eigen_bin_name << std::endl;
    }
