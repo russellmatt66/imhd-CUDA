@@ -32,7 +32,6 @@ if (ARCH_CPUPAR)
     add_subdirectory(par)
 endif()
 
-
 # OLD ON-DEVICE CMAKELISTS
 # cmake_minimum_required(VERSION 3.12)
 # project(imhd-CUDA LANGUAGES CUDA CXX)
