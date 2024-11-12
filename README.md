@@ -1,10 +1,10 @@
-# Overview
+### Overview
 Project to implement the Lax-Wendroff scheme with CUDA in order to solve the Ideal MHD system using GPUs.
 
-# Build Instructions
+### Build Instructions
 See `build/README.md`
 
-## Directory Structure
+### Directory Structure
 `build/`
 - Build folder
 
@@ -23,7 +23,7 @@ See `build/README.md`
 `tests/`
 - Source code for the unit tests
 
-# Current Tasks
+### Current Tasks
 [O] = "Occomplished"
 [] = "(Not Occomplished)"
 
@@ -31,11 +31,11 @@ See `build/README.md`
 - Go through and update all READMEs
 - Go through and clean up stray comments
 - QoL:
--- `src/main.cu`: Add additional arguments for threadblock execution configurations
--- `src/main.cu`: Stream standard output to a log file
--- `visualization/src/make_movie/`: Add additional arguments for camera settings, and other parameters
--- `visualization/src/view_frame/`: Add additional arguments for camera settings, and other parameters
--- `data`: Separate the output data from the different solver versions into their own folders
+* `src/main.cu`: Add additional arguments for threadblock execution configurations
+* `src/main.cu`: Stream standard output to a log file
+* `visualization/src/make_movie/`: Add additional arguments for camera settings, and other parameters
+* `visualization/src/view_frame/`: Add additional arguments for camera settings, and other parameters
+* `data`: Separate the output data from the different solver versions into their own folders
 
 (2) Stabilize
 - Integrate PoC functionality to scan for numerical instability points using `Eigen`, and write data out with `PHDF5`
@@ -63,16 +63,19 @@ See `build/README.md`
 (7) Build Instructions
 - Develop document that describes how to build the project from a fresh install of Ubuntu 22.04
 - Enumerate dependencies
--- VTK
--- HDF5
--- CUDA
+* CUDA
+* MPI
+* HDF5
+* VTK
 
-# VCS
+### VCS
 - `v1.1`: (10/11/24) End-to-end pipeline is complete. Data is written to .h5 files, and a high-performance visualization pipeline renders both individual frames, as well as the totality as a `.avi` file. 
 
 - `v1.0`: (6/16/24) The project has reached a milestone where it passes the functional correctness testing of `compute-sanitizer` with all end-to-end components. This working draft needs further work to done to visualize the output, improve the performance, clean up the repo, and profile the production case of `304x304x592`. It is stored with a `git tag` of `v1.0`.
 
-# Design
+### Design
+
+
 ## On-Device or Host-Device?
 Limited DRAM on GPU (RTX 2060) means storage is at a premium, and thread asynchronicity means that it will not work to launch a binary with the algorithm naively implemented to work directly on the variables in memory, because there is no guarantee for when a given fluid variable will be updated. Meaning, as a consequence of thread asynchronicity, this approach will lead to a race condition where variables whose threads have updated them to the future timestep will be used in the update for another variable - who should only be updated using data that represents fluid variables at the current timestep. 
 
@@ -87,13 +90,13 @@ Finally, the Lax-Wendroff method requires that a set of "intermediate" variables
 ## Data Volume
 The goal is to design the simulation according to a data volume of 5 GB. For the RTX2060 architecture which this application is targeted at, this gives a nice headroom of ~1 GB to handle overhead tasks like display while the algorithm is running, as well as store small amounts of additional data, like the cartesian basis of the simulation mesh, which is `O(max(Nx,Ny,Nz))`, instead of `O(NxNyNz)`. 
 
-Calculations regarding the problem size which can be simulated can be found in `./test/problem_size/`.
+Calculations regarding the problem size which can be simulated can be found in `./examples/old/problem_size/`.
 
 ## Dimensionless variables
 Numerical simulations of physical systems are best implemented in `non-dimensional` form. Essentially, this kind of way of writing a system of equations normalizes them in such a way that a set of numbers, e.g., Mach, Euler, Frobenius, etc., representing physical constants, are left behind.
 
 Fortunately, the Ideal MHD system is already written in such a way, with the only physical constant left behind being the adiabatic index, &gamma, which in general is related to the number of degrees of freedom that the particles of a gaseous system possess. Plasmas, being an electrically-charged gas which on macroscopic scales is roughly electrically-neutral as the abundance of free charge in the system acts in a way to shield electric potentials from the bulk, can be analyzed by considering the particles to have only translational degrees of freedom in three dimensions, which yields a &gamma = 5 / 3.    
 
-# Misc
+### Misc
 `git ls-files '*.cpp' '*.hpp' '*.cu' '*.cuh' '*.py' | xargs wc -l`
 - Check # of relevant LoC

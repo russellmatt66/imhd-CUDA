@@ -58,9 +58,9 @@ Currently, only `ARCH_ONDEV` is end-to-end implemented. `make` will cause a set 
 
 ### Run Instructions
 `python simulation_launcher.py`
-- Since currently only the `on-device` architecture is implemented, this does not need any arguments to be accepted.
+- Since only the `on-device` architecture is currently implemented, this does not need any arguments to be accepted.
 
-The above command reads the file `input.inp` in the specified build folder, and launches the simulation accordingly. 
+The above command reads the file `input.inp` in the specified build folder (which is currently `on-device/`), and launches the simulation accordingly. 
 
 See the **input file specification** for the appropriate solver to understand the list of all inputs and their meaning:
 - [ARCH_ONDEV Input File](./on-device/README.md#input-file) 
