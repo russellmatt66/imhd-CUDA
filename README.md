@@ -5,21 +5,29 @@ Project to implement the Lax-Wendroff scheme with CUDA in order to solve the Ide
 See `build/README.md`
 
 ## Directory Structure
-WIP
+`build/`
+- Build folder
+
+`src/`
+- Source code folder for the drivers
+
+`lib/`
+- Library files
+
+`include/`
+- Header files
+
+`visualization/`
+- VTK lives here
+
+`tests/`
+- Source code for the unit tests
 
 # Current Tasks
 [O] = "Occomplished"
 [] = "(Not Occomplished)"
 
-(1) Build Refactor
-- Separate each solver architecture into its own space [O]
--- `src/`
--- `include/`
--- `lib/`
-- Change launcher (?)
--- Should there be an input file for each architecture?
-
-(1b) Clean up project and QoL Refactor
+(1) Clean up project and QoL Refactor
 - Go through and update all READMEs
 - Go through and clean up stray comments
 - QoL:

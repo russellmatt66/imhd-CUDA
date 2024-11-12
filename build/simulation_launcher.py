@@ -16,9 +16,11 @@ for file in all_data_files:
 
 # Read input file, and parse it.
 arg_list = []
-arg_list.append('./imhd-cuda')
+driver = './on-device/imhd-cuda'
+arg_list.append(driver)
 
-with open('input.inp', 'r') as input_file:
+input_file = './on-device/input.inp'
+with open(input_file, 'r') as input_file:
     for line in input_file:
         cmd_arg = line.split('=')[1].strip('\n')
         arg_list.append(cmd_arg)

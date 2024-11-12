@@ -23,17 +23,17 @@ int callBinary_AttrWrite(const std::string file_name, const int Nx, const int Ny
 int callBinary_PHDF5Write(const std::string file_name, const int Nx, const int Ny, const int Nz, 
                 const std::string shm_name, const size_t data_size, 
                 const std::string num_proc, const std::string phdf5_bin_name){
-    std::string mpirun_command = "mpirun -np " + num_proc + " ./" + phdf5_bin_name  
-                                    + " " + file_name + " " + std::to_string(Nx) + " "
-                                    + std::to_string(Ny) + " " + std::to_string(Nz) + " "
-                                    + shm_name + " " + std::to_string(data_size);
-
     char cwd[1024];
     if (getcwd(cwd, sizeof(cwd)) != nullptr) {
         std::cout << "Current working directory: " << cwd << std::endl;
     } else {
        std::cerr << "Failed to get current working directory" << std::endl;
     }
+
+    std::string mpirun_command = "mpirun -np " + num_proc + " ./" + phdf5_bin_name  
+                                    + " " + file_name + " " + std::to_string(Nx) + " "
+                                    + std::to_string(Ny) + " " + std::to_string(Nz) + " "
+                                    + shm_name + " " + std::to_string(data_size);
 
     // Fork to PHDF5 output binary 
     std::cout << "Executing command: " << mpirun_command << std::endl;
