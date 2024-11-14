@@ -17,13 +17,16 @@
 /build/on-device/*
 !/build/on-device/README.md
 !/build/on-device/input.inp
-!/build/on-device/utils
+!/build/on-device/utils 
 /build/on-device/utils/*
 !/build/on-device/utils/README.md
 
 # HIDING DATA FILES - BUT NOT READMEs b/c folders are necessary for sim operation
 /data/*
 !/data/README.md
+!/data/on-device/
+/data/on-device/*
+!/data/on-device/README.md
 
 # HIDING THE DATA FILES IN DEBUG
 /debug/nulls/data/*
