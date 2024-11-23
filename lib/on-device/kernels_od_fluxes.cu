@@ -8,17 +8,17 @@
 __device__ float XFluxRho(const int i, const int j, const int k, const float* fluidvar, const int Nx, const int Ny, const int Nz)
 {
     int cube_size = Nx * Ny * Nz;
-    return fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size];
+    return fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size]; // x-momentum density
 }
 __device__ float YFluxRho(const int i, const int j, const int k, const float* fluidvar, const int Nx, const int Ny, const int Nz)
 {
     int cube_size = Nx * Ny * Nz;
-    return fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size];
+    return fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size]; // y-momentum density
 }
 __device__ float ZFluxRho(const int i, const int j, const int k, const float* fluidvar, const int Nx, const int Ny, const int Nz)
 {
     int cube_size = Nx * Ny * Nz;
-    return fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size];
+    return fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size]; // z-momentum density
 }
 
 // RhoVX

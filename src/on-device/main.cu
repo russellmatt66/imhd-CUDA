@@ -99,7 +99,7 @@ int main(int argc, char* argv[]){
    InitializeIntAndSwap<<<exec_grid_dims, intvar_block_dims>>>(fluidvars_np1, fluidvars_int, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
     
-   /* WRITE INITIAL DATA OUT */
+   // WRITE INITIAL DATA OUT 
    std::string shm_name_fluidvar = "/shared_h_fluidvar";
    int shm_fd = shm_open(shm_name_fluidvar.data(), O_CREAT | O_RDWR, 0666);
    if (shm_fd == -1) {
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]){
         std::cerr << "Error executing attribute command" << std::endl;
    }
 
-   /* COMPUTE STABILITY CRITERION */
+   // COMPUTE STABILITY CRITERION
    // First, transfer grid data
    std::string shm_name_gridx = "/shared_h_gridx";
    shm_fd = shm_open(shm_name_gridx.data(), O_CREAT | O_RDWR, 0666);
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]){
       }
    }
 
-   /* SIMULATION LOOP */
+   // SIMULATION LOOP 
    for (int it = 1; it < Nt; it++){
       std::cout << "Starting timestep " << it << std::endl;
 
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]){
       cudaMemcpy(shm_h_fluidvar, fluidvars_np1, fluid_data_size, cudaMemcpyDeviceToHost);
       checkCuda(cudaDeviceSynchronize());
 
-      /* WRITE .h5 file TO STORAGE USING fluidvars_np1 */        
+      // WRITE .h5 file TO STORAGE USING fluidvars_np1         
       std::cout << "Kernels for intermediate variables, buffer write, and D2H transfer complete" << std::endl; 
       std::cout << "Writing updated fluid data out" << std::endl;
       filename_fluidvar = path_to_data + "fluidvars_" + std::to_string(it) + ".h5";

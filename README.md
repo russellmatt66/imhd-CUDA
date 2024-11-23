@@ -31,8 +31,8 @@ See `build/README.md`
 - Go through and update all READMEs
 - Go through and clean up stray comments
 - QoL:
-* `src/main.cu`: Add additional arguments for threadblock execution configurations
-* `src/main.cu`: Stream standard output to a log file
+* `src/on-device/main.cu`: Add additional arguments for threadblock execution configurations
+* `src/on-device/main.cu`: Stream standard output to a log file
 * `visualization/src/make_movie/`: Add additional arguments for camera settings, and other parameters
 * `visualization/src/view_frame/`: Add additional arguments for camera settings, and other parameters
 * `data`: Separate the output data from the different solver versions into their own folders
@@ -42,6 +42,8 @@ See `build/README.md`
 -- P: Above has been done, timestep altered, solver is still unstable. 
 -- Q: Is CFL being violated?
 - Boundary Conditions or Initial Conditions to blame?
+- Incorrect implementation of numerical diffusion to blame?
+* Noticed that a factor of `\delta t` is missing
 
 (3) Debugging and Tests
 - Unit tests of functional components, see `tests/README.md`
