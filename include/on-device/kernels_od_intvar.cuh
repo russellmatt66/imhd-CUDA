@@ -2,11 +2,11 @@
 #define KERNELS_OD_INTVAR_CUH
 
 __global__ void ComputeIntermediateVariables(const float* fluidvar, float* intvar,
-    const float dt, const float dx, const float dy, const float dz, 
+    const float D, const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
 __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, float* intvar,
-    const float dt, const float dx, const float dy, const float dz, 
+    const float D, const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
 __device__ float intRho(const int i, const int j, const int k, 

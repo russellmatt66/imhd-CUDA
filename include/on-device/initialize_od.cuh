@@ -11,6 +11,8 @@ __global__ void InitializeGrid(const float x_min, const float x_max, const float
 __global__ void ScrewPinch(float* fluidvar, const float J0, const float* grid_x, const float* grid_y, const float* grid_z, 
     const int Nx, const int Ny, const int Nz);
 
-__global__ void InitializeIntAndSwap(float* fluidvar_np1, float* intvar, const int Nx, const int Ny, const int Nz);
+__global__ void InitializeIntvars(float* intvar, const int Nx, const int Ny, const int Nz);
+
+// __global__ void InitializeIntAndSwap(float* fluidvar_np1, float* intvar, const int Nx, const int Ny, const int Nz);
 
 #endif

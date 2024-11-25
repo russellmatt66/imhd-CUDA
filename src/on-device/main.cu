@@ -73,10 +73,11 @@ int main(int argc, char* argv[]){
    size_t fluidvar_size = sizeof(float) * cube_size;
    size_t fluid_data_size = 8 * fluidvar_size;
 
-   float *fluidvars, *fluidvars_np1, *fluidvars_int;
+   // float *fluidvars, *fluidvars_np1, *fluidvars_int;
+   float *fluidvars, *fluidvars_int;
 
    checkCuda(cudaMalloc(&fluidvars, fluid_data_size));
-   checkCuda(cudaMalloc(&fluidvars_np1, fluid_data_size));
+   // checkCuda(cudaMalloc(&fluidvars_np1, fluid_data_size));
    checkCuda(cudaMalloc(&fluidvars_int, fluid_data_size));
    
    float *x_grid, *y_grid, *z_grid;
@@ -96,7 +97,8 @@ int main(int argc, char* argv[]){
    ScrewPinch<<<exec_grid_dims, init_block_dims>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
-   InitializeIntAndSwap<<<exec_grid_dims, intvar_block_dims>>>(fluidvars_np1, fluidvars_int, Nx, Ny, Nz);
+   // InitializeIntAndSwap<<<exec_grid_dims, intvar_block_dims>>>(fluidvars_np1, fluidvars_int, Nx, Ny, Nz);
+   InitializeIntvars<<<exec_grid_dims, intvar_block_dims>>>(fluidvars_int, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
     
    // WRITE INITIAL DATA OUT 
@@ -178,25 +180,24 @@ int main(int argc, char* argv[]){
       }
    }
 
-   // SIMULATION LOOP 
+   // SIMULATION LOOP
    for (int it = 1; it < Nt; it++){
       std::cout << "Starting timestep " << it << std::endl;
 
       std::cout << "Launching kernels for computing fluid variables on interior and boundary" << std::endl;
-      FluidAdvance<<<exec_grid_dims, fluid_block_dims>>>(fluidvars_np1, fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
-      BoundaryConditions<<<exec_grid_dims, fluid_block_dims>>>(fluidvars_np1, fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvance<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      BoundaryConditions<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       
       std::cout << "Kernels for computing fluid variables completed" << std::endl;
       std::cout << "Launching kernels for computing intermediate variables on interior and boundary" << std::endl; 
-      ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, dt, dx, dy, dz, Nx, Ny, Nz); // Compute fluidvars_int
-      ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
 
-      std::cout << "Launching kernel for writing updated fluid data into current timestep fluid data" << std::endl;
-      SwapSimData<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_np1, Nx, Ny, Nz); // Write fluidvars_np1 into fluidvars
-
-      std::cout << "Transferring updated fluid data to host" << std::endl;
-      cudaMemcpy(shm_h_fluidvar, fluidvars_np1, fluid_data_size, cudaMemcpyDeviceToHost);
+      // std::cout << "Launching kernel for writing updated fluid data into current timestep fluid data" << std::endl;
+      // SwapSimData<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_np1, Nx, Ny, Nz); // Write fluidvars_np1 into fluidvars
+      // std::cout << "Transferring updated fluid data to host" << std::endl;
+      cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);
       checkCuda(cudaDeviceSynchronize());
 
       // WRITE .h5 file TO STORAGE USING fluidvars_np1         
@@ -209,12 +210,43 @@ int main(int argc, char* argv[]){
       }  
 
       std::cout << "Timestep " << it << " complete" << std::endl;
-   }
+   } 
+   // for (int it = 1; it < Nt; it++){
+   //    std::cout << "Starting timestep " << it << std::endl;
 
-   /* FREE EVERYTHING */
+   //    std::cout << "Launching kernels for computing fluid variables on interior and boundary" << std::endl;
+   //    FluidAdvance<<<exec_grid_dims, fluid_block_dims>>>(fluidvars_np1, fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
+   //    BoundaryConditions<<<exec_grid_dims, fluid_block_dims>>>(fluidvars_np1, fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
+   //    checkCuda(cudaDeviceSynchronize());
+      
+   //    std::cout << "Kernels for computing fluid variables completed" << std::endl;
+   //    std::cout << "Launching kernels for computing intermediate variables on interior and boundary" << std::endl; 
+   //    ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, dt, dx, dy, dz, Nx, Ny, Nz); // Compute fluidvars_int
+   //    ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, dt, dx, dy, dz, Nx, Ny, Nz);
+
+   //    std::cout << "Launching kernel for writing updated fluid data into current timestep fluid data" << std::endl;
+   //    SwapSimData<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_np1, Nx, Ny, Nz); // Write fluidvars_np1 into fluidvars
+
+   //    std::cout << "Transferring updated fluid data to host" << std::endl;
+   //    cudaMemcpy(shm_h_fluidvar, fluidvars_np1, fluid_data_size, cudaMemcpyDeviceToHost);
+   //    checkCuda(cudaDeviceSynchronize());
+
+   //    // WRITE .h5 file TO STORAGE USING fluidvars_np1         
+   //    std::cout << "Kernels for intermediate variables, buffer write, and D2H transfer complete" << std::endl; 
+   //    std::cout << "Writing updated fluid data out" << std::endl;
+   //    filename_fluidvar = path_to_data + "fluidvars_" + std::to_string(it) + ".h5";
+   //    ret = callBinary_PHDF5Write(filename_fluidvar, Nx, Ny, Nz, shm_name_fluidvar, fluid_data_size, num_proc, phdf5_bin_name);
+   //    if (ret != 0) {
+   //       std::cerr << "Error forking PHDF5Write binary on timestep " << std::to_string(it) << std::endl;
+   //    }  
+
+   //    std::cout << "Timestep " << it << " complete" << std::endl;
+   // }
+
+   // FREE EVERYTHING
    // Device
    checkCuda(cudaFree(fluidvars));
-   checkCuda(cudaFree(fluidvars_np1));
+   // checkCuda(cudaFree(fluidvars_np1));
    checkCuda(cudaFree(fluidvars_int));
    checkCuda(cudaFree(x_grid));
    checkCuda(cudaFree(y_grid));

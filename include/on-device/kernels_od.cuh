@@ -16,15 +16,22 @@ partitioned into two sets:
 #define gamma (5.0 / 3.0)
 
 // Global kernels
-__global__ void SwapSimData(float* fluidvar, const float* fluidvar_np1, const int Nx, const int Ny, const int Nz); 
+// __global__ void SwapSimData(float* fluidvar, const float* fluidvar_np1, const int Nx, const int Ny, const int Nz); // Don't actually need this
 
-__global__ void FluidAdvance(float* fluidvar_np1, const float* fluidvar, const float* intvar, 
+__global__ void FluidAdvance(float* fluidvar, const float* intvar, 
      const float D, const float dt, const float dx, const float dy, const float dz, 
      const int Nx, const int Ny, const int Nz);
+// __global__ void FluidAdvance(float* fluidvar_np1, const float* fluidvar, const float* intvar, 
+//      const float D, const float dt, const float dx, const float dy, const float dz, 
+//      const int Nx, const int Ny, const int Nz);
 
-__global__ void BoundaryConditions(volatile float* fluidvar_np1, const float* fluidvar, const float* intvar, 
+
+__global__ void BoundaryConditions(float* fluidvar, const float* intvar, 
      const float D, const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);
+// __global__ void BoundaryConditions(volatile float* fluidvar_np1, const float* fluidvar, const float* intvar, 
+//      const float D, const float dt, const float dx, const float dy, const float dz,
+//      const int Nx, const int Ny, const int Nz);
 
 // Device kernels
 __device__ float LaxWendroffAdvRho(const int i, const int j, const int k, 
