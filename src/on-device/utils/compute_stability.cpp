@@ -100,18 +100,6 @@ int main(int argc, char* argv[]){
     // Define and instantiate Flux Jacobian Matrices
     Eigen::Matrix<float, NROWS, NCOLS, STORAGE_PATTERN> A, B, C; // I just really like row-major order
     Eigen::Vector3f largest_evs = {0.0, 0.0, 0.0};
-    
-    /* 
-    Not sure if these are necessary in production version 
-    */
-    // std::vector<Eigen::Vector3f> points_of_instability; 
-    // std::vector<Eigen::Vector3i> indices_of_instability;
-
-    // BELOW WOULD GO INSIDE THE LOOP
-    // std::cout << "Stability criterion violated at (x,y,z) = (" << shm_h_xgrid[i] << "," << shm_h_ygrid[j] << "," << shm_h_zgrid[k] << "), ";
-    // std::cout << "(i,j,k) = (" << i << "," << j << "," << k << ")" << std::endl; 
-    // points_of_instability.push_back(Eigen::Vector3f(shm_h_xgrid[i], shm_h_ygrid[j], shm_h_zgrid[k]));
-    // indices_of_instability.push_back(Eigen::Vector3i(i, j, k));
 
     float fluid_point[8] = {0.0};
     float mesh_spacing[3] = {dx, dy, dz};
@@ -122,7 +110,9 @@ int main(int argc, char* argv[]){
     for (int k = 0; k < Nz; k++){
         std::cout << "Scanning k = " << k << " plane for stability violations" << std::endl;
         for (int i = 0; i < Nx; i++){
+            // std::cout << "Scanning i = " << i << " row for stability violations" << std::endl;
             for (int j = 0; j < Ny; j++){
+                // std::cout << "Scanning j = " << j << " point for stability violations" << std::endl;
                 for (int ifv = 0; ifv < 8; ifv++){
                     lidx = IDX3D(i, j, k, Nx, Ny, Nz);
                     fluid_point[ifv] = shm_h_fluidvar[lidx + ifv * cube_size];

@@ -13,3 +13,5 @@ add_executable(fj_evs_compute compute_stability.cpp)
 target_link_libraries(phdf5_write_all PRIVATE ${MPI_LIBRARIES} ${HDF5_LIBRARIES})
 target_link_libraries(add_attributes PRIVATE ${HDF5_LIBRARIES})
 target_link_libraries(write_grid PRIVATE ${HDF5_LIBRARIES})
+
+target_compile_options(fj_evs_compute PRIVATE -O3)

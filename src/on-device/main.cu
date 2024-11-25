@@ -177,6 +177,7 @@ int main(int argc, char* argv[]){
       ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
       if (ret != 0) {
          std::cerr << "Error executing Eigen binary: " << eigen_bin_name << std::endl;
+         std::cerr << "Error code: " << ret << std::endl;
       }
    }
 
@@ -196,7 +197,7 @@ int main(int argc, char* argv[]){
 
       // std::cout << "Launching kernel for writing updated fluid data into current timestep fluid data" << std::endl;
       // SwapSimData<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_np1, Nx, Ny, Nz); // Write fluidvars_np1 into fluidvars
-      // std::cout << "Transferring updated fluid data to host" << std::endl;
+      std::cout << "Transferring updated fluid data to host" << std::endl;
       cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);
       checkCuda(cudaDeviceSynchronize());
 
@@ -211,6 +212,7 @@ int main(int argc, char* argv[]){
 
       std::cout << "Timestep " << it << " complete" << std::endl;
    } 
+
    // for (int it = 1; it < Nt; it++){
    //    std::cout << "Starting timestep " << it << std::endl;
 
