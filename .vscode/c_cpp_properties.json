@@ -9,7 +9,8 @@
                 "${workspaceFolder}/include/on-device/utils",
                 "/usr/local/cuda-12.3/targets/x86_64-linux/include",
                 "/usr/local/include/vtk-9.3",
-                "/usr/local/include"
+                "/usr/local/include",
+                "${workspaceFolder}/include/serial/utils"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

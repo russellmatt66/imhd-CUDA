@@ -1,6 +1,8 @@
 #ifndef RANK_3_TENS
 #define RANK_3_TENS
 
+#include <stddef.h>
+
 template <typename T>
 class rank3Tensor { // High-performance implementation of a rank 3 tensor
     public:
