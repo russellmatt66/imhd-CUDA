@@ -1,6 +1,8 @@
 #ifndef HELPER_HPP
 #define HELPER_HPP
 
+#include "idealMHDFluid.hpp"
+
 #include <type_traits>
 
 template <typename T>

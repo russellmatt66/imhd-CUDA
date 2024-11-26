@@ -31,6 +31,7 @@ See `build/README.md`
 - Go through and update all READMEs
 - Go through and clean up stray comments
 - QoL:
+* `lib/on-device/`: Move definition of `IDX3D` to a single location
 * `src/on-device/main.cu`: Add additional arguments for threadblock execution configurations
 * `src/on-device/main.cu`: Stream standard output to a log file
 * `visualization/src/make_movie/`: Add additional arguments for camera settings, and other parameters
@@ -39,8 +40,8 @@ See `build/README.md`
 
 (2) Stabilize
 - Integrate PoC functionality to scan for numerical instability points using `Eigen`, and write data out with `PHDF5`
--- P: Above has been done, timestep altered, solver is still unstable. 
--- Q: Is CFL being violated?
+* P: Above has been done, timestep altered, solver is still unstable. 
+* Q: Is CFL being violated?
 - Boundary Conditions or Initial Conditions to blame?
 - Incorrect implementation of numerical diffusion to blame?
 * Noticed that a factor of `\delta t` is missing
