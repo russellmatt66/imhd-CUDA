@@ -41,15 +41,11 @@ __global__ void ScrewPinch(float* fluidvar, const float J0, const float* grid_x,
 
         float p = 0.0;
 
-        float C1 = 0.0; // Constants from equilibrium solution
-        float C2 = 0.0;
-        float C3 = 0.0;
-
         float Jr = 0.0; // Makes conversion from cylindrical coordinates more readable 
         float Jphi = 0.0;
 
         float Br = 0.0;
-        float Bphi = 0.0;
+        float Btheta = 0.0;
         float B0 = 1.0;
 
         float x = 0.0; // More readable
@@ -71,36 +67,26 @@ __global__ void ScrewPinch(float* fluidvar, const float J0, const float* grid_x,
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.0;
                     
                     if (r < r_pinch){
-                        Br = C2 / r;
-                        Bphi = 0.5 * J0 * r * (1.0 - 0.5 * pow(r, 2) / pow(r_pinch, 2) + 2.0 / pow(r_pinch, 2) * C1); 
+                        Btheta = 0.5 * J0 * r * (1.0 - 0.5 * pow(r, 2) / pow(r_pinch, 2)); 
 
-                        // Calculated from equilibrium values
-                        p = C3 
-                            + (0.5 + C1 * pow(r_pinch, -2)) * pow(r,2) 
-                            - (3.0 / (8.0 * pow(r_pinch, 2)) + C1 / (2.0 * pow(r_pinch, 4))) * pow(r, 4) 
-                            + (1.0 / (24.0 * pow(r_pinch, 4))) * pow(r,6);
-                        
+                        // Calculated from equilibrium force balance
+                        p = -0.25 * (pow(J0, 2) / pow(r_pinch, 4)) * (pow(r, 6) / 6.0 - 0.75 * pow(r_pinch, 2) * pow(r, 4) + pow(r_pinch, 4) * pow(r, 2));
+
                         fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0;
                         fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = Jr * x - Jphi * y / r;
                         fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = Jr * y + Jphi * x / r;
                         fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = J0 * (1 - pow(r, 2) / pow(r_pinch, 2));
-                        fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = Br * x - Bphi * y / r;
-                        fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = Br * y + Bphi * x / r;
+                        fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = Br * x - Btheta * y / r;
+                        fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = Br * y + Btheta * x / r;
                         fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = B0;
                         fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = (p / (gamma - 1.0)) 
                                                                                 + (pow(fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size], 2) 
                                                                                     + pow(fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size], 2)
                                                                                     + pow(fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size], 2)
                                                                                     ) / (2.0 * fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)])
-                                                                                + pow(fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size], 2) 
+                                                                                + 0.5 * (pow(fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size], 2) 
                                                                                 + pow(fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size], 2) 
-                                                                                + pow(fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size], 2);                
-                        // printf("For (%d, %d, %d) the value of the mhd energy is %5.4f, density: %5.4f, rhovz: %5.4f, Bx: %5.4f, By: %5.4f, Bz: %5.4f, gammacoeff: %f\n", 
-                        //     i, j, k, 
-                        //     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size], fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size], 
-                        //     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size], fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size],
-                        //     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size], fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size],
-                        //     (1.0 / (gamma - 1.0)));
+                                                                                + pow(fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size], 2));                
                     }
                 }
             }

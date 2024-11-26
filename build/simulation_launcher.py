@@ -4,7 +4,7 @@ from os import listdir
 from os.path import isfile, join
 
 # Delete all datafiles in data directory
-data_root = "../data/"
+data_root = "../data/on-device/"
 all_data_files = [file for file in listdir(data_root) if isfile(join(data_root, file))]
 print(all_data_files)
 

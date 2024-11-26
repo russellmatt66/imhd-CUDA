@@ -76,6 +76,7 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
         int cube_size = Nx * Ny * Nz;
 
         // k = 0 and k = Nz - 1
+        /* THIS CAN BE MADE A LOT LESS VERBOSE w/a loop over `ivf`: fluid variable iterator */
         int k = 0;
         for (int i = tidx + 1; i < Nx; i += xthreads){
             for (int j = tidy + 1; j < Ny; j += ythreads){

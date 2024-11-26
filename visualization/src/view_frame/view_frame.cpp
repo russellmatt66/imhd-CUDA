@@ -50,6 +50,12 @@ int main(int argc, char* argv[]){
 
     float* shm_fluidvar = (float*)mmap(0, fluid_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
 
+    float min_val = *std::min_element(shm_fluidvar, shm_fluidvar + Nx * Ny * Nz);
+    float max_val = *std::max_element(shm_fluidvar, shm_fluidvar + Nx * Ny * Nz);
+
+    std::cout << "Min val = " << min_val << std::endl;
+    std::cout << "Max val = " << max_val << std::endl;
+ 
     vtkNew<vtkImageImport> imageImport;
     imageImport->SetDataSpacing(dx, dy, dz);
     imageImport->SetDataOrigin(0, 0, 0);
@@ -70,18 +76,19 @@ int main(int argc, char* argv[]){
 
     // Setup color transfer function
     vtkNew<vtkColorTransferFunction> colorTransfer;
-    colorTransfer->AddRGBPoint(0, 1.0, 0.0, 0.0);   // Red
-    colorTransfer->AddRGBPoint(0.1667, 1.0, 0.5, 0.0); // Orange
-    colorTransfer->AddRGBPoint(0.3333, 1.0, 1.0, 0.0); // Yellow
-    colorTransfer->AddRGBPoint(0.5, 0.0, 1.0, 0.0);    // Green
-    colorTransfer->AddRGBPoint(0.6667, 0.0, 0.0, 1.0); // Blue
-    colorTransfer->AddRGBPoint(0.8333, 0.5, 0.0, 1.0); // Indigo
-    colorTransfer->AddRGBPoint(1, 1.0, 0.0, 1.0);       // Violet
+    float color_range = max_val - min_val;
+    colorTransfer->AddRGBPoint(min_val, 1.0, 0.0, 0.0);   // Red
+    colorTransfer->AddRGBPoint(0.1667 * color_range, 1.0, 0.5, 0.0); // Orange
+    colorTransfer->AddRGBPoint(0.3333 * color_range, 1.0, 1.0, 0.0); // Yellow
+    colorTransfer->AddRGBPoint(0.5 * color_range, 0.0, 1.0, 0.0);    // Green
+    colorTransfer->AddRGBPoint(0.6667 * color_range, 0.0, 0.0, 1.0); // Blue
+    colorTransfer->AddRGBPoint(0.8333 * color_range, 0.5, 0.0, 1.0); // Indigo
+    colorTransfer->AddRGBPoint(max_val, 1.0, 0.0, 1.0);       // Violet
     
     // Setup opacity transfer function
     vtkNew<vtkPiecewiseFunction> opacityTransfer;
-    opacityTransfer->AddPoint(0, 0.0);  // Adjust opacity points based on your data
-    opacityTransfer->AddPoint(1, 1.0);
+    opacityTransfer->AddPoint(min_val, 0.0);  // Adjust opacity points based on your data
+    opacityTransfer->AddPoint(max_val, 1.0);
     
     volumeActor->GetProperty()->SetScalarOpacity(opacityTransfer);
     volumeActor->GetProperty()->SetColor(colorTransfer);
