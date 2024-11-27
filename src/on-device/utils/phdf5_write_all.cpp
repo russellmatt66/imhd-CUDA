@@ -134,37 +134,37 @@ void writeH5FileAll(const std::string file_name, const float* output_data, const
     // Write to the dataset
     // Handles the case where num_procs != 8
     for (int irank = rank; irank < 8; irank += world_size){
-        if (rank == 0){
+        if (irank == 0){
             std::cout << "Process " << rank << " writing rho dataset" << std::endl;
-            status = H5Dwrite(dset_id_rho, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+            status = H5Dwrite(dset_id_rho, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + irank * cube_size);
         }
-        else if (rank == 1){
+        else if (irank == 1){
             std::cout << "Process " << rank << " writing rhovx dataset" << std::endl;
-            status = H5Dwrite(dset_id_rhovx, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+            status = H5Dwrite(dset_id_rhovx, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + irank * cube_size);
         }
-        else if (rank == 2){
+        else if (irank == 2){
             std::cout << "Process " << rank << " writing rhovy dataset" << std::endl;
-            status = H5Dwrite(dset_id_rhovy, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+            status = H5Dwrite(dset_id_rhovy, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + irank * cube_size);
         }
-        else if (rank == 3){
+        else if (irank == 3){
             std::cout << "Process " << rank << " writing rhovz dataset" << std::endl;
-            status = H5Dwrite(dset_id_rhovz, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+            status = H5Dwrite(dset_id_rhovz, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + irank * cube_size);
         }
-        else if (rank == 4){
+        else if (irank == 4){
             std::cout << "Process " << rank << " writing Bx dataset" << std::endl;
-            status = H5Dwrite(dset_id_Bx, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+            status = H5Dwrite(dset_id_Bx, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + irank * cube_size);
         }
-        else if (rank == 5){
+        else if (irank == 5){
             std::cout << "Process " << rank << " writing By dataset" << std::endl;
-            status = H5Dwrite(dset_id_By, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+            status = H5Dwrite(dset_id_By, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + irank * cube_size);
         }
-        else if (rank == 6){
+        else if (irank == 6){
             std::cout << "Process " << rank << " writing Bz dataset" << std::endl;
-            status = H5Dwrite(dset_id_Bz, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+            status = H5Dwrite(dset_id_Bz, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + irank * cube_size);
         }
-        else if (rank == 7){
+        else if (irank == 7){
             std::cout << "Process " << rank << " writing e dataset" << std::endl;
-            status = H5Dwrite(dset_id_e, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + rank * cube_size);
+            status = H5Dwrite(dset_id_e, H5T_NATIVE_FLOAT, mspace, dspc_id, plist_id, output_data + irank * cube_size);
         }
     }
     // MPI_Barrier(comm);
