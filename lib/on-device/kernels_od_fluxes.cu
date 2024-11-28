@@ -1,9 +1,113 @@
 #include "helper_functions.cuh"
 
-// row-major, column-minor order
+// /* THIS NEEDS TO BE PLACED IN A FILE SOMEWHERE SO THERE'S ONLY A SINGLE DEFINITION */
+// // row-major, column-minor order
 #define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx * Ny) + (i) * Ny + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
+// X-Fluxes
+__device__ float XFluxRho(const float rhovx){
+    return rhovx;
+}
 
+__device__ float XFluxRhoVx(const float rho, const float rhovx, const float Bx, const float p, const float Bsq){
+    return pow(rhovx, 2) / rho - pow(Bx, 2) + p + 0.5 * Bsq ;
+}
+
+__device__ float XFluxRhoVy(const float rho, const float rhovx, const float rhovy, const float Bx, const float By){
+    return (rhovx * rhovy) / rho - Bx * By;
+}
+
+__device__ float XFluxRhoVz(const float rho, const float rhovx, const float rhovz, const float Bx, const float Bz){
+    return (rhovx * rhovz) / rho - Bx * Bz;
+}
+
+__device__ float XFluxBx(){
+    return 0.0;
+}
+
+__device__ float XFluxBy(const float rho, const float rhovx, const float rhovy, const float Bx, const float By){
+    return (rhovy / rho) * Bx - (rhovx / rho) * By;
+}
+
+__device__ float XFluxBz(const float rho, const float rhovx, const float rhovz, const float Bx, const float Bz){
+    return (rhovz / rho) * Bx - (rhovx / rho) * Bz;
+}
+
+__device__ float XFluxE(const float rho, const float rhovx, const float Bx, const float e, const float p, const float Bsq, const float Bdotu){
+    return (e + p + 0.5 * Bsq) * (rhovx / rho) - Bdotu * Bx;
+}
+
+// Y-Fluxes
+__device__ float YFluxRho(const float rhovy){
+    return rhovy;
+}
+
+__device__ float YFluxRhoVx(const float rho, const float rhovx, const float rhovy, const float Bx, const float By){
+    return (rhovx * rhovy) / rho - Bx * By;
+}
+
+__device__ float YFluxRhoVy(const float rho, const float rhovy, const float By, const float p, const float Bsq){
+    return pow(rhovy, 2) / rho - pow(By, 2) + p + 0.5 * Bsq;
+}
+
+__device__ float YFluxRhoVz(const float rho, const float rhovy, const float rhovz, const float By, const float Bz){
+    return (rhovy * rhovz) / rho - By * Bz;
+}
+
+__device__ float YFluxBx(const float rho, const float rhovx, const float rhovy, const float Bx, const float By){
+    return (rhovx / rho) * By - (rhovy / rho) * Bx;
+}
+
+__device__ float YFluxBy(){
+    return 0.0;
+}
+
+__device__ float YFluxBz(const float rho, const float rhovy, const float rhovz, const float By, const float Bz){
+    return (rhovz / rho) * By - (rhovy / rho) * Bz;
+}
+
+__device__ float YFluxE(const float rho, const float rhovy, const float By, const float e, const float p, const float Bsq, const float Bdotu){
+    return (e + p + 0.5 * Bsq) * (rhovy / rho) - Bdotu * By;
+}
+
+// Z-Fluxes
+__device__ float ZFluxRho(const float rhovz){
+    return rhovz;
+}
+
+__device__ float ZFluxRhoVx(const float rho, const float rhovx, const float rhovz, const float Bx, const float Bz){
+    return (rhovx * rhovz) / rho - Bx * Bz;
+}
+
+__device__ float ZFluxRhoVy(const float rho, const float rhovy, const float rhovz, const float By, const float Bz){
+    return (rhovy * rhovz) / rho - By * Bz;
+}
+
+__device__ float ZFluxRhoVz(const float rho, const float rhovz, const float Bz, const float p, const float Bsq){
+    return pow(rhovz, 2) / rho - pow(Bz, 2) + p + 0.5 * Bsq;
+}
+
+__device__ float ZFluxBx(const float rho, const float rhovx, const float rhovz, const float Bx, const float Bz){
+    return (rhovx / rho) * Bz - (rhovz / rho) * Bx;
+}
+
+__device__ float ZFluxBy(const float rho, const float rhovy, const float rhovz, const float By, const float Bz){
+    return (rhovy / rho) * Bz - (rhovz / rho) * By;
+}
+
+__device__ float ZFluxBz(){
+    return 0.0;
+}
+
+__device__ float ZFluxE(const float rho, const float rhovz, const float Bz, const float e, const float p, const float Bsq, const float Bdotu){
+    return (e + p + 0.5 * Bsq) * (rhovz / rho) - Bdotu * Bz;
+}
+
+/* 
+I THINK THIS IS WHAT'S CAUSING THE CACHE TO BE THRASHED 
+IT'S ALSO BASICALLY UNREADABLE
+A BETTER IMPLEMENTATION WOULD NOT REQUIRE EVERY FUNCTION TO ACCESS MEMORY
+*/
 // Rho
 __device__ float XFluxRho(const int i, const int j, const int k, const float* fluidvar, const int Nx, const int Ny, const int Nz)
 {
