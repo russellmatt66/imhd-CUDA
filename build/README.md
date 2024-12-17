@@ -46,7 +46,7 @@ That means at present you will need PHDF5 installed in order to build, and run t
 After you have all the dependencies installed
 
 1. Navigate to the `build/` folder (which you are currently in if you are reading this). 
-2. Run `cmake ../src -DARCH_NAME`, with `ARCH_NAME` corresponding to the solver architecture that you want to build. You can build more than one. 
+2. Run `cmake ../src -DARCH_NAME=ON`, with `ARCH_NAME` corresponding to the solver architecture that you want to build. You can build more than one. 
 - `ARCH_NAME`:
 * `ARCH_ONDEV` = The `on-device` solver architecture
 * `ARCH_HOSTDEV` = The `host-device` solver architecture
