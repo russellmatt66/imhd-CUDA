@@ -165,10 +165,10 @@ __global__ void FluidAdvanceLocal(float* fluidvar, const float* intvar,
                     // Bdot_ijm1k = B_dot_u(i, j-1, k, intvar, Nx, Ny, Nz);
                     // Bdot_ijkm1 = B_dot_u(i, j, k-1, intvar, Nx, Ny, Nz);
 
-                    Bdotu_ijk = B_dot_u_local(rho_int, rhovx_int, rhovz_int, Bx_int, By_int, Bz_int);
-                    Bdotu_im1jk = B_dot_u_local(rho_int_im1, rhovx_int_im1, rhovz_int_im1, Bx_int_im1, By_int_im1, Bz_int_im1);
-                    Bdotu_ijm1k = B_dot_u_local(rho_int_jm1, rhovx_int_jm1, rhovz_int_jm1, Bx_int_jm1, By_int_jm1, Bz_int_jm1);
-                    Bdotu_ijkm1 = B_dot_u_local(rho_int_km1, rhovx_int_km1, rhovz_int_km1, Bx_int_km1, By_int_km1, Bz_int_km1);
+                    Bdotu_ijk = B_dot_u_local(rho_int, rhovx_int, rhovy_int, rhovz_int, Bx_int, By_int, Bz_int);
+                    Bdotu_im1jk = B_dot_u_local(rho_int_im1, rhovx_int_im1, rhovy_int_im1, rhovz_int_im1, Bx_int_im1, By_int_im1, Bz_int_im1);
+                    Bdotu_ijm1k = B_dot_u_local(rho_int_jm1, rhovx_int_jm1, rhovy_int_jm1, rhovz_int_jm1, Bx_int_jm1, By_int_jm1, Bz_int_jm1);
+                    Bdotu_ijkm1 = B_dot_u_local(rho_int_km1, rhovx_int_km1, rhovy_int_jm1, rhovz_int_km1, Bx_int_km1, By_int_km1, Bz_int_km1);
 
                     // Update and store fluidvars
                     // rho
@@ -215,7 +215,7 @@ __global__ void FluidAdvanceLocal(float* fluidvar, const float* intvar,
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] =  LaxWendroffAdvRhoVZLocal(rho_int, rho_int_im1, rho_int_jm1, rho_int_km1, 
                                                                                 rhovx_int, rhovx_int_im1, 
                                                                                 rhovy_int, rhovy_int_jm1, 
-                                                                                rhovz_int, rhovz_int, rhovz_int_im1, rhovz_int_jm1, rhovz_int_km1,
+                                                                                rhovz, rhovz_int, rhovz_int_im1, rhovz_int_jm1, rhovz_int_km1,
                                                                                 Bx_int, Bx_int_im1, 
                                                                                 By_int, By_int_jm1, 
                                                                                 Bz_int, Bz_int_im1, Bz_int_jm1, Bz_int_km1, 

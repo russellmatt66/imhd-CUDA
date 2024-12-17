@@ -186,7 +186,7 @@ int main(int argc, char* argv[]){
       std::cout << "Starting timestep " << it << std::endl;
 
       std::cout << "Launching kernels for computing fluid variables on interior and boundary" << std::endl;
-      FluidAdvance<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceLocal<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
       BoundaryConditions<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       
