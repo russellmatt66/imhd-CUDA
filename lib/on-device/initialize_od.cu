@@ -57,7 +57,7 @@ __global__ void ScrewPinch(float* fluidvar, const float J0, const float* grid_x,
                     y = grid_y[j];
                     r = sqrtf(pow(x, 2) + pow(y, 2));
 
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.01;
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0;
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
