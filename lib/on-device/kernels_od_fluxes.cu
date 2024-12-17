@@ -9,27 +9,27 @@ __device__ float XFluxRho(const float rhovx){
     return rhovx;
 }
 
-__device__ float XFluxRhoVx(const float rho, const float rhovx, const float Bx, const float p, const float Bsq){
+__device__ float XFluxRhoVX(const float rho, const float rhovx, const float Bx, const float p, const float Bsq){
     return pow(rhovx, 2) / rho - pow(Bx, 2) + p + 0.5 * Bsq ;
 }
 
-__device__ float XFluxRhoVy(const float rho, const float rhovx, const float rhovy, const float Bx, const float By){
+__device__ float XFluxRhoVY(const float rho, const float rhovx, const float rhovy, const float Bx, const float By){
     return (rhovx * rhovy) / rho - Bx * By;
 }
 
-__device__ float XFluxRhoVz(const float rho, const float rhovx, const float rhovz, const float Bx, const float Bz){
+__device__ float XFluxRhoVZ(const float rho, const float rhovx, const float rhovz, const float Bx, const float Bz){
     return (rhovx * rhovz) / rho - Bx * Bz;
 }
 
-__device__ float XFluxBx(){
+__device__ float XFluxBX(){
     return 0.0;
 }
 
-__device__ float XFluxBy(const float rho, const float rhovx, const float rhovy, const float Bx, const float By){
+__device__ float XFluxBY(const float rho, const float rhovx, const float rhovy, const float Bx, const float By){
     return (rhovy / rho) * Bx - (rhovx / rho) * By;
 }
 
-__device__ float XFluxBz(const float rho, const float rhovx, const float rhovz, const float Bx, const float Bz){
+__device__ float XFluxBZ(const float rho, const float rhovx, const float rhovz, const float Bx, const float Bz){
     return (rhovz / rho) * Bx - (rhovx / rho) * Bz;
 }
 
@@ -42,27 +42,27 @@ __device__ float YFluxRho(const float rhovy){
     return rhovy;
 }
 
-__device__ float YFluxRhoVx(const float rho, const float rhovx, const float rhovy, const float Bx, const float By){
+__device__ float YFluxRhoVX(const float rho, const float rhovx, const float rhovy, const float Bx, const float By){
     return (rhovx * rhovy) / rho - Bx * By;
 }
 
-__device__ float YFluxRhoVy(const float rho, const float rhovy, const float By, const float p, const float Bsq){
+__device__ float YFluxRhoVY(const float rho, const float rhovy, const float By, const float p, const float Bsq){
     return pow(rhovy, 2) / rho - pow(By, 2) + p + 0.5 * Bsq;
 }
 
-__device__ float YFluxRhoVz(const float rho, const float rhovy, const float rhovz, const float By, const float Bz){
+__device__ float YFluxRhoVZ(const float rho, const float rhovy, const float rhovz, const float By, const float Bz){
     return (rhovy * rhovz) / rho - By * Bz;
 }
 
-__device__ float YFluxBx(const float rho, const float rhovx, const float rhovy, const float Bx, const float By){
+__device__ float YFluxBX(const float rho, const float rhovx, const float rhovy, const float Bx, const float By){
     return (rhovx / rho) * By - (rhovy / rho) * Bx;
 }
 
-__device__ float YFluxBy(){
+__device__ float YFluxBY(){
     return 0.0;
 }
 
-__device__ float YFluxBz(const float rho, const float rhovy, const float rhovz, const float By, const float Bz){
+__device__ float YFluxBZ(const float rho, const float rhovy, const float rhovz, const float By, const float Bz){
     return (rhovz / rho) * By - (rhovy / rho) * Bz;
 }
 
@@ -75,27 +75,27 @@ __device__ float ZFluxRho(const float rhovz){
     return rhovz;
 }
 
-__device__ float ZFluxRhoVx(const float rho, const float rhovx, const float rhovz, const float Bx, const float Bz){
+__device__ float ZFluxRhoVX(const float rho, const float rhovx, const float rhovz, const float Bx, const float Bz){
     return (rhovx * rhovz) / rho - Bx * Bz;
 }
 
-__device__ float ZFluxRhoVy(const float rho, const float rhovy, const float rhovz, const float By, const float Bz){
+__device__ float ZFluxRhoVY(const float rho, const float rhovy, const float rhovz, const float By, const float Bz){
     return (rhovy * rhovz) / rho - By * Bz;
 }
 
-__device__ float ZFluxRhoVz(const float rho, const float rhovz, const float Bz, const float p, const float Bsq){
+__device__ float ZFluxRhoVZ(const float rho, const float rhovz, const float Bz, const float p, const float Bsq){
     return pow(rhovz, 2) / rho - pow(Bz, 2) + p + 0.5 * Bsq;
 }
 
-__device__ float ZFluxBx(const float rho, const float rhovx, const float rhovz, const float Bx, const float Bz){
+__device__ float ZFluxBX(const float rho, const float rhovx, const float rhovz, const float Bx, const float Bz){
     return (rhovx / rho) * Bz - (rhovz / rho) * Bx;
 }
 
-__device__ float ZFluxBy(const float rho, const float rhovy, const float rhovz, const float By, const float Bz){
+__device__ float ZFluxBY(const float rho, const float rhovy, const float rhovz, const float By, const float Bz){
     return (rhovy / rho) * Bz - (rhovz / rho) * By;
 }
 
-__device__ float ZFluxBz(){
+__device__ float ZFluxBZ(){
     return 0.0;
 }
 

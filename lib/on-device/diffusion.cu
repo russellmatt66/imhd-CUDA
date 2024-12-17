@@ -3,6 +3,41 @@
 
 #define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx * Ny) + (i) * Ny + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
+// Can be used for Front and Back
+__device__ float numericalDiffusionLocal(const float fluidvar, 
+    const float fluidvar_ip1, const float fluidvar_jp1, const float fluidvar_kp1, 
+    const float fluidvar_im1, const float fluidvar_jm1, const float fluidvar_km1,
+    const float D, const float dx, const float dy, const float dz)
+    {
+        float num_diff = 0.0;
+        num_diff = 
+            D * ((1.0 / pow(dx, 2)) * (fluidvar_ip1 - 2.0 * fluidvar + fluidvar_im1)
+            + (1.0 / pow(dy, 2)) * (fluidvar_jp1 - 2.0 * fluidvar + fluidvar_jm1)
+            + (1.0 / pow(dz, 2)) * (fluidvar_kp1 - 2.0 * fluidvar + fluidvar_km1));
+        return num_diff;
+    }
+
+// __device__ float numericalDiffusionFrontLocal(
+//     const float D, const float dx, const float dy, const float dz)
+//     {
+//         float num_diff = 0.0;
+//         num_diff = D * (
+
+//         );
+//         return num_diff;
+//     }
+
+// __device__ float numericalDiffusionBackLocal(
+//     const float D, const float dx, const float dy, const float dz)
+//     {
+//         float num_diff = 0.0;
+//         num_diff = D * (
+
+//         );
+//         return num_diff;
+//     }
+
+// These thrash the cache
 __device__ float numericalDiffusion(const int i, const int j, const int k, const float* fluid_var, 
     const float D, const float dx, const float dy, const float dz,
     const int ivf, const int Nx, const int Ny, const int Nz)
