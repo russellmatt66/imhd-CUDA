@@ -10,6 +10,7 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkScalarBarActor.h>
 #include <vtkSmartVolumeMapper.h>
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
@@ -84,7 +85,6 @@ int main(int argc, char* argv[]){
     }
     std::cout << "Shared memory for fluidvar data successfully allocated" << std::endl;
 
-
     // VTK
     std::cout << "Instantiating VTK objects" << std::endl; 
 
@@ -112,31 +112,51 @@ int main(int argc, char* argv[]){
     vtkNew<vtkTextActor> frame_text;
     frame_text->GetPositionCoordinate()->SetCoordinateSystemToNormalizedDisplay();
     frame_text->SetPosition(0.1, 0.9);
-    frame_text->GetTextProperty()->SetFontSize(24);
+    frame_text->GetTextProperty()->SetFontSize(16);
     frame_text->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
     std::cout << "textActor instantiated" << std::endl;
 
-    /* Needs wrapper that does the scaling using min and max values */
     std::cout << "Instantiating colorTransfer" << std::endl;
-    vtkNew<vtkColorTransferFunction> colorTransfer;
-    colorTransfer->AddRGBPoint(0, 1.0, 0.0, 0.0);   // Red
-    colorTransfer->AddRGBPoint(0.1667, 1.0, 0.5, 0.0); // Orange
-    colorTransfer->AddRGBPoint(0.3333, 1.0, 1.0, 0.0); // Yellow
-    colorTransfer->AddRGBPoint(0.5, 0.0, 1.0, 0.0);    // Green
-    colorTransfer->AddRGBPoint(0.6667, 0.0, 0.0, 1.0); // Blue
-    colorTransfer->AddRGBPoint(0.8333, 0.5, 0.0, 1.0); // Indigo
-    colorTransfer->AddRGBPoint(1, 1.0, 0.0, 1.0);       // Violet
+    vtkNew<vtkColorTransferFunction> colorTF;
+    // colorTF->AddRGBPoint(min_val, 1.0, 0.0, 0.0);   // Red
+    // colorTF->AddRGBPoint(min_val + 0.1667 * val_delta, 1.0, 0.5, 0.0); // Orange
+    // colorTF->AddRGBPoint(min_val + 0.3333 * val_delta, 1.0, 1.0, 0.0); // Yellow
+    // colorTF->AddRGBPoint(min_val + 0.5 * val_delta, 0.0, 1.0, 0.0);    // Green
+    // colorTF->AddRGBPoint(min_val + 0.6667 * val_delta, 0.0, 0.0, 1.0); // Blue
+    // colorTF->AddRGBPoint(min_val + 0.8333 * val_delta, 0.5, 0.0, 1.0); // Indigo
+    // colorTF->AddRGBPoint(max_val, 1.0, 0.0, 1.0);       // Violet
     std::cout << "colorTransfer instantiated" << std::endl;
 
-    /* Needs wrapper that does the scaling using min and max values */
+    // Create color bar and set its properties
+    vtkNew<vtkScalarBarActor> scalarBar;
+    scalarBar->SetLookupTable(colorTF);
+    scalarBar->SetTitle(dset_name.data());
+
+    scalarBar->SetTextPositionToPrecedeScalarBar();
+    scalarBar->SetTextPad(10);
+
+    scalarBar->SetNumberOfLabels(7);
+    scalarBar->SetMaximumNumberOfColors(256);
+    scalarBar->SetBarRatio(0.1);
+    scalarBar->SetUnconstrainedFontSize(true);
+    scalarBar->SetPosition(0.8,0.2);
+    scalarBar->SetPosition2(0.2,0.5);
+
+    vtkTextProperty* scalarBarLabelProp = scalarBar->GetLabelTextProperty();
+    scalarBarLabelProp->SetFontSize(10);
+
+    vtkTextProperty* scalarBarTitleProp = scalarBar->GetTitleTextProperty();
+    scalarBarTitleProp->SetFontSize(10);
+    // scalarBarTitleProp->SetJustification(VTK_TEXT_CENTERED);
+
     std::cout << "Instantiating opacityTransfer" << std::endl;
-    vtkNew<vtkPiecewiseFunction> opacityTransfer;
-    opacityTransfer->AddPoint(0, 0.0);  // Adjust opacity points based on your data
-    opacityTransfer->AddPoint(1, 1.0);
+    vtkNew<vtkPiecewiseFunction> opacityTF;
+    // opacityTransfer->AddPoint(min_val, 0.0);  // Adjust opacity points based on your data
+    // opacityTransfer->AddPoint(max_val, 1.0);
     std::cout << "opacityTransfer instantiated" << std::endl;
 
-    volumeActor->GetProperty()->SetScalarOpacity(opacityTransfer);
-    volumeActor->GetProperty()->SetColor(colorTransfer);
+    volumeActor->GetProperty()->SetScalarOpacity(opacityTF);
+    volumeActor->GetProperty()->SetColor(colorTF);
 
     std::cout << "Instantiating renderer, and renderWindow" << std::endl;
     vtkNew<vtkRenderer> renderer;
@@ -147,7 +167,7 @@ int main(int argc, char* argv[]){
 
     std::cout << "Instantiating camera" << std::endl;
     vtkNew<vtkCamera> camera;
-    camera->SetPosition(15, 15, 15);
+    camera->SetPosition(20, 20, 20);
     camera->SetFocalPoint(0, 0, 0);
     camera->SetViewUp(1, 0, 0);
     std::cout << "camera instantiated" << std::endl;
@@ -157,6 +177,7 @@ int main(int argc, char* argv[]){
     renderer->SetBackground(0.0, 0.0, 0.0);
     renderer->AddVolume(volumeActor);
     renderer->AddActor(frame_text);
+    renderer->AddActor2D(scalarBar);
     std::cout << "camera and volumeActor connected to renderer" << std::endl;
     
     std::cout << "Instantiating windowToImageFilter" << std::endl;
@@ -172,11 +193,15 @@ int main(int argc, char* argv[]){
     videoWriter->SetFileName(video_filename.data());
     videoWriter->SetRate(1); /* Speed this up later */
     videoWriter->Start();
-    std::cout << "videoWriter instantiated" << std::endl;
+    std::cout << "videoWriter instantiated" << std::endl;   
 
     /* Loop over frames, and make video */
     std::string load_fluidvar_command = "";
-    std::string fluidvar_filename = "";
+    std::string fluidvar_filename = ""; // container for frame text data in string form
+
+    float min_val = std::numeric_limits<float>::lowest();
+    float max_val = std::numeric_limits<float>::max();
+    float val_delta = max_val - min_val;
 
     for (int i = 0; i <= Nt; i++){
         std::cout << "Writing frame " << i << " to video" << std::endl;
@@ -195,10 +220,33 @@ int main(int argc, char* argv[]){
             return 1;
         }
 
+        min_val = *std::min_element(shm_fluidvar, shm_fluidvar + Nx * Ny * Nz);
+        max_val = *std::max_element(shm_fluidvar, shm_fluidvar + Nx * Ny * Nz);
+
+        std::cout << "Min val is: " << min_val << std::endl;
+        std::cout << "Max val is: " << max_val << std::endl;
+
+        val_delta = max_val - min_val;
+
+        colorTF->RemoveAllPoints();
+        colorTF->AddRGBPoint(min_val, 1.0, 0.0, 0.0);   // Red
+        colorTF->AddRGBPoint(min_val + 0.1667 * val_delta, 1.0, 0.5, 0.0); // Orange
+        colorTF->AddRGBPoint(min_val + 0.3333 * val_delta, 1.0, 1.0, 0.0); // Yellow
+        colorTF->AddRGBPoint(min_val + 0.5 * val_delta, 0.0, 1.0, 0.0);    // Green
+        colorTF->AddRGBPoint(min_val + 0.6667 * val_delta, 0.0, 0.0, 1.0); // Blue
+        colorTF->AddRGBPoint(min_val + 0.8333 * val_delta, 0.5, 0.0, 1.0); // Indigo
+        colorTF->AddRGBPoint(max_val, 1.0, 0.0, 1.0);       // Violet
+
+        opacityTF->RemoveAllPoints();
+        opacityTF->AddPoint(min_val, 1.0);
+        opacityTF->AddPoint(max_val, 0.1);
+
         // Modify data, and write window to video
         frame_data->SetImportVoidPointer(shm_fluidvar);
         frame_data->Modified();
 
+        fluidvar_filename += "\n"; // No reason not to use this as the container - maybe needs a better name
+        fluidvar_filename += dset_name + " frame " + std::to_string(i);
         frame_text->SetInput(fluidvar_filename.data());
 
         renderWindow->Render();

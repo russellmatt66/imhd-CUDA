@@ -11,6 +11,7 @@ find_package(VTK REQUIRED COMPONENTS
     RenderingOpenGL2
     RenderingVolume
     RenderingVolumeOpenGL2
+    RenderingAnnotation
     )
 
 include_directories(${HDF5_INCLUDE_DIRS})

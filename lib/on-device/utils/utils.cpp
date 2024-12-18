@@ -4,6 +4,7 @@
 
 #include "utils.hpp"
 
+// PHDF5 output functions
 int callBinary_AttrWrite(const std::string file_name, const int Nx, const int Ny, const int Nz, const std::string attr_bin_name){
     std::string addatt_command = "./" + attr_bin_name + " " + file_name + " " + std::to_string(Nx) + " "
                                     + std::to_string(Ny) + " " + std::to_string(Nz);
@@ -58,6 +59,7 @@ int callBinary_WriteGrid(const std::string bin_name, const std::string file_name
     return ret;
 }
 
+// Determines CFL number at every point in the domain
 int callBinary_EigenSC(const std::string shm_name, const int Nx, const int Ny, const int Nz, const std::string bin_name, 
     const float dt, const float dx, const float dy, const float dz, 
     const std::string shm_name_gridx, const std::string shm_name_gridy, const std::string shm_name_gridz){

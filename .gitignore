@@ -207,5 +207,6 @@ tests/output/build/output-test
 # Hiding build files in `visualization/`
 /visualization/build/*
 /visualization/*.avi
+/visualization/screwpinch_nodiff/
 !/visualization/build/README.md
 !/visualization/build/launcher_makemovie.py
