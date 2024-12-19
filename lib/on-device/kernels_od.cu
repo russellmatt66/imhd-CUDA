@@ -574,7 +574,7 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     int k = 0;
     for (int i = tidx + 1; i < Nx - 1; i += xthreads){
         for (int j = tidy + 1; j < Ny - 1; j += ythreads){
-            k = 0;
+            // k = 0;
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] + intvar[IDX3D(i, j, k, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (XFluxRho(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxRho(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxRho(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxRho(i, j, k, intvar, Nx, Ny, Nz))
@@ -622,8 +622,12 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
                                                         - 0.5 * (dt / dy) * (YFluxE(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dz) * (ZFluxE(i, j, k + 1, intvar, Nx, Ny, Nz) - ZFluxBZ(i, j, k, intvar, Nx, Ny, Nz));
                                                         + dt * numericalDiffusionFront(i, j, intvar, D, dx, dy, dz, 7, Nx, Ny, Nz);
+        }
+    }
 
-            k = Nz - 1;
+    k = Nz - 1;
+    for (int i = tidx + 1; i < Nx - 1; i += xthreads){
+        for (int j = tidy + 1; j < Ny - 1; j += ythreads){
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] + intvar[IDX3D(i, j, k, Nx, Ny, Nz)])
                                                         - 0.5 * (dt / dx) * (XFluxRho(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxRho(i, j, k, intvar, Nx, Ny, Nz))
                                                         - 0.5 * (dt / dy) * (YFluxRho(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxRho(i, j, k, intvar, Nx, Ny, Nz))
@@ -667,12 +671,16 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
                                                         + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 6, Nx, Ny, Nz);
 
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size])
-                                                        - 0.5 * (dt / dx) * (XFluxE(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
-                                                        - 0.5 * (dt / dy) * (YFluxE(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
-                                                        - 0.5 * (dt / dz) * (ZFluxE(i, j, 1, intvar, Nx, Ny, Nz) - ZFluxBZ(i, j, k, intvar, Nx, Ny, Nz));
+                                                        - 0.5 * (dt / dx) * (XFluxE(i + 1, j, k, intvar, Nx, Ny, Nz) - XFluxE(i, j, k, intvar, Nx, Ny, Nz))
+                                                        - 0.5 * (dt / dy) * (YFluxE(i, j + 1, k, intvar, Nx, Ny, Nz) - YFluxE(i, j, k, intvar, Nx, Ny, Nz))
+                                                        - 0.5 * (dt / dz) * (ZFluxE(i, j, 1, intvar, Nx, Ny, Nz) - ZFluxE(i, j, k, intvar, Nx, Ny, Nz));
                                                         + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 7, Nx, Ny, Nz);
-            
-            // THEN, ACCUMULATE THE RESULTS ONTO ONE FACE, MAP AROUND TO THE OTHER, AND CONTINUE
+        }
+    }
+
+    // THEN, ACCUMULATE THE RESULTS ONTO ONE FACE, MAP AROUND TO THE OTHER, AND CONTINUE
+    for (int i = tidx + 1; i < Nx - 1; i += xthreads){
+        for (int j = tidy + 1; j < Ny - 1; j += ythreads){
             for (int ivf = 0; ivf < 8; ivf++){
                 fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size] += fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size];
                 fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
@@ -690,8 +698,7 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     int i = 0; 
     for (int k = tidz; k < Nz; k += zthreads){ 
         for (int j = tidy; j < Ny; j += ythreads){
-            i = 0;
-            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 10.0; /* Magic vacuum number */
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 2.0; /* Magic vacuum number */
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
@@ -699,9 +706,13 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0; 
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = p(i, j, k, fluidvar, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
+        }
+    }
 
-            i = Nx - 1;
-            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 10.0; /* Magic vacuum number */
+    i = Nx - 1;
+    for (int k = tidz; k < Nz; k += zthreads){ 
+        for (int j = tidy; j < Ny; j += ythreads){
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 2.0; /* Magic vacuum number */
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
@@ -722,8 +733,7 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     int j = 0;
     for (int k = tidz; k < Nz; k += zthreads){
         for (int i = tidx + 1; i < Nx - 1; i += xthreads){
-            j = 0;
-            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0; // Magic wall number
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 2.0; // Magic wall number
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
@@ -731,9 +741,13 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0; 
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = p(i, j, k, fluidvar, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
-            
-            j = Ny - 1;
-            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0; // Magic wall number 
+        }
+    }      
+
+    j = Ny - 1;
+    for (int k = tidz; k < Nz; k += zthreads){
+        for (int i = tidx + 1; i < Nx - 1; i += xthreads){      
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 2.0; // Magic wall number 
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;

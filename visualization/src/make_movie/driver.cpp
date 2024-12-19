@@ -30,10 +30,11 @@ int main(int argc, char* argv[]){
     std::string filename_grid = argv[3];
     size_t Nt = atoi(argv[4]);
 
-    /* Get mesh dimensions */
+    /* REPLACE THIS WITH LIBRARY FUNCTION */
+    // Get mesh dimensions, and spacing
     // Allocate shared memory that will store the necessary attributes
     // = Nx, Ny, Nz, dx, dy, dz
-    // Shared memory = workaround b/c VTK and .h5 files don't mix
+    // Shared memory = workaround b/c VTK and .h5 files don't mix without effort to mix them
     std::string shm_gridattr_name = "/shm_grid_attributes";
     int shm_fd_gridattr = shm_open(shm_gridattr_name.data(), O_CREAT | O_RDWR, 0666);
     if (shm_fd_gridattr == -1){
@@ -50,7 +51,7 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
-    /* Fork process to obtain necessary grid attributes */
+    // Fork process to obtain necessary grid attributes
     std::string gridattr_command = "./read_grid_data " + shm_gridattr_name + " " + filename_grid + " " + std::to_string(gridattr_data_size);
     std::cout << "Forking to process for obtaining grid attributes" << std::endl;
     int ret = std::system(gridattr_command.data());
@@ -66,6 +67,7 @@ int main(int argc, char* argv[]){
     std::cout << "(Nx, Ny, Nz) = " << "(" << Nx << "," << Ny << "," << Nz << ")" << std::endl;
     std::cout << "(dx, dy, dz) = " << "(" << dx << "," << dy << "," << dz << ")" << std::endl; 
 
+    /* REPLACE THIS WITH LIBRARY FUNCTION */
     // Allocate shared memory that will contain the fluidvar data 
     std::cout << "Allocating shared memory for fluidvar data" << std::endl;
     std::string shm_fluidvar_name = "/shm_fluidvar_data";
@@ -118,13 +120,6 @@ int main(int argc, char* argv[]){
 
     std::cout << "Instantiating colorTransfer" << std::endl;
     vtkNew<vtkColorTransferFunction> colorTF;
-    // colorTF->AddRGBPoint(min_val, 1.0, 0.0, 0.0);   // Red
-    // colorTF->AddRGBPoint(min_val + 0.1667 * val_delta, 1.0, 0.5, 0.0); // Orange
-    // colorTF->AddRGBPoint(min_val + 0.3333 * val_delta, 1.0, 1.0, 0.0); // Yellow
-    // colorTF->AddRGBPoint(min_val + 0.5 * val_delta, 0.0, 1.0, 0.0);    // Green
-    // colorTF->AddRGBPoint(min_val + 0.6667 * val_delta, 0.0, 0.0, 1.0); // Blue
-    // colorTF->AddRGBPoint(min_val + 0.8333 * val_delta, 0.5, 0.0, 1.0); // Indigo
-    // colorTF->AddRGBPoint(max_val, 1.0, 0.0, 1.0);       // Violet
     std::cout << "colorTransfer instantiated" << std::endl;
 
     // Create color bar and set its properties
@@ -167,7 +162,7 @@ int main(int argc, char* argv[]){
 
     std::cout << "Instantiating camera" << std::endl;
     vtkNew<vtkCamera> camera;
-    camera->SetPosition(20, 20, 20);
+    camera->SetPosition(15, 15, 15);
     camera->SetFocalPoint(0, 0, 0);
     camera->SetViewUp(1, 0, 0);
     std::cout << "camera instantiated" << std::endl;
@@ -206,7 +201,7 @@ int main(int argc, char* argv[]){
     for (int i = 0; i <= Nt; i++){
         std::cout << "Writing frame " << i << " to video" << std::endl;
 
-        /* Fork process to load fluidvar data from .h5 file */
+        // Fork process to load fluidvar data from .h5 file
         fluidvar_filename = path_to_data + "fluidvars_" + std::to_string(i) + ".h5";
         std::cout << "fluidvar_filename is: " << fluidvar_filename << std::endl;
 
@@ -238,8 +233,8 @@ int main(int argc, char* argv[]){
         colorTF->AddRGBPoint(max_val, 1.0, 0.0, 1.0);       // Violet
 
         opacityTF->RemoveAllPoints();
-        opacityTF->AddPoint(min_val, 1.0);
-        opacityTF->AddPoint(max_val, 0.1);
+        opacityTF->AddPoint(min_val, 0.0);
+        opacityTF->AddPoint(max_val, 1.0);
 
         // Modify data, and write window to video
         frame_data->SetImportVoidPointer(shm_fluidvar);

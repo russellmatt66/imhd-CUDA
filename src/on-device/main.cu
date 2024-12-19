@@ -90,7 +90,7 @@ int main(int argc, char* argv[]){
 	float dy = (y_max - y_min) / (Ny - 1);
 	float dz = (z_max - z_min) / (Nz - 1);
 
-   /* CALL INITIALIZATION KERNELS */
+   // CALL INITIALIZATION KERNELS 
    InitializeGrid<<<exec_grid_dims, mesh_block_dims>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
@@ -100,7 +100,11 @@ int main(int argc, char* argv[]){
    // InitializeIntAndSwap<<<exec_grid_dims, intvar_block_dims>>>(fluidvars_np1, fluidvars_int, Nx, Ny, Nz);
    InitializeIntvars<<<exec_grid_dims, intvar_block_dims>>>(fluidvars_int, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
-    
+
+   ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
+   checkCuda(cudaDeviceSynchronize());    
+
    // WRITE INITIAL DATA OUT 
    std::string shm_name_fluidvar = "/shared_h_fluidvar";
    int shm_fd = shm_open(shm_name_fluidvar.data(), O_CREAT | O_RDWR, 0666);
@@ -195,13 +199,10 @@ int main(int argc, char* argv[]){
       ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
       ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
 
-      // std::cout << "Launching kernel for writing updated fluid data into current timestep fluid data" << std::endl;
-      // SwapSimData<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_np1, Nx, Ny, Nz); // Write fluidvars_np1 into fluidvars
       std::cout << "Transferring updated fluid data to host" << std::endl;
       cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);
       checkCuda(cudaDeviceSynchronize());
 
-      // WRITE .h5 file TO STORAGE USING fluidvars_np1         
       std::cout << "Kernels for intermediate variables, buffer write, and D2H transfer complete" << std::endl; 
       std::cout << "Writing updated fluid data out" << std::endl;
       filename_fluidvar = path_to_data + "fluidvars_" + std::to_string(it) + ".h5";
@@ -212,38 +213,6 @@ int main(int argc, char* argv[]){
 
       std::cout << "Timestep " << it << " complete" << std::endl;
    } 
-
-   // for (int it = 1; it < Nt; it++){
-   //    std::cout << "Starting timestep " << it << std::endl;
-
-   //    std::cout << "Launching kernels for computing fluid variables on interior and boundary" << std::endl;
-   //    FluidAdvance<<<exec_grid_dims, fluid_block_dims>>>(fluidvars_np1, fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
-   //    BoundaryConditions<<<exec_grid_dims, fluid_block_dims>>>(fluidvars_np1, fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
-   //    checkCuda(cudaDeviceSynchronize());
-      
-   //    std::cout << "Kernels for computing fluid variables completed" << std::endl;
-   //    std::cout << "Launching kernels for computing intermediate variables on interior and boundary" << std::endl; 
-   //    ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, dt, dx, dy, dz, Nx, Ny, Nz); // Compute fluidvars_int
-   //    ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, dt, dx, dy, dz, Nx, Ny, Nz);
-
-   //    std::cout << "Launching kernel for writing updated fluid data into current timestep fluid data" << std::endl;
-   //    SwapSimData<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_np1, Nx, Ny, Nz); // Write fluidvars_np1 into fluidvars
-
-   //    std::cout << "Transferring updated fluid data to host" << std::endl;
-   //    cudaMemcpy(shm_h_fluidvar, fluidvars_np1, fluid_data_size, cudaMemcpyDeviceToHost);
-   //    checkCuda(cudaDeviceSynchronize());
-
-   //    // WRITE .h5 file TO STORAGE USING fluidvars_np1         
-   //    std::cout << "Kernels for intermediate variables, buffer write, and D2H transfer complete" << std::endl; 
-   //    std::cout << "Writing updated fluid data out" << std::endl;
-   //    filename_fluidvar = path_to_data + "fluidvars_" + std::to_string(it) + ".h5";
-   //    ret = callBinary_PHDF5Write(filename_fluidvar, Nx, Ny, Nz, shm_name_fluidvar, fluid_data_size, num_proc, phdf5_bin_name);
-   //    if (ret != 0) {
-   //       std::cerr << "Error forking PHDF5Write binary on timestep " << std::to_string(it) << std::endl;
-   //    }  
-
-   //    std::cout << "Timestep " << it << " complete" << std::endl;
-   // }
 
    // FREE EVERYTHING
    // Device
@@ -265,5 +234,3 @@ int main(int argc, char* argv[]){
    shm_unlink(shm_name_gridz.data());
    return 0;
 }
-
-/* */

@@ -33,5 +33,5 @@ Nt = numberOfFrames(path_to_data)
 
 arg_list.append(str(Nt))
 
-print(f"Running command: {arg_list[0]} {arg_list[1]} {arg_list[2]} {arg_list[3]} {arg_list[4]}")
+print(f"Running command: {' '.join(arg for arg in arg_list)}")
 subprocess.run(arg_list)
