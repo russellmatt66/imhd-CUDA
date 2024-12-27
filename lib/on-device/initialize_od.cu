@@ -22,6 +22,35 @@ __global__ void InitializeGrid(const float x_min, const float x_max, const float
         return;
     }
 
+__global__ void InitializeIntvars(float* intvar, const int Nx, const int Ny, const int Nz)
+{
+    int tidx = threadIdx.x + blockDim.x * blockIdx.x;
+    int tidy = threadIdx.y + blockDim.y * blockIdx.y;
+    int tidz = threadIdx.z + blockDim.z * blockIdx.z;
+
+    int xthreads = blockDim.x * gridDim.x;
+    int ythreads = blockDim.y * gridDim.y;
+    int zthreads = blockDim.z * gridDim.z;
+
+    int cube_size = Nx * Ny * Nz;
+
+    for (int k = tidz; k < Nz; k += zthreads){
+            for (int i = tidx; i < Nx; i += xthreads){
+                for (int j = tidy; j < Ny; j += ythreads){
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0;
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0;
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0;
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.0; 
+            }
+        }
+    }
+    return;
+}
+
 // 56 registers / thread
 __global__ void ScrewPinch(float* fluidvar, const float J0, const float* grid_x, const float* grid_y, const float* grid_z, 
     const int Nx, const int Ny, const int Nz)
@@ -101,70 +130,20 @@ __global__ void ScrewPinch(float* fluidvar, const float J0, const float* grid_x,
         return;
     }
 
-__global__ void InitializeIntvars(float* intvar, const int Nx, const int Ny, const int Nz)
-{
-    int tidx = threadIdx.x + blockDim.x * blockIdx.x;
-    int tidy = threadIdx.y + blockDim.y * blockIdx.y;
-    int tidz = threadIdx.z + blockDim.z * blockIdx.z;
+__global__ void ZPinch(float* fluidvar, const float Btheta_a, const float* grid_x, const float* grid_y, const float* grid_z, 
+    const int Nx, const int Ny, const int Nz)
+    {
+        int tidx = threadIdx.x + blockDim.x * blockIdx.x;
+        int tidy = threadIdx.y + blockDim.y * blockIdx.y;
+        int tidz = threadIdx.z + blockDim.z * blockIdx.z;
 
-    int xthreads = blockDim.x * gridDim.x;
-    int ythreads = blockDim.y * gridDim.y;
-    int zthreads = blockDim.z * gridDim.z;
-
-    int cube_size = Nx * Ny * Nz;
-
-    for (int k = tidz; k < Nz; k += zthreads){
-            for (int i = tidx; i < Nx; i += xthreads){
-                for (int j = tidy; j < Ny; j += ythreads){
-                    intvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
-                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0;
-                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
-                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
-                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0;
-                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0;
-                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
-                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.0; 
-            }
-        }
+        int xthreads = blockDim.x * gridDim.x;
+        int ythreads = blockDim.y * gridDim.y;
+        int zthreads = blockDim.z * gridDim.z;
+    
+        /* 
+        SPECIFY A Z-PINCH EQUILIBRIUM
+        */
+        return;
     }
-    return;
-}
 
-// 15 registers / thread
-// __global__ void InitializeIntAndSwap(float* fluidvar_np1, float* intvar, const int Nx, const int Ny, const int Nz)
-// {
-//     int tidx = threadIdx.x + blockDim.x * blockIdx.x;
-//     int tidy = threadIdx.y + blockDim.y * blockIdx.y;
-//     int tidz = threadIdx.z + blockDim.z * blockIdx.z;
-
-//     int xthreads = blockDim.x * gridDim.x;
-//     int ythreads = blockDim.y * gridDim.y;
-//     int zthreads = blockDim.z * gridDim.z;
-
-//     int cube_size = Nx * Ny * Nz;
-
-//     for (int k = tidz; k < Nz; k += zthreads){
-//             for (int i = tidx; i < Nx; i += xthreads){
-//                 for (int j = tidy; j < Ny; j += ythreads){
-//                     intvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
-//                     intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0;
-//                     intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
-//                     intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
-//                     intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0;
-//                     intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0;
-//                     intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
-//                     intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.0; 
-
-//                     fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
-//                     fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0;
-//                     fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
-//                     fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
-//                     fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0;
-//                     fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0;
-//                     fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
-//                     fluidvar_np1[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.0; 
-//             }
-//         }
-//     }
-//     return;
-// }

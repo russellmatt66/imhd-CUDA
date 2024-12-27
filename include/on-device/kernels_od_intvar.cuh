@@ -1,6 +1,12 @@
 #ifndef KERNELS_OD_INTVAR_CUH
 #define KERNELS_OD_INTVAR_CUH
 
+// Non-thrashing megakernels
+__global__ void ComputeIntVarsLocal(const float* fluidvar, float* intvar,
+    const float dt, const float dx, const float dy, const float dz, const float D,
+    const int Nx, const int Ny, const int Nz);
+
+// Cache thrashing megakernels 
 __global__ void ComputeIntermediateVariables(const float* fluidvar, float* intvar,
     const float D, const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
