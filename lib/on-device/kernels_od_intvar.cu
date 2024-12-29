@@ -275,6 +275,9 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
                 intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = intE(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
             }
         }
+
+        // After the above is done, there are still SIX places where data has not been specified
+        // {(0,j,0), (0,j,Nz-1), (0,0,k), (Nx-1,0,k), (i,0,0), (i,0,Nz-1)}
         return;
     }
 
