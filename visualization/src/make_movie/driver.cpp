@@ -30,6 +30,38 @@ int main(int argc, char* argv[]){
     std::string filename_grid = argv[3];
     size_t Nt = atoi(argv[4]);
 
+    float frametext_x = atof(argv[5]);
+    float frametext_y = atof(argv[6]);
+    int frametext_fontsize = atoi(argv[7]);
+    float frametext_red = atof(argv[8]);
+    float frametext_green= atof(argv[9]);
+    float frametext_blue = atof(argv[10]);
+    int scalarbar_textpad = atoi(argv[11]);
+    int scalarbar_numlabels = atoi(argv[12]);
+    int scalarbar_maxnumcolors = atoi(argv[13]);
+    float scalarbar_barratio = atof(argv[14]);
+    float scalarbar_xll = atof(argv[15]);
+    float scalarbar_yll = atof(argv[16]);
+    float scalarbar_dxur = atof(argv[17]);
+    float scalarbar_dyur = atof(argv[18]);
+    int scalarbar_labelfontsize = atoi(argv[19]);
+    int scalarbar_titlefontsize = atoi(argv[20]);
+    float camera_x = atof(argv[21]);
+    float camera_y = atof(argv[22]);
+    float camera_z = atof(argv[23]);
+    float camera_focalx = atof(argv[24]);
+    float camera_focaly = atof(argv[25]);
+    float camera_focalz = atof(argv[26]);
+    float camera_viewupx = atof(argv[27]);
+    float camera_viewupy = atof(argv[28]);
+    float camera_viewupz = atof(argv[29]);
+    float renderer_backgroungred = atof(argv[30]);
+    float renderer_backgroundgreen = atof(argv[31]);
+    float renderer_backgroundblue = atof(argv[32]);
+    int videowriter_fps = atoi(argv[33]);
+    float opacity_min = atof(argv[34]);
+    float opacity_max = atof(argv[35]);
+
     /* REPLACE THIS WITH LIBRARY FUNCTION */
     // Get mesh dimensions, and spacing
     // Allocate shared memory that will store the necessary attributes
@@ -111,11 +143,11 @@ int main(int argc, char* argv[]){
     std::cout << "volumeActor instantiated, mapper set to volumeMapper" << std::endl;
 
     std::cout << "Instantiating textActor" << std::endl;
-    vtkNew<vtkTextActor> frame_text;
-    frame_text->GetPositionCoordinate()->SetCoordinateSystemToNormalizedDisplay();
-    frame_text->SetPosition(0.1, 0.9);
-    frame_text->GetTextProperty()->SetFontSize(16);
-    frame_text->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
+    vtkNew<vtkTextActor> frameText;
+    frameText->GetPositionCoordinate()->SetCoordinateSystemToNormalizedDisplay();
+    frameText->SetPosition(0.1, 0.9);
+    frameText->GetTextProperty()->SetFontSize(16);
+    frameText->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
     std::cout << "textActor instantiated" << std::endl;
 
     std::cout << "Instantiating colorTransfer" << std::endl;
@@ -171,7 +203,7 @@ int main(int argc, char* argv[]){
     renderer->SetActiveCamera(camera);
     renderer->SetBackground(0.0, 0.0, 0.0);
     renderer->AddVolume(volumeActor);
-    renderer->AddActor(frame_text);
+    renderer->AddActor(frameText);
     renderer->AddActor2D(scalarBar);
     std::cout << "camera and volumeActor connected to renderer" << std::endl;
     
@@ -242,7 +274,7 @@ int main(int argc, char* argv[]){
 
         fluidvar_filename += "\n"; // No reason not to use this as the container - maybe needs a better name
         fluidvar_filename += dset_name + " frame " + std::to_string(i);
-        frame_text->SetInput(fluidvar_filename.data());
+        frameText->SetInput(fluidvar_filename.data());
 
         renderWindow->Render();
 

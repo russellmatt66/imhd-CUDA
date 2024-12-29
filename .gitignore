@@ -210,3 +210,4 @@ tests/output/build/output-test
 /visualization/screwpinch_nodiff/
 !/visualization/build/README.md
 !/visualization/build/launcher_makemovie.py
+!/visualization/build/makemovie.inp

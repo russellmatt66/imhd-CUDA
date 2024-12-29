@@ -33,5 +33,13 @@ Nt = numberOfFrames(path_to_data)
 
 arg_list.append(str(Nt))
 
+# Specify rendering parameters
+# Append them to arg list
+input_file = './makemovie.inp'
+with open(input_file, 'r') as input_file:
+    for line in input_file:
+        cmd_arg = line.split('=')[1].strip('\n')
+        arg_list.append(cmd_arg)
+
 print(f"Running command: {' '.join(arg for arg in arg_list)}")
 subprocess.run(arg_list)
