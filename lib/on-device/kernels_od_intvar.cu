@@ -1099,6 +1099,5 @@ __device__ float intEBottomLeft(const int k,
             - (dt / dy) * (YFluxE(Nx-1, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite site of rigid, perfectly-conducting wall
             - (dt / dz) * (ZFluxE(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxE(Nx-1, 0, k-1, fluidvar, Nx, Ny, Nz));
     }
-/* 
-THERE WILL BE OTHERS 
-*/
+
+// I think that's everything!
