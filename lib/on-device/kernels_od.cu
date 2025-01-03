@@ -419,143 +419,6 @@ __device__ float LaxWendroffAdvELocal(const float rho_int, const float rho_int_i
         - 0.5 * (dt / dz) * (ZFluxE(rho_int, rhovz_int, Bz_int, e_int, p_ijk, Bsq_ijk, Bdotu_ijk) - ZFluxE(rho_int_km1, rhovz_int_km1, Bz_int_km1, e_int_km1, p_ijkm1, Bsq_ijkm1, Bdotu_ijkm1));
     }
 
-/* 
-LaxWendroffAdv{}2 functions use flux functions that do not access memory, but they themselves DO
-Therefore, it is likely that an implementation which leverages them will thrash the cache
-*/
-// __device__ float LaxWendroffAdvRho2(const int i, const int j, const int k,
-//     const float* fluidvar, const float* intvar, 
-//     const float dt, const float dx, const float dy, const float dz,
-//     const int Nx, const int Ny, const int Nz)
-//     { 
-//         /* Put the code for advancing the fluid state here */
-//     }
-
-// __device__ float LaxWendroffAdvRhoVX2(const int i, const int j, const int k,
-//     const float* fluidvar, const float* intvar, 
-//     const float dt, const float dx, const float dy, const float dz,
-//     const int Nx, const int Ny, const int Nz)
-//     {
-//         int cube_size = Nx * Ny * Nz;
-//         return 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size])
-//                 - 0.5 * (dt / dx) * (XFluxRhoVX(i+1, j, k, intvar, Nx, Ny, Nz) - XFluxRhoVX(i, j, k, intvar, Nx, Ny, Nz))
-//                 - 0.5 * (dt / dy) * (YFluxRhoVX(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxRhoVX(i, j, k, intvar, Nx, Ny, Nz))
-//                 - 0.5 * (dt / dz) * (ZFluxRhoVX(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxRhoVX(i, j, k, intvar, Nx, Ny, Nz));  
-//     }
-
-// __device__ float LaxWendroffAdvRhoVY2(const int i, const int j, const int k, 
-//     const float* fluidvar, const float* intvar,  
-//     const float dt, const float dx, const float dy, const float dz,
-//     const int Nx, const int Ny, const int Nz)
-//     {
-//         int cube_size = Nx * Ny * Nz;
-//         return 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size])
-//                 - 0.5 * (dt / dx) * (XFluxRhoVY(i+1, j, k, intvar, Nx, Ny, Nz) - XFluxRhoVY(i, j, k, intvar, Nx, Ny, Nz))
-//                 - 0.5 * (dt / dy) * (YFluxRhoVY(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxRhoVY(i, j, k, intvar, Nx, Ny, Nz))
-//                 - 0.5 * (dt / dz) * (ZFluxRhoVY(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxRhoVY(i, j, k, intvar, Nx, Ny, Nz)); 
-//     }
-
-// __device__ float LaxWendroffAdvRhoVZ2(const int i, const int j, const int k,
-//     const float* fluidvar, const float* intvar, 
-//     const float dt, const float dx, const float dy, const float dz,
-//     const int Nx, const int Ny, const int Nz)
-//     {
-//         int cube_size = Nx * Ny * Nz;
-//         return 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size])
-//                 - 0.5 * (dt / dx) * (XFluxRhoVZ(i+1, j, k, intvar, Nx, Ny, Nz) - XFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz))
-//                 - 0.5 * (dt / dy) * (YFluxRhoVZ(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz))
-//                 - 0.5 * (dt / dz) * (ZFluxRhoVZ(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz)); 
-//     }
-
-// __device__ float LaxWendroffAdvBX2(const int i, const int j, const int k,
-//     const float* fluidvar, const float* intvar, 
-//     const float dt, const float dx, const float dy, const float dz,
-//     const int Nx, const int Ny, const int Nz)
-//     {
-//         int cube_size = Nx * Ny * Nz;
-//         return 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size])
-//                 - 0.5 * (dt / dx) * (XFluxBX(i+1, j, k, intvar, Nx, Ny, Nz) - XFluxBX(i, j, k, intvar, Nx, Ny, Nz))
-//                 - 0.5 * (dt / dy) * (YFluxBX(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxBX(i, j, k, intvar, Nx, Ny, Nz))
-//                 - 0.5 * (dt / dz) * (ZFluxBX(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxBX(i, j, k, intvar, Nx, Ny, Nz)); 
-//     }
-
-// __device__ float LaxWendroffAdvBY2(const int i, const int j, const int k,
-//     const float* fluidvar, const float* intvar, 
-//     const float dt, const float dx, const float dy, const float dz,
-//     const int Nx, const int Ny, const int Nz)
-//     {
-//         int cube_size = Nx * Ny * Nz;
-//         return 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size])
-//                 - 0.5 * (dt / dx) * (XFluxBY(i+1, j, k, intvar, Nx, Ny, Nz) - XFluxBY(i, j, k, intvar, Nx, Ny, Nz))
-//                 - 0.5 * (dt / dy) * (YFluxBY(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxBY(i, j, k, intvar, Nx, Ny, Nz))
-//                 - 0.5 * (dt / dz) * (ZFluxBY(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxBY(i, j, k, intvar, Nx, Ny, Nz)); 
-//     }
-
-// __device__ float LaxWendroffAdvBZ2(const int i, const int j, const int k,
-//     const float* fluidvar, const float* intvar, 
-//     const float dt, const float dx, const float dy, const float dz,
-//     const int Nx, const int Ny, const int Nz)
-//     {
-//         int cube_size = Nx * Ny * Nz;
-//         return 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size])
-//                 - 0.5 * (dt / dx) * (XFluxBZ(i+1, j, k, intvar, Nx, Ny, Nz) - XFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
-//                 - 0.5 * (dt / dy) * (YFluxBZ(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
-//                 - 0.5 * (dt / dz) * (ZFluxBZ(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxBZ(i, j, k, intvar, Nx, Ny, Nz)); 
-//     }
-
-// __device__ float LaxWendroffAdvE2(const int i, const int j, const int k,
-//     const float* fluidvar, const float* intvar, 
-//     const float dt, const float dx, const float dy, const float dz,
-//     const int Nx, const int Ny, const int Nz)
-    // {
-    //     int cube_size = Nx * Ny * Nz;
-    //     return 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size])
-    //             - 0.5 * (dt / dx) * (XFluxE(i+1, j, k, intvar, Nx, Ny, Nz) - XFluxE(i, j, k, intvar, Nx, Ny, Nz))
-    //             - 0.5 * (dt / dy) * (YFluxE(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxE(i, j, k, intvar, Nx, Ny, Nz))
-    //             - 0.5 * (dt / dz) * (ZFluxE(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxE(i, j, k, intvar, Nx, Ny, Nz)); 
-    // }
-
-// THESE KERNELS THRASH THE CACHE
-// 88 registers per thread
-__global__ void FluidAdvance(float* fluidvar, const float* intvar, 
-    const float D, const float dt, const float dx, const float dy, const float dz, 
-    const int Nx, const int Ny, const int Nz)
-    {
-        int tidx = threadIdx.x + blockDim.x * blockIdx.x; 
-        int tidy = threadIdx.y + blockDim.y * blockIdx.y;
-        int tidz = threadIdx.z + blockDim.z * blockIdx.z;
-
-        int xthreads = blockDim.x * gridDim.x;
-        int ythreads = blockDim.y * gridDim.y;
-        int zthreads = blockDim.z * gridDim.z;
-
-        int cube_size = Nx * Ny * Nz;
-
-        for (int k = tidz + 1; k < Nz - 1; k += zthreads){
-            for (int i = tidx + 1; i < Nx - 1; i += xthreads){
-                for (int j = tidy + 1; j < Ny - 1; j += ythreads){
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRho(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 0, Nx, Ny, Nz); // rho
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] =  LaxWendroffAdvRhoVX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 1, Nx, Ny, Nz); // rhov_x
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] =  LaxWendroffAdvRhoVY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 2, Nx, Ny, Nz); // rhov_y
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] =  LaxWendroffAdvRhoVZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 3, Nx, Ny, Nz); // rhov_z
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] =  LaxWendroffAdvBX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 4, Nx, Ny, Nz); // Bx
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] =  LaxWendroffAdvBY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 5, Nx, Ny, Nz); // By 
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] =  LaxWendroffAdvBZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 6, Nx, Ny, Nz); // Bz
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] =  LaxWendroffAdvE(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 7, Nx, Ny, Nz); // e
-                }
-            }
-        }
-        return;
-    }
-
 // 74 registers per thread
 __global__ void BoundaryConditions(float* fluidvar, const float* intvar, 
     const float D, const float dt, const float dx, const float dy, const float dz,
@@ -680,7 +543,7 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     }
 
     // THEN, ACCUMULATE THE RESULTS ONTO ONE FACE, MAP AROUND TO THE OTHER, AND CONTINUE
-    for (int i = tidx + 1; i < Nx - 1; i += xthreads){
+    for (int i = tidx + 1; i < Nx - 1; i += xthreads){ // Ignore the edges because those are wall - not plasma
         for (int j = tidy + 1; j < Ny - 1; j += ythreads){
             for (int ivf = 0; ivf < 8; ivf++){
                 fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size] += fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size];
@@ -760,6 +623,48 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     }
 
     return;
+    }
+
+
+// THESE KERNELS THRASH THE CACHE
+// 88 registers per thread
+__global__ void FluidAdvance(float* fluidvar, const float* intvar, 
+    const float D, const float dt, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz)
+    {
+        int tidx = threadIdx.x + blockDim.x * blockIdx.x; 
+        int tidy = threadIdx.y + blockDim.y * blockIdx.y;
+        int tidz = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int xthreads = blockDim.x * gridDim.x;
+        int ythreads = blockDim.y * gridDim.y;
+        int zthreads = blockDim.z * gridDim.z;
+
+        int cube_size = Nx * Ny * Nz;
+
+        for (int k = tidz + 1; k < Nz - 1; k += zthreads){
+            for (int i = tidx + 1; i < Nx - 1; i += xthreads){
+                for (int j = tidy + 1; j < Ny - 1; j += ythreads){
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRho(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 0, Nx, Ny, Nz); // rho
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] =  LaxWendroffAdvRhoVX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 1, Nx, Ny, Nz); // rhov_x
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] =  LaxWendroffAdvRhoVY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 2, Nx, Ny, Nz); // rhov_y
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] =  LaxWendroffAdvRhoVZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 3, Nx, Ny, Nz); // rhov_z
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] =  LaxWendroffAdvBX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 4, Nx, Ny, Nz); // Bx
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] =  LaxWendroffAdvBY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 5, Nx, Ny, Nz); // By 
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] =  LaxWendroffAdvBZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 6, Nx, Ny, Nz); // Bz
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] =  LaxWendroffAdvE(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 7, Nx, Ny, Nz); // e
+                }
+            }
+        }
+        return;
     }
 
 // Device kernels
@@ -857,3 +762,99 @@ __device__ float LaxWendroffAdvE(const int i, const int j, const int k,
                 - 0.5 * (dt / dy) * (YFluxE(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxE(i, j, k, intvar, Nx, Ny, Nz))
                 - 0.5 * (dt / dz) * (ZFluxE(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxE(i, j, k, intvar, Nx, Ny, Nz)); 
     }
+
+    /* 
+LaxWendroffAdv{}2 functions use flux functions that do not access memory, but they themselves DO
+Therefore, it is likely that an implementation which leverages them will thrash the cache
+*/
+// __device__ float LaxWendroffAdvRho2(const int i, const int j, const int k,
+//     const float* fluidvar, const float* intvar, 
+//     const float dt, const float dx, const float dy, const float dz,
+//     const int Nx, const int Ny, const int Nz)
+//     { 
+//         /* Put the code for advancing the fluid state here */
+//     }
+
+// __device__ float LaxWendroffAdvRhoVX2(const int i, const int j, const int k,
+//     const float* fluidvar, const float* intvar, 
+//     const float dt, const float dx, const float dy, const float dz,
+//     const int Nx, const int Ny, const int Nz)
+//     {
+//         int cube_size = Nx * Ny * Nz;
+//         return 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size])
+//                 - 0.5 * (dt / dx) * (XFluxRhoVX(i+1, j, k, intvar, Nx, Ny, Nz) - XFluxRhoVX(i, j, k, intvar, Nx, Ny, Nz))
+//                 - 0.5 * (dt / dy) * (YFluxRhoVX(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxRhoVX(i, j, k, intvar, Nx, Ny, Nz))
+//                 - 0.5 * (dt / dz) * (ZFluxRhoVX(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxRhoVX(i, j, k, intvar, Nx, Ny, Nz));  
+//     }
+
+// __device__ float LaxWendroffAdvRhoVY2(const int i, const int j, const int k, 
+//     const float* fluidvar, const float* intvar,  
+//     const float dt, const float dx, const float dy, const float dz,
+//     const int Nx, const int Ny, const int Nz)
+//     {
+//         int cube_size = Nx * Ny * Nz;
+//         return 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size])
+//                 - 0.5 * (dt / dx) * (XFluxRhoVY(i+1, j, k, intvar, Nx, Ny, Nz) - XFluxRhoVY(i, j, k, intvar, Nx, Ny, Nz))
+//                 - 0.5 * (dt / dy) * (YFluxRhoVY(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxRhoVY(i, j, k, intvar, Nx, Ny, Nz))
+//                 - 0.5 * (dt / dz) * (ZFluxRhoVY(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxRhoVY(i, j, k, intvar, Nx, Ny, Nz)); 
+//     }
+
+// __device__ float LaxWendroffAdvRhoVZ2(const int i, const int j, const int k,
+//     const float* fluidvar, const float* intvar, 
+//     const float dt, const float dx, const float dy, const float dz,
+//     const int Nx, const int Ny, const int Nz)
+//     {
+//         int cube_size = Nx * Ny * Nz;
+//         return 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size])
+//                 - 0.5 * (dt / dx) * (XFluxRhoVZ(i+1, j, k, intvar, Nx, Ny, Nz) - XFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz))
+//                 - 0.5 * (dt / dy) * (YFluxRhoVZ(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz))
+//                 - 0.5 * (dt / dz) * (ZFluxRhoVZ(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxRhoVZ(i, j, k, intvar, Nx, Ny, Nz)); 
+//     }
+
+// __device__ float LaxWendroffAdvBX2(const int i, const int j, const int k,
+//     const float* fluidvar, const float* intvar, 
+//     const float dt, const float dx, const float dy, const float dz,
+//     const int Nx, const int Ny, const int Nz)
+//     {
+//         int cube_size = Nx * Ny * Nz;
+//         return 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size])
+//                 - 0.5 * (dt / dx) * (XFluxBX(i+1, j, k, intvar, Nx, Ny, Nz) - XFluxBX(i, j, k, intvar, Nx, Ny, Nz))
+//                 - 0.5 * (dt / dy) * (YFluxBX(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxBX(i, j, k, intvar, Nx, Ny, Nz))
+//                 - 0.5 * (dt / dz) * (ZFluxBX(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxBX(i, j, k, intvar, Nx, Ny, Nz)); 
+//     }
+
+// __device__ float LaxWendroffAdvBY2(const int i, const int j, const int k,
+//     const float* fluidvar, const float* intvar, 
+//     const float dt, const float dx, const float dy, const float dz,
+//     const int Nx, const int Ny, const int Nz)
+//     {
+//         int cube_size = Nx * Ny * Nz;
+//         return 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size])
+//                 - 0.5 * (dt / dx) * (XFluxBY(i+1, j, k, intvar, Nx, Ny, Nz) - XFluxBY(i, j, k, intvar, Nx, Ny, Nz))
+//                 - 0.5 * (dt / dy) * (YFluxBY(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxBY(i, j, k, intvar, Nx, Ny, Nz))
+//                 - 0.5 * (dt / dz) * (ZFluxBY(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxBY(i, j, k, intvar, Nx, Ny, Nz)); 
+//     }
+
+// __device__ float LaxWendroffAdvBZ2(const int i, const int j, const int k,
+//     const float* fluidvar, const float* intvar, 
+//     const float dt, const float dx, const float dy, const float dz,
+//     const int Nx, const int Ny, const int Nz)
+//     {
+//         int cube_size = Nx * Ny * Nz;
+//         return 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size])
+//                 - 0.5 * (dt / dx) * (XFluxBZ(i+1, j, k, intvar, Nx, Ny, Nz) - XFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
+//                 - 0.5 * (dt / dy) * (YFluxBZ(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxBZ(i, j, k, intvar, Nx, Ny, Nz))
+//                 - 0.5 * (dt / dz) * (ZFluxBZ(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxBZ(i, j, k, intvar, Nx, Ny, Nz)); 
+//     }
+
+// __device__ float LaxWendroffAdvE2(const int i, const int j, const int k,
+//     const float* fluidvar, const float* intvar, 
+//     const float dt, const float dx, const float dy, const float dz,
+//     const int Nx, const int Ny, const int Nz)
+    // {
+    //     int cube_size = Nx * Ny * Nz;
+    //     return 0.5 * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] + intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size])
+    //             - 0.5 * (dt / dx) * (XFluxE(i+1, j, k, intvar, Nx, Ny, Nz) - XFluxE(i, j, k, intvar, Nx, Ny, Nz))
+    //             - 0.5 * (dt / dy) * (YFluxE(i, j+1, k, intvar, Nx, Ny, Nz) - YFluxE(i, j, k, intvar, Nx, Ny, Nz))
+    //             - 0.5 * (dt / dz) * (ZFluxE(i, j, k+1, intvar, Nx, Ny, Nz) - ZFluxE(i, j, k, intvar, Nx, Ny, Nz)); 
+    // }
