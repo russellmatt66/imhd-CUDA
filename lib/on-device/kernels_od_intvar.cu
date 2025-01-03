@@ -35,7 +35,7 @@ TO ADDRESS, DO THE FOLLOWING:
 (2) Microkernels w/local (shared) memory
 - "Microkernel" = "Update a single fluid variable"
 */
-// 80 registers per thread
+// 74 registers per thread
 __global__ void ComputeIntermediateVariables(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz, const float D,
     const int Nx, const int Ny, const int Nz)
@@ -61,11 +61,11 @@ __global__ void ComputeIntermediateVariables(const float* fluidvar, float* intva
                                                             + dt * numericalDiffusion(i, j, k, fluidvar, D, dx, dy, dz, 2, Nx, Ny, Nz); // rhov_y
                     intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZ(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
                                                             + dt * numericalDiffusion(i, j, k, fluidvar, D, dx, dy, dz, 3, Nx, Ny, Nz); // rhov_z
-                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = intBx(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = intBX(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
                                                             + dt * numericalDiffusion(i, j, k, fluidvar, D, dx, dy, dz, 4, Nx, Ny, Nz); // Bx
-                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = intBy(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = intBY(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
                                                             + dt * numericalDiffusion(i, j, k, fluidvar, D, dx, dy, dz, 5, Nx, Ny, Nz); // By
-                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = intBz(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                    intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = intBZ(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
                                                             + dt * numericalDiffusion(i, j, k, fluidvar, D, dx, dy, dz, 6, Nx, Ny, Nz); // Bz
                     intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = intE(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
                                                             + dt * numericalDiffusion(i, j, k, fluidvar, D, dx, dy, dz, 7, Nx, Ny, Nz); // e
@@ -86,19 +86,17 @@ __global__ void ComputeIntermediateVariables(const float* fluidvar, float* intva
 // (5) j = 0
 // (6) j = Ny - 1
 /* 
-SKIPS OVER: 
+Initially, it skips over the following lines: 
     {(0,0,k), (i,0,Nz-1), (0,j,0), (i,0,Nz-1), (Nx-1,0,k), (i,0,0)}
 
-TO ADDRESS, DO THE FOLLOWING:
-(1) Determine the influence of these points
-(2) Determine what they could appropriately be set to initially
-*/
-/* 
+These are then calculated afterwards. This introduces substantial cache-thrashing (CT) into the picture.
+The CT appears to be great enough that this kernel currently serves as a bottleneck for the walltime. 
+
 This is an MVP - IT CAN BE GREATLY IMPROVED 
 o Eliminate cache-thrashing 
 o Compactify loops
 */
-// 56 registers per thread
+// 74 registers per thread
 __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz, const float D,
     const int Nx, const int Ny, const int Nz)
@@ -140,9 +138,9 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
                 intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + cube_size] = intRhoVX(i, Ny-1, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
                 intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 2 * cube_size] = intRhoVY(i, Ny-1, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
                 intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZ(i, Ny-1, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
-                intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 4 * cube_size] = intBx(i, Ny-1, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
-                intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 5 * cube_size] = intBy(i, Ny-1, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
-                intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 6 * cube_size] = intBz(i, Ny-1, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
+                intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 4 * cube_size] = intBX(i, Ny-1, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
+                intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 5 * cube_size] = intBY(i, Ny-1, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
+                intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 6 * cube_size] = intBZ(i, Ny-1, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
                 intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 7 * cube_size] = intE(i, Ny-1, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
             }
         }
@@ -192,9 +190,9 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
                 intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + cube_size] = intRhoVX(Nx-1, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
                 intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 2 * cube_size] = intRhoVY(Nx-1, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
                 intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZ(Nx-1, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
-                intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 4 * cube_size] = intBx(Nx-1, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
-                intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 5 * cube_size] = intBy(Nx-1, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
-                intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 6 * cube_size] = intBz(Nx-1, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
+                intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 4 * cube_size] = intBX(Nx-1, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
+                intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 5 * cube_size] = intBY(Nx-1, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
+                intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 6 * cube_size] = intBZ(Nx-1, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
                 intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 7 * cube_size] = intE(Nx-1, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
             }
         }
@@ -640,7 +638,7 @@ __device__ float intEFrontTop(const int j,
             - (dt / dz) * (ZFluxE(0, j, 0, fluidvar, Nx, Ny, Nz) - ZFluxE(0, j, Nz-2, fluidvar, Nx, Ny, Nz));  
     }
 
-// Kernels that deal with Front Left Face
+// Kernels that deal with Front Left Line
 // i \in [1, Nx-1]
 // j = 0
 // k = 0
@@ -1008,7 +1006,7 @@ __device__ float intETopLeft(const int k,
             - (dt / dz) * (ZFluxE(0, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxE(0, 0, k-1, fluidvar, Nx, Ny, Nz));
     }
 
-// Kernels that deal with the Bottom Left Face
+// Kernels that deal with the Bottom Left Line
 // i = Nx-1
 // j = 0
 // k \in [1, Nz-2]
@@ -1100,4 +1098,4 @@ __device__ float intEBottomLeft(const int k,
             - (dt / dz) * (ZFluxE(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxE(Nx-1, 0, k-1, fluidvar, Nx, Ny, Nz));
     }
 
-// I think that's everything!
+// I think that's everything! 
