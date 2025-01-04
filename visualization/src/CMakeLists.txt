@@ -31,14 +31,17 @@ target_link_libraries(view_frame PRIVATE ${VTK_LIBRARIES})
 add_executable(makemovie_driver make_movie/driver.cpp)
 add_executable(makemovie_naninfs make_movie/driver_infs.cpp)
 add_executable(read_fluid_data make_movie/read_fluid_data.cpp)
+add_executable(read_grid_attr make_movie/read_grid_attributes.cpp)
 add_executable(read_grid_data make_movie/read_grid_data.cpp)
 
 target_link_libraries(makemovie_driver PRIVATE ${VTK_LIBRARIES})
 target_link_libraries(makemovie_naninfs PRIVATE ${VTK_LIBRARIES})
 target_link_libraries(read_fluid_data PRIVATE ${HDF5_LIBRARIES})
+target_link_libraries(read_grid_attr PRIVATE ${HDF5_LIBRARIES})
 target_link_libraries(read_grid_data PRIVATE ${HDF5_LIBRARIES})
 
 vtk_module_autoinit(
     TARGETS view_frame makemovie_driver makemovie_naninfs
+    # TARGETS view_frame makemovie_driver
     MODULES ${VTK_LIBRARIES}
 )

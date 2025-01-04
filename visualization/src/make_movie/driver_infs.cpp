@@ -35,7 +35,9 @@
 
 #define IDX3D(i, j, k, Nx, Ny, Nz) (k) * (Nx) * (Ny) + (i) * (Ny) + j
 
-size_t getAllNanInfs(std::vector<float>& fluidvar_clean, vtkNew<vtkPoints>& uncleanPoints, vtkNew<vtkGlyph3D>& uncleanGlyphs, const float* shm_fluidvar, const int Nx, const int Ny, const int Nz);
+size_t getAllNanInfs(std::vector<float>& fluidvar_clean, vtkNew<vtkPoints>& uncleanPoints, vtkNew<vtkGlyph3D>& uncleanGlyphs, 
+    const float* shm_fluidvar, const float* x_grid, const float* y_grid, const float* z_grid, 
+    const int Nx, const int Ny, const int Nz);
 
 int main(int argc, char* argv[]){
     std::cout << "Inside make_movie driver" << std::endl;
@@ -99,7 +101,7 @@ int main(int argc, char* argv[]){
     }
 
     // Fork process to obtain necessary grid attributes
-    std::string gridattr_command = "./read_grid_data " + shm_gridattr_name + " " + filename_grid + " " + std::to_string(gridattr_data_size);
+    std::string gridattr_command = "./read_grid_attr " + shm_gridattr_name + " " + filename_grid + " " + std::to_string(gridattr_data_size);
     std::cout << "Forking to process for obtaining grid attributes" << std::endl;
     int ret = std::system(gridattr_command.data());
     if (ret != 0) {
@@ -113,6 +115,64 @@ int main(int argc, char* argv[]){
     std::cout << "Returned successfully from process. Attribute values are: " << std::endl;
     std::cout << "(Nx, Ny, Nz) = " << "(" << Nx << "," << Ny << "," << Nz << ")" << std::endl;
     std::cout << "(dx, dy, dz) = " << "(" << dx << "," << dy << "," << dz << ")" << std::endl; 
+
+    std::string shm_xgrid_name = "/shm_xgrid";
+    int shm_fd_xgrid = shm_open(shm_xgrid_name.data(), O_CREAT | O_RDWR, 0666);
+    if (shm_fd_xgrid == -1){
+        std::cerr << "Failed to create shared memory for grid attributes" << std::endl;
+        return 1;
+    }
+
+    size_t xgrid_data_size = sizeof(float) * Nx;
+    ftruncate(shm_fd_xgrid, xgrid_data_size); // Nx, Ny, Nz, ...
+
+    float* shm_xgrid = (float*)mmap(0, xgrid_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_xgrid, 0);
+    if (shm_xgrid == MAP_FAILED) {
+        std::cerr << "Failed to map shared memory for grid attributes" << std::endl;
+        return 1;
+    }
+
+    std::string shm_ygrid_name = "/shm_ygrid";
+    int shm_fd_ygrid = shm_open(shm_ygrid_name.data(), O_CREAT | O_RDWR, 0666);
+    if (shm_fd_ygrid == -1){
+        std::cerr << "Failed to create shared memory for grid attributes" << std::endl;
+        return 1;
+    }
+
+    size_t ygrid_data_size = sizeof(float) * Ny;
+    ftruncate(shm_fd_ygrid, ygrid_data_size); // Nx, Ny, Nz, ...
+
+    float* shm_ygrid = (float*)mmap(0, ygrid_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_ygrid, 0);
+    if (shm_ygrid == MAP_FAILED) {
+        std::cerr << "Failed to map shared memory for grid attributes" << std::endl;
+        return 1;
+    }
+
+    std::string shm_zgrid_name = "/shm_zgrid";
+    int shm_fd_zgrid = shm_open(shm_zgrid_name.data(), O_CREAT | O_RDWR, 0666);
+    if (shm_fd_zgrid == -1){
+        std::cerr << "Failed to create shared memory for grid attributes" << std::endl;
+        return 1;
+    }
+
+    size_t zgrid_data_size = sizeof(float) * Nz;
+    ftruncate(shm_fd_zgrid, zgrid_data_size); // Nx, Ny, Nz, ...
+
+    float* shm_zgrid = (float*)mmap(0, zgrid_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_zgrid, 0);
+    if (shm_zgrid == MAP_FAILED) {
+        std::cerr << "Failed to map shared memory for grid attributes" << std::endl;
+        return 1;
+    }
+
+    std::string griddata_command = "./read_grid_data " + filename_grid 
+        + " " + shm_xgrid_name + " " + shm_ygrid_name + " " + shm_zgrid_name 
+        + " " + std::to_string(Nx) + " " + std::to_string(Ny) + " " + std::to_string(Nz);
+    std::cout << "Forking to process for obtaining grid attributes" << std::endl;
+    ret = std::system(griddata_command.data());
+    if (ret != 0) {
+        std::cerr << "Error executing command: " << griddata_command << std::endl;
+        return 1;
+    }
 
     /* REPLACE THIS WITH LIBRARY FUNCTION */
     // Allocate shared memory that will contain the fluidvar data 
@@ -172,7 +232,7 @@ int main(int argc, char* argv[]){
     uncleanPD->SetPoints(uncleanPoints);
     
     vtkNew<vtkSphereSource> uncleanSpheres;
-    uncleanSpheres->SetRadius(0.1);
+    uncleanSpheres->SetRadius(0.01);
 
     vtkNew<vtkGlyph3D> uncleanGlyphs;
     uncleanGlyphs->SetSourceConnection(uncleanSpheres->GetOutputPort());
@@ -294,7 +354,7 @@ int main(int argc, char* argv[]){
         }
 
         // This updates uncleanPoints as a side-effect
-        num_naninfs = getAllNanInfs(fluidvar_clean, uncleanPoints, uncleanGlyphs, shm_fluidvar, Nx, Ny, Nz); 
+        num_naninfs = getAllNanInfs(fluidvar_clean, uncleanPoints, uncleanGlyphs, shm_fluidvar, shm_xgrid, shm_ygrid, shm_zgrid, Nx, Ny, Nz); 
         // uncleanGlyphs->Update();
 
         std::cout << "Number of NaNs and infs is: " << num_naninfs << std::endl;
@@ -353,7 +413,10 @@ int main(int argc, char* argv[]){
     return 0;
 }
 
-size_t getAllNanInfs(std::vector<float>& fluidvar_clean, vtkNew<vtkPoints>& uncleanPoints, vtkNew<vtkGlyph3D>& uncleanGlyphs, const float* shm_fluidvar, const int Nx, const int Ny, const int Nz){
+size_t getAllNanInfs(std::vector<float>& fluidvar_clean,
+    vtkNew<vtkPoints>& uncleanPoints, vtkNew<vtkGlyph3D>& uncleanGlyphs,
+    const float* shm_fluidvar, const float* x_grid, const float* y_grid, const float* z_grid, 
+    const int Nx, const int Ny, const int Nz){
     std::fill(fluidvar_clean.begin(), fluidvar_clean.end(), 0.0f);
 
     size_t num_NaNinfs = 0;
@@ -363,12 +426,12 @@ size_t getAllNanInfs(std::vector<float>& fluidvar_clean, vtkNew<vtkPoints>& uncl
             for (int j = 0; j < Ny; j++){
                 if (std::isinf(shm_fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)])) {
                     // std::cout << "Value at (" << i << ", " << j << ", " << k << ") is infinite" << std::endl;
-                    uncleanPoints->InsertNextPoint(i, j, k);
+                    uncleanPoints->InsertNextPoint(x_grid[i], y_grid[j], z_grid[k]);
                     num_NaNinfs++;
                 }
                 else if (std::isnan(shm_fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)])) {
                     // std::cout << "Value at (" << i << ", " << j << ", " << k << ") is NaN" << std::endl;
-                    uncleanPoints->InsertNextPoint(i, j, k);
+                    uncleanPoints->InsertNextPoint(x_grid[i], y_grid[j], z_grid[k]);
                     num_NaNinfs++;
                 }
                 else {

@@ -84,7 +84,7 @@ int main(int argc, char* argv[]){
     }
 
     // Fork process to obtain necessary grid attributes
-    std::string gridattr_command = "./read_grid_data " + shm_gridattr_name + " " + filename_grid + " " + std::to_string(gridattr_data_size);
+    std::string gridattr_command = "./read_grid_attr " + shm_gridattr_name + " " + filename_grid + " " + std::to_string(gridattr_data_size);
     std::cout << "Forking to process for obtaining grid attributes" << std::endl;
     int ret = std::system(gridattr_command.data());
     if (ret != 0) {
