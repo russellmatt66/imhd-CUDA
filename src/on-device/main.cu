@@ -61,24 +61,21 @@ int main(int argc, char* argv[]){
    cudaGetDevice(&deviceId); // number of blocks should be a multiple of the number of device SMs
    cudaDeviceGetAttribute(&numberOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
 
-   // SPECIFY EXECUTION CONFIGURATIONS
    dim3 exec_grid_dims(numberOfSMs, numberOfSMs, numberOfSMs);
    dim3 mesh_block_dims(meshblockdims_xthreads, meshblockdims_ythreads, meshblockdims_zthreads);
    dim3 init_block_dims(initblockdims_xthreads, initblockdims_ythreads, initblockdims_zthreads);
    dim3 intvar_block_dims(intvarblockdims_xthreads, intvarblockdims_ythreads, intvarblockdims_zthreads);
    dim3 fluid_block_dims(fluidblockdims_xthreads, fluidblockdims_ythreads, fluidblockdims_zthreads);
 
-   // INITIALIZE SIMULATION DATA
    size_t cube_size = Nx * Ny * Nz;
    size_t fluidvar_size = sizeof(float) * cube_size;
    size_t fluid_data_size = 8 * fluidvar_size;
 
-   // float *fluidvars, *fluidvars_np1, *fluidvars_int;
-   float *fluidvars, *fluidvars_int;
+   float *fluidvars, *intvars;
 
    checkCuda(cudaMalloc(&fluidvars, fluid_data_size));
    // checkCuda(cudaMalloc(&fluidvars_np1, fluid_data_size));
-   checkCuda(cudaMalloc(&fluidvars_int, fluid_data_size));
+   checkCuda(cudaMalloc(&intvars, fluid_data_size));
    
    float *x_grid, *y_grid, *z_grid;
 
@@ -90,19 +87,17 @@ int main(int argc, char* argv[]){
 	float dy = (y_max - y_min) / (Ny - 1);
 	float dz = (z_max - z_min) / (Nz - 1);
 
-   // CALL INITIALIZATION KERNELS 
    InitializeGrid<<<exec_grid_dims, mesh_block_dims>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
    ScrewPinch<<<exec_grid_dims, init_block_dims>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
-   // InitializeIntAndSwap<<<exec_grid_dims, intvar_block_dims>>>(fluidvars_np1, fluidvars_int, Nx, Ny, Nz);
-   InitializeIntvars<<<exec_grid_dims, intvar_block_dims>>>(fluidvars_int, Nx, Ny, Nz);
+   InitializeIntvars<<<exec_grid_dims, intvar_block_dims>>>(intvars, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
-   ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
-   ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
    // WRITE INITIAL DATA OUT 
@@ -189,27 +184,22 @@ int main(int argc, char* argv[]){
    for (int it = 1; it < Nt; it++){
       std::cout << "Starting timestep " << it << std::endl;
 
-      std::cout << "Launching kernels for computing fluid variables on interior" << std::endl;
-      FluidAdvanceLocal<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
-      checkCuda(cudaDeviceSynchronize());
-      
-      std::cout << "Launching kernels for computing fluid variables boundary" << std::endl;
-      BoundaryConditions<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      std::cout << "Launching kernels for computing fluid variables" << std::endl;
+      FluidAdvanceLocal<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      BoundaryConditions<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       std::cout << "Kernels for computing fluid variables completed" << std::endl;
       
-      std::cout << "Launching kernels for computing intermediate variables on interior" << std::endl; 
-      ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      std::cout << "Launching kernels for computing intermediate variables" << std::endl; 
+      ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
       
       std::cout << "Transferring updated fluid data to host" << std::endl;
       cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);
       checkCuda(cudaDeviceSynchronize());
+      std::cout << "Kernels for computing intermediate variables completed" << std::endl;
+      std::cout << "Fluid D2H data migration completed" << std::endl;
 
-      std::cout << "Launching kernels for computing intermediate variables on boundary" << std::endl; 
-      ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, fluidvars_int, D, dt, dx, dy, dz, Nx, Ny, Nz);
-      checkCuda(cudaDeviceSynchronize());
-
-      std::cout << "Update to intermediate variables, and D2H transfer complete" << std::endl; 
       std::cout << "Writing updated fluid data out" << std::endl;
       filename_fluidvar = path_to_data + "fluidvars_" + std::to_string(it) + ".h5";
       ret = callBinary_PHDF5Write(filename_fluidvar, Nx, Ny, Nz, shm_name_fluidvar, fluid_data_size, num_proc, phdf5_bin_name);
@@ -223,8 +213,7 @@ int main(int argc, char* argv[]){
    // FREE EVERYTHING
    // Device
    checkCuda(cudaFree(fluidvars));
-   // checkCuda(cudaFree(fluidvars_np1));
-   checkCuda(cudaFree(fluidvars_int));
+   checkCuda(cudaFree(intvars));
    checkCuda(cudaFree(x_grid));
    checkCuda(cudaFree(y_grid));
    checkCuda(cudaFree(z_grid));

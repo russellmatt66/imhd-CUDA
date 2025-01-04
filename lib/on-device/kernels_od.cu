@@ -36,6 +36,7 @@ __global__ void FluidAdvanceLocal(float* fluidvar, const float* intvar,
 
         float rho = 0.0, rhovx = 0.0, rhovy = 0.0, rhovz = 0.0, Bx = 0.0, By = 0.0, Bz = 0.0, e = 0.0;
 
+        // Tradeoff cache-thrashing for high register pressure
         float rho_int = 0.0, rhovx_int = 0.0, rhovy_int = 0.0, rhovz_int = 0.0, Bx_int = 0.0, By_int = 0.0, Bz_int = 0.0, e_int = 0.0;
         float rho_int_im1 = 0.0, rhovx_int_im1 = 0.0, rhovy_int_im1 = 0.0, rhovz_int_im1 = 0.0, Bx_int_im1 = 0.0, By_int_im1 = 0.0, Bz_int_im1 = 0.0, e_int_im1 = 0.0;
         float rho_int_jm1 = 0.0, rhovx_int_jm1 = 0.0, rhovy_int_jm1 = 0.0, rhovz_int_jm1 = 0.0, Bx_int_jm1 = 0.0, By_int_jm1 = 0.0, Bz_int_jm1 = 0.0, e_int_jm1 = 0.0;
@@ -542,16 +543,6 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
         }
     }
 
-    // THEN, ACCUMULATE THE RESULTS ONTO ONE FACE, MAP AROUND TO THE OTHER, AND CONTINUE
-    for (int i = tidx + 1; i < Nx - 1; i += xthreads){ // Ignore the edges because those are wall - not plasma
-        for (int j = tidy + 1; j < Ny - 1; j += ythreads){
-            for (int ivf = 0; ivf < 8; ivf++){
-                fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size] += fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size];
-                fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
-            }
-        }
-    }
-
     /* 
     B.Cs on BOTTOM (II) 
     (i = 0, j, k) 
@@ -595,8 +586,8 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     (i, j = N-1, k) 
     */
     int j = 0;
-    for (int k = tidz; k < Nz; k += zthreads){
-        for (int i = tidx + 1; i < Nx - 1; i += xthreads){
+    for (int k = tidz + 1; k < Nz - 1; k += zthreads){
+        for (int i = tidx ; i < Nx ; i += xthreads){
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0; // Magic wall number
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
@@ -609,8 +600,8 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     }      
 
     j = Ny - 1;
-    for (int k = tidz; k < Nz; k += zthreads){
-        for (int i = tidx + 1; i < Nx - 1; i += xthreads){      
+    for (int k = tidz + 1; k < Nz - 1; k += zthreads){
+        for (int i = tidx ; i < Nx ; i += xthreads){      
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0; // Magic wall number 
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
@@ -619,6 +610,18 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0; 
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = p(i, j, k, fluidvar, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
+        }
+    }
+
+    __syncthreads(); // PBCs require this
+
+    // THEN, ACCUMULATE THE RESULTS ONTO ONE FACE, MAP AROUND TO THE OTHER, AND CONTINUE
+    for (int i = tidx + 1; i < Nx - 1; i += xthreads){ // Ignore the edges because those are wall - not plasma
+        for (int j = tidy + 1; j < Ny - 1; j += ythreads){
+            for (int ivf = 0; ivf < 8; ivf++){
+                fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size] += fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size];
+                fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
+            }
         }
     }
 
