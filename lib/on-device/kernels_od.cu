@@ -551,7 +551,7 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     (i = Nx-1, j, k) 
     */
     int i = 0; 
-    for (int k = tidz; k < Nz; k += zthreads){ 
+    for (int k = tidz ; k < Nz ; k += zthreads){ 
         for (int j = tidy; j < Ny; j += ythreads){
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0; /* Magic vacuum number */
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
@@ -565,7 +565,7 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     }
 
     i = Nx - 1;
-    for (int k = tidz; k < Nz; k += zthreads){ 
+    for (int k = tidz ; k < Nz ; k += zthreads){ 
         for (int j = tidy; j < Ny; j += ythreads){
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0; /* Magic vacuum number */
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
@@ -586,8 +586,8 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     (i, j = N-1, k) 
     */
     int j = 0;
-    for (int k = tidz + 1; k < Nz - 1; k += zthreads){
-        for (int i = tidx ; i < Nx ; i += xthreads){
+    for (int k = tidz ; k < Nz ; k += zthreads){
+        for (int i = tidx + 1; i < Nx - 1 ; i += xthreads){
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0; // Magic wall number
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
@@ -600,8 +600,8 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     }      
 
     j = Ny - 1;
-    for (int k = tidz + 1; k < Nz - 1; k += zthreads){
-        for (int i = tidx ; i < Nx ; i += xthreads){      
+    for (int k = tidz ; k < Nz ; k += zthreads){
+        for (int i = tidx + 1; i < Nx - 1 ; i += xthreads){      
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0; // Magic wall number 
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
             fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
