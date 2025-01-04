@@ -1,4 +1,6 @@
 import subprocess
+import sys 
+
 from os import remove
 from os import listdir
 from os.path import isfile, join
@@ -16,7 +18,13 @@ for file in all_data_files:
 
 # Read input file, and parse it.
 arg_list = []
-driver = './on-device/imhd-cuda'
+
+mode = sys.argv[1]
+
+if mode == "full": # read out fluxes and intermediate variables
+    driver = './on-device/imhd-cuda_full'
+else:
+    driver = './on-device/imhd-cuda'
 arg_list.append(driver)
 
 input_file = './on-device/input.inp'
