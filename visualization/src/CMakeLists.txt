@@ -3,6 +3,7 @@ project(imhd-visualize LANGUAGES CXX C)
 
 find_package(HDF5 REQUIRED COMPONENTS C HL)
 find_package(VTK REQUIRED COMPONENTS 
+    FiltersSources
     IOFFMPEG
     RenderingContextOpenGL2
     RenderingCore
@@ -28,14 +29,16 @@ target_link_libraries(view_frame PRIVATE ${VTK_LIBRARIES})
 
 # Make a movie out of all the data
 add_executable(makemovie_driver make_movie/driver.cpp)
+add_executable(makemovie_naninfs make_movie/driver_infs.cpp)
 add_executable(read_fluid_data make_movie/read_fluid_data.cpp)
 add_executable(read_grid_data make_movie/read_grid_data.cpp)
 
 target_link_libraries(makemovie_driver PRIVATE ${VTK_LIBRARIES})
+target_link_libraries(makemovie_naninfs PRIVATE ${VTK_LIBRARIES})
 target_link_libraries(read_fluid_data PRIVATE ${HDF5_LIBRARIES})
 target_link_libraries(read_grid_data PRIVATE ${HDF5_LIBRARIES})
 
 vtk_module_autoinit(
-    TARGETS view_frame makemovie_driver
+    TARGETS view_frame makemovie_driver makemovie_naninfs
     MODULES ${VTK_LIBRARIES}
 )
