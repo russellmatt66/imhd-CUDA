@@ -47,6 +47,7 @@ int main(int argc, char* argv[]){
     std::string filename_grid = argv[3];
     size_t Nt = atoi(argv[4]);
 
+    // Shared inputs w/regular viz.
     float frametext_x = atof(argv[5]);
     float frametext_y = atof(argv[6]);
     int frametext_fontsize = atoi(argv[7]);
@@ -72,12 +73,18 @@ int main(int argc, char* argv[]){
     float camera_viewupx = atof(argv[27]);
     float camera_viewupy = atof(argv[28]);
     float camera_viewupz = atof(argv[29]);
-    float renderer_backgroungred = atof(argv[30]);
+    float renderer_backgroundred = atof(argv[30]);
     float renderer_backgroundgreen = atof(argv[31]);
     float renderer_backgroundblue = atof(argv[32]);
     int videowriter_fps = atoi(argv[33]);
     float opacity_min = atof(argv[34]);
     float opacity_max = atof(argv[35]);
+
+    // For visualizing blowups
+    float sphere_radius = atof(argv[36]);
+    float sphere_rcolor = atof(argv[37]);
+    float sphere_gcolor = atof(argv[38]);
+    float sphere_bcolor = atof(argv[39]);
 
     /* REPLACE THIS WITH LIBRARY FUNCTION */
     // Get mesh dimensions, and spacing
@@ -220,9 +227,9 @@ int main(int argc, char* argv[]){
     std::cout << "Instantiating textActor" << std::endl;
     vtkNew<vtkTextActor> frameText;
     frameText->GetPositionCoordinate()->SetCoordinateSystemToNormalizedDisplay();
-    frameText->SetPosition(0.1, 0.9);
-    frameText->GetTextProperty()->SetFontSize(16);
-    frameText->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
+    frameText->SetPosition(frametext_x, frametext_y);
+    frameText->GetTextProperty()->SetFontSize(frametext_fontsize);
+    frameText->GetTextProperty()->SetColor(frametext_red, frametext_blue, frametext_green);
     std::cout << "textActor instantiated" << std::endl;
 
     std::cout << "Instantiating uncleanActor" << std::endl;
@@ -232,7 +239,7 @@ int main(int argc, char* argv[]){
     uncleanPD->SetPoints(uncleanPoints);
     
     vtkNew<vtkSphereSource> uncleanSpheres;
-    uncleanSpheres->SetRadius(0.01);
+    uncleanSpheres->SetRadius(sphere_radius);
 
     vtkNew<vtkGlyph3D> uncleanGlyphs;
     uncleanGlyphs->SetSourceConnection(uncleanSpheres->GetOutputPort());
@@ -244,10 +251,7 @@ int main(int argc, char* argv[]){
 
     vtkNew<vtkActor> uncleanActor;
     uncleanActor->SetMapper(uncleanPDMapper);
-    // uncleanActor->GetProperty()->SetColor(1.0, 0.0, 1.0); // Magenta
-    uncleanActor->GetProperty()->SetColor(1.0, 1.0, 1.0); // White
-    // uncleanActor->GetProperty()->SetColor(0.0, 1.0, 1.0); // Cyan
-    // uncleanActor->GetProperty()->SetColor(0.7, 0.7, 0.7); // Gray
+    uncleanActor->GetProperty()->SetColor(sphere_rcolor, sphere_gcolor, sphere_bcolor);
 
     std::cout << "uncleanActor instantiated" << std::endl;
 
@@ -261,20 +265,20 @@ int main(int argc, char* argv[]){
     scalarBar->SetTitle(dset_name.data());
 
     scalarBar->SetTextPositionToPrecedeScalarBar();
-    scalarBar->SetTextPad(10);
+    scalarBar->SetTextPad(scalarbar_textpad);
 
-    scalarBar->SetNumberOfLabels(7);
-    scalarBar->SetMaximumNumberOfColors(256);
-    scalarBar->SetBarRatio(0.1);
+    scalarBar->SetNumberOfLabels(scalarbar_numlabels);
+    scalarBar->SetMaximumNumberOfColors(scalarbar_maxnumcolors);
+    scalarBar->SetBarRatio(scalarbar_barratio);
     scalarBar->SetUnconstrainedFontSize(true);
-    scalarBar->SetPosition(0.8,0.2);
-    scalarBar->SetPosition2(0.2,0.5);
+    scalarBar->SetPosition(scalarbar_xll, scalarbar_yll);
+    scalarBar->SetPosition2(scalarbar_dxur, scalarbar_dyur);
 
     vtkTextProperty* scalarBarLabelProp = scalarBar->GetLabelTextProperty();
-    scalarBarLabelProp->SetFontSize(10);
+    scalarBarLabelProp->SetFontSize(scalarbar_labelfontsize);
 
     vtkTextProperty* scalarBarTitleProp = scalarBar->GetTitleTextProperty();
-    scalarBarTitleProp->SetFontSize(10);
+    scalarBarTitleProp->SetFontSize(scalarbar_titlefontsize);
     // scalarBarTitleProp->SetJustification(VTK_TEXT_CENTERED);
 
     std::cout << "Instantiating opacityTransfer" << std::endl;
@@ -292,14 +296,14 @@ int main(int argc, char* argv[]){
 
     std::cout << "Instantiating camera" << std::endl;
     vtkNew<vtkCamera> camera;
-    camera->SetPosition(20, 20, 20);
-    camera->SetFocalPoint(0, 0, 0);
-    camera->SetViewUp(1, 0, 0);
+    camera->SetPosition(camera_x, camera_y, camera_z);
+    camera->SetFocalPoint(camera_focalx, camera_focaly, camera_focalz);
+    camera->SetViewUp(camera_viewupx, camera_viewupy, camera_viewupz);
     std::cout << "camera instantiated" << std::endl;
 
     std::cout << "Connecting camera, and volumeActor to renderer" << std::endl;
     renderer->SetActiveCamera(camera);
-    renderer->SetBackground(0.0, 0.0, 0.0);
+    renderer->SetBackground(renderer_backgroundred, renderer_backgroundgreen, renderer_backgroundblue);
     renderer->AddVolume(volumeActor);
     renderer->AddActor(uncleanActor);
     renderer->AddActor(frameText);
@@ -317,11 +321,11 @@ int main(int argc, char* argv[]){
     vtkNew<vtkFFMPEGWriter> videoWriter;
     videoWriter->SetInputConnection(windowToImageFilter->GetOutputPort());
     videoWriter->SetFileName(video_filename.data());
-    videoWriter->SetRate(1); /* Speed this up later */
+    videoWriter->SetRate(videowriter_fps); 
     videoWriter->Start();
     std::cout << "videoWriter instantiated" << std::endl;   
 
-    /* Loop over frames, and make video */
+    // Loop over frames, and make video
     std::string load_fluidvar_command = "";
     std::string fluidvar_filename = ""; // container for frame text data in string form
 
@@ -332,7 +336,7 @@ int main(int argc, char* argv[]){
     std::vector<float> fluidvar_clean(Nx * Ny * Nz, 0.0f); // Static array - more expensive, but we want to visualize on grid  
     std::vector<float> fluidvar_unclean(Nx * Ny * Nz, 0.0f); // Static array - " "
 
-    size_t num_naninfs = 0;
+    size_t num_naninfs = 0; 
 
     for (int i = 0; i <= Nt; i++){
         std::cout << "Writing frame " << i << " to video" << std::endl;
@@ -380,8 +384,8 @@ int main(int argc, char* argv[]){
         colorTF->AddRGBPoint(*max_val, 1.0, 0.0, 1.0);       // Violet
 
         opacityTF->RemoveAllPoints();
-        opacityTF->AddPoint(*min_val, 0.0);
-        opacityTF->AddPoint(*max_val, 0.0);
+        opacityTF->AddPoint(*min_val, opacity_min);
+        opacityTF->AddPoint(*max_val, opacity_max);
 
         // Modify data, and write window to video
         frame_data->SetImportVoidPointer(fluidvar_clean.data());

@@ -97,6 +97,8 @@ int main(int argc, char* argv[]){
    checkCuda(cudaDeviceSynchronize());
 
    ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+   checkCuda(cudaDeviceSynchronize());    
+   
    ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
@@ -184,14 +186,20 @@ int main(int argc, char* argv[]){
    for (int it = 1; it < Nt; it++){
       std::cout << "Starting timestep " << it << std::endl;
 
-      std::cout << "Launching kernels for computing fluid variables" << std::endl;
+      std::cout << "Launching kernel for computing fluid variables" << std::endl;
       FluidAdvanceLocal<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      checkCuda(cudaDeviceSynchronize());
+      
+      std::cout << "Launching kernel for computing fluid boundaries" << std::endl; 
       BoundaryConditions<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       std::cout << "Kernels for computing fluid variables completed" << std::endl;
       
-      std::cout << "Launching kernels for computing intermediate variables" << std::endl; 
+      std::cout << "Launching kernel for computing intermediate variables" << std::endl; 
       ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      checkCuda(cudaDeviceSynchronize());
+
+      std::cout << "Launching kernels for computing intermediate boundaries" << std::endl; 
       ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
       
       std::cout << "Transferring updated fluid data to host" << std::endl;

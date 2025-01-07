@@ -55,7 +55,7 @@ int main(int argc, char* argv[]){
     float camera_viewupx = atof(argv[27]);
     float camera_viewupy = atof(argv[28]);
     float camera_viewupz = atof(argv[29]);
-    float renderer_backgroungred = atof(argv[30]);
+    float renderer_backgroundred = atof(argv[30]);
     float renderer_backgroundgreen = atof(argv[31]);
     float renderer_backgroundblue = atof(argv[32]);
     int videowriter_fps = atoi(argv[33]);
@@ -145,9 +145,9 @@ int main(int argc, char* argv[]){
     std::cout << "Instantiating textActor" << std::endl;
     vtkNew<vtkTextActor> frameText;
     frameText->GetPositionCoordinate()->SetCoordinateSystemToNormalizedDisplay();
-    frameText->SetPosition(0.1, 0.9);
-    frameText->GetTextProperty()->SetFontSize(16);
-    frameText->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
+    frameText->SetPosition(frametext_x, frametext_y);
+    frameText->GetTextProperty()->SetFontSize(frametext_fontsize);
+    frameText->GetTextProperty()->SetColor(frametext_red, frametext_green, frametext_blue);
     std::cout << "textActor instantiated" << std::endl;
 
     std::cout << "Instantiating colorTransfer" << std::endl;
@@ -160,20 +160,20 @@ int main(int argc, char* argv[]){
     scalarBar->SetTitle(dset_name.data());
 
     scalarBar->SetTextPositionToPrecedeScalarBar();
-    scalarBar->SetTextPad(10);
+    scalarBar->SetTextPad(scalarbar_textpad);
 
-    scalarBar->SetNumberOfLabels(7);
-    scalarBar->SetMaximumNumberOfColors(256);
-    scalarBar->SetBarRatio(0.1);
+    scalarBar->SetNumberOfLabels(scalarbar_numlabels);
+    scalarBar->SetMaximumNumberOfColors(scalarbar_maxnumcolors);
+    scalarBar->SetBarRatio(scalarbar_barratio);
     scalarBar->SetUnconstrainedFontSize(true);
-    scalarBar->SetPosition(0.8,0.2);
-    scalarBar->SetPosition2(0.2,0.5);
+    scalarBar->SetPosition(scalarbar_xll, scalarbar_yll);
+    scalarBar->SetPosition2(scalarbar_dxur, scalarbar_dyur);
 
     vtkTextProperty* scalarBarLabelProp = scalarBar->GetLabelTextProperty();
-    scalarBarLabelProp->SetFontSize(10);
+    scalarBarLabelProp->SetFontSize(scalarbar_labelfontsize);
 
     vtkTextProperty* scalarBarTitleProp = scalarBar->GetTitleTextProperty();
-    scalarBarTitleProp->SetFontSize(10);
+    scalarBarTitleProp->SetFontSize(scalarbar_titlefontsize);
     // scalarBarTitleProp->SetJustification(VTK_TEXT_CENTERED);
 
     std::cout << "Instantiating opacityTransfer" << std::endl;
@@ -194,14 +194,14 @@ int main(int argc, char* argv[]){
 
     std::cout << "Instantiating camera" << std::endl;
     vtkNew<vtkCamera> camera;
-    camera->SetPosition(15, 15, 15);
-    camera->SetFocalPoint(0, 0, 0);
-    camera->SetViewUp(1, 0, 0);
+    camera->SetPosition(camera_x, camera_y, camera_z);
+    camera->SetFocalPoint(camera_focalx, camera_focaly, camera_focalz);
+    camera->SetViewUp(camera_viewupx, camera_viewupy, camera_viewupz);
     std::cout << "camera instantiated" << std::endl;
 
     std::cout << "Connecting camera, and volumeActor to renderer" << std::endl;
     renderer->SetActiveCamera(camera);
-    renderer->SetBackground(0.0, 0.0, 0.0);
+    renderer->SetBackground(renderer_backgroundred, renderer_backgroundgreen, renderer_backgroundblue);
     renderer->AddVolume(volumeActor);
     renderer->AddActor(frameText);
     renderer->AddActor2D(scalarBar);
@@ -214,15 +214,17 @@ int main(int argc, char* argv[]){
     std::cout << "windowToImageFilter instantiated - renderWindow connected" << std::endl;
 
     std::cout << "Instantiating videoWriter" << std::endl;
-    std::string video_filename = "../" + dset_name + "_Nx" + std::to_string(Nx) + "Ny" + std::to_string(Ny) + "Nz" + std::to_string(Nz) + ".avi"; // Being run from inside 'build/'
+    std::string video_filename = "../" + dset_name 
+        + "_Nx" + std::to_string(Nx) + "Ny" + std::to_string(Ny) + "Nz" + std::to_string(Nz) 
+        + "_x" + std::to_string(static_cast<int>(camera_x)) + "y" + std::to_string(static_cast<int>(camera_y)) + "z" + std::to_string(static_cast<int>(camera_z)) + ".avi"; // Being run from inside 'build/'
     vtkNew<vtkFFMPEGWriter> videoWriter;
     videoWriter->SetInputConnection(windowToImageFilter->GetOutputPort());
     videoWriter->SetFileName(video_filename.data());
-    videoWriter->SetRate(1); /* Speed this up later */
+    videoWriter->SetRate(videowriter_fps); /* Speed this up later */
     videoWriter->Start();
     std::cout << "videoWriter instantiated" << std::endl;   
 
-    /* Loop over frames, and make video */
+    // Loop over frames, and make video
     std::string load_fluidvar_command = "";
     std::string fluidvar_filename = ""; // container for frame text data in string form
 
@@ -265,8 +267,8 @@ int main(int argc, char* argv[]){
         colorTF->AddRGBPoint(max_val, 1.0, 0.0, 1.0);       // Violet
 
         opacityTF->RemoveAllPoints();
-        opacityTF->AddPoint(min_val, 0.0);
-        opacityTF->AddPoint(max_val, 1.0);
+        opacityTF->AddPoint(min_val, opacity_min);
+        opacityTF->AddPoint(max_val, opacity_max);
 
         // Modify data, and write window to video
         frame_data->SetImportVoidPointer(shm_fluidvar);
