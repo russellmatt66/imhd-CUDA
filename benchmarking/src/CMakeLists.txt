@@ -11,7 +11,7 @@ add_library(initialize_od_lib ../../include/initialize_od.cu)
 add_library(intvar_lib ../../include/kernels_od_intvar.cu)
 add_library(utils_lib ../../include/utils.cpp)
 
-add_executable(imhd-cuda_bench main.cu)
+add_executable(imhd-cuda_bench manual.cu)
 add_executable(imhd-cuda_profile profile.cu)
 
 target_link_libraries(fluxes_lib PRIVATE helper_lib)
