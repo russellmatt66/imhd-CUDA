@@ -82,7 +82,7 @@ Limited DRAM on GPU (RTX 2060) means storage is at a premium, and thread asynchr
 
 ![The Ideal MHD System](https://latex.codecogs.com/svg.image?\frac{\partial\vec{Q}}{\partial&space;t}&plus;\nabla\cdot\overline{\overline{T}}=D\nabla^{2}\vec{Q})
 
-What all these terms are exactly will not be explained here. In the future I will upload a paper explaining things. Fundamentally, the numerical method to solve this equation is a *predictor-corrector* method,
+What all these terms are exactly will not be explained here. In the future I will upload a paper explaining things. The numerical method being used to solve this equation here is a *predictor-corrector* method, given by,
 
 ![Lax-Wendroff](./.svgs/predictor_corrector.svg)
 
