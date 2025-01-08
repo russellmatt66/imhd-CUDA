@@ -166,7 +166,8 @@ int main(int argc, char* argv[]){
         // cudaEventSynchronize(stop_intvar_bcs);
         // cudaEventElapsedTime(&intvar_bcs_time, start_intvar_bcs, stop_intvar_bcs);
 
-		bench_file << it << "," << fluid_time << "," << bcs_time << "," << intvar_time << "," << intvar_bcs_time << "," 
+		bench_file << it << "," << fluid_time / num_bench_iters << "," << bcs_time / num_bench_iters << "," 
+			<< intvar_time / num_bench_iters << "," << intvar_bcs_time / num_bench_iters << "," 
 			<< fluid_threads << "," << fluid_threads << "," << intvar_threads << "," << intvar_threads << std::endl;
 	}
 
