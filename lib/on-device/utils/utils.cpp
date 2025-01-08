@@ -1,4 +1,5 @@
 #include <string>
+#include <fstream>
 #include <iostream>
 #include <unistd.h>
 
@@ -79,4 +80,19 @@ int callBinary_EigenSC(const std::string shm_name, const int Nx, const int Ny, c
     std::cout << "Executing command: " << eigen_command << std::endl;
     int ret = std::system(eigen_command.data()); 
     return ret;
+}
+
+// This is used in benchmarking, and debug versions of code
+// Python launcher does parsing of input file normally
+// Extra layer is unwanted when it comes to debugging / benchmarking 
+void parseInputFileDebug(std::vector<float>& inputs, const std::string input_file){
+    /* READ THROUGH input_file AND PUT DATA INTO inputs */
+    std::ifstream input_file_stream(input_file);
+    std::string line;
+    int i = 0;
+    while(std::getline(input_file_stream, line)){
+        inputs[i] = std::atof(line.data());
+        i++;
+    }
+    return;
 }

@@ -49,7 +49,7 @@ int main(int argc, char* argv[]){
 	int intvarblockdims_zthreads = atoi(argv[23]);
 
 	int fluidblockdims_xthreads = atoi(argv[24]);
-	int fluidblockdims_ythreads = atoi(argv[35]);
+	int fluidblockdims_ythreads = atoi(argv[25]);
 	int fluidblockdims_zthreads = atoi(argv[26]);
 
 	float dx = (x_max - x_min) / (Nx - 1);
@@ -57,7 +57,13 @@ int main(int argc, char* argv[]){
 	float dz = (z_max - z_min) / (Nz - 1);
 
 	int fluid_threads = fluidblockdims_xthreads * fluidblockdims_ythreads * fluidblockdims_zthreads;
+	std::cout << "fluid_threads=" << fluid_threads << std::endl;
+	std::cout << "fluid_xthreads=" << fluidblockdims_xthreads << std::endl;
+	std::cout << "fluid_ythreads=" << fluidblockdims_ythreads << std::endl;
+	std::cout << "fluid_zthreads=" << fluidblockdims_zthreads << std::endl;
+
 	int intvar_threads = intvarblockdims_xthreads * intvarblockdims_ythreads * intvarblockdims_zthreads;
+	std::cout << "intvar_threads=" << intvar_threads << std::endl;
 
 	// Initialize device data 
 	int deviceId;
@@ -151,13 +157,14 @@ int main(int argc, char* argv[]){
         cudaEventElapsedTime(&intvar_time, start_intvar, stop_intvar);
 
 		std::cout << "Benchmarking intermediate B.Cs" << std::endl;
-        cudaEventRecord(start_intvar_bcs);
-		for (size_t il = 0; il < num_bench_iters; il++){
-			ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
-		}
-		cudaEventRecord(stop_intvar_bcs);
-        cudaEventSynchronize(stop_intvar_bcs);
-        cudaEventElapsedTime(&intvar_bcs_time, start_intvar_bcs, stop_intvar_bcs);
+		std::cout << "Currently thrashes cache so badly that it kills performance - not being benchmarked until fixed" << std::endl;
+        // cudaEventRecord(start_intvar_bcs);
+		// for (size_t il = 0; il < num_bench_iters; il++){
+		// 	ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+		// }
+		// cudaEventRecord(stop_intvar_bcs);
+        // cudaEventSynchronize(stop_intvar_bcs);
+        // cudaEventElapsedTime(&intvar_bcs_time, start_intvar_bcs, stop_intvar_bcs);
 
 		bench_file << it << "," << fluid_time << "," << bcs_time << "," << intvar_time << "," << intvar_bcs_time << "," 
 			<< fluid_threads << "," << fluid_threads << "," << intvar_threads << "," << intvar_threads << std::endl;

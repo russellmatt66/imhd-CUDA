@@ -22,7 +22,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 int main(int argc, char* argv[]){
 	// Parse inputs - provided by imhdLauncher.py because Python parsing is easiest, and Python launching is easy
     std::vector<float> inputs (19, 0.0);
-    parseInputFileDebug(inputs, "./imhd-cuda_profile.inp"); /* Write this again - it disappeared */
+    parseInputFileDebug(inputs, "./imhd-cuda_fullprofile.inp"); /* Write this again - it disappeared */
 	
 	for (int i = 0; i < inputs.size(); i++){
 		std::cout << "inputs[" << i << "] = " << inputs[i] << std::endl; 
