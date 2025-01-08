@@ -84,7 +84,7 @@ Limited DRAM on GPU (RTX 2060) means storage is at a premium, and thread asynchr
 
 What all these terms are exactly will not be explained here. In the future I will upload a paper explaining things. Fundamentally, the numerical method to solve this equation is a *predictor-corrector* method,
 
-![](https://latex.codecogs.com/svg.image?\begin{align}\bar{Q}&=Q^{n}_{ijk}-\frac{\Delta&space;t}{\Delta&space;x}(F_{i&plus;1,jk}-F_{ijk})-\frac{\Delta&space;t}{\Delta&space;y}(G_{i,j&plus;1,k}-G_{ijk})-\frac{\Delta&space;t}{\Delta&space;z}(H_{ij,k&plus;1}-H_{ijk})\\Q^{n&plus;1}_{ijk}&=\frac{Q^{n}_{ijk}&plus;\bar{Q}}{2}-\frac{\Delta&space;t}{\Delta&space;x}(\bar{F}_{ijk}-\bar{F}_{i-1,jk})-\frac{\Delta&space;t}{\Delta&space;y}(\bar{G}_{ijk}-\bar{G}_{i,j-1,k})-\frac{\Delta&space;t}{\Delta&space;z}(\bar{H}_{ijk}-\bar{H}_{ij,k-1})\end{align})
+![Lax-Wendroff](https://latex.codecogs.com/svg.image?\begin{align}\bar{Q}&=Q^{n}_{ijk}-\frac{\Delta&space;t}{\Delta&space;x}(F_{i&plus;1,jk}-F_{ijk})-\frac{\Delta&space;t}{\Delta&space;y}(G_{i,j&plus;1,k}-G_{ijk})-\frac{\Delta&space;t}{\Delta&space;z}(H_{ij,k&plus;1}-H_{ijk})\\Q^{n&plus;1}_{ijk}&=\frac{Q^{n}_{ijk}&plus;\bar{Q}}{2}-\frac{\Delta&space;t}{\Delta&space;x}(\bar{F}_{ijk}-\bar{F}_{i-1,jk})-\frac{\Delta&space;t}{\Delta&space;y}(\bar{G}_{ijk}-\bar{G}_{i,j-1,k})-\frac{\Delta&space;t}{\Delta&space;z}(\bar{H}_{ijk}-\bar{H}_{ij,k-1})\end{align})
 
 This is of course absent the diffusion, which is discretized with a second-order central difference approach, and is only present in the first place to add a numerical means of controlling numerical instabilities which may arise. 
 
