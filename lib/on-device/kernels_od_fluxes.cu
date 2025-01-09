@@ -2,7 +2,7 @@
 
 // /* THIS NEEDS TO BE PLACED IN A FILE SOMEWHERE SO THERE'S ONLY A SINGLE DEFINITION */
 // // row-major, column-minor order
-#define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx * Ny) + (i) * Ny + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
+#define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx) * (Ny) + (i) * (Ny) + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
 // X-Fluxes
 __device__ float XFluxRho(const float rhovx){

@@ -1,5 +1,7 @@
 # Overview
-This is where the debugging happens - very long argument list to main executable makes debugging easier if Python launcher is removed
+This is where the debugging happens - very long argument list to the main executable makes debugging easier if the Python launcher is removed.
+
+Basically, you can throw the binary here into `compute-sanitizer`
 
 # Directory Structure
 `src/`
