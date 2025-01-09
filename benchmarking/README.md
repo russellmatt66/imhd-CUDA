@@ -1,7 +1,11 @@
+# Overview
+Benchmarking and profiling versions of the code go in here. 
+
 # CLI Profiling
 `ncu -o profile --metrics smsp__sass_thread_inst_executed_op_fadd_pred_on.sum,smsp__sass_thread_inst_executed_op_fmul_pred_on.sum,smsp__sass_thread_inst_executed_op_ffma_pred_on.sumd,duration -f ./imhd-cuda_profile`
-- Obtains data from hardware counters that can be used to calculate FLOPs 
--- `flop_count_sp` = `smsp__sass_thread_inst_executed_op_fadd_pred_on.sum` + `smsp__sass_thread_inst_executed_op_fmul_pred_on.sum` + `smsp__sass_thread_inst_executed_op_ffma_pred_on.sum * 2`
+
+Obtains data from hardware counters that can be used to calculate FLOPs 
+- `flop_count_sp` = `smsp__sass_thread_inst_executed_op_fadd_pred_on.sum` + `smsp__sass_thread_inst_executed_op_fmul_pred_on.sum` + `smsp__sass_thread_inst_executed_op_ffma_pred_on.sum * 2`
 - https://docs.nvidia.com/nsight-compute/NsightComputeCli/index.html#quickstart
 
 # Current Tasks

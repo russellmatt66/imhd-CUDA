@@ -9,6 +9,7 @@
 
 #include "initialize_od.cuh"
 #include "kernels_od.cuh"
+#include "kernels_fluidbcs.cuh"
 #include "kernels_od_intvar.cuh"
 
 #include "utils.cuh"

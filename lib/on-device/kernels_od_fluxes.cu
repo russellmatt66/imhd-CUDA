@@ -247,8 +247,8 @@ __device__ float XFluxE(const int i, const int j, const int k, const float* flui
     float pressure = p(i, j, k, fluidvar, Bsq, ke, Nx, Ny, Nz);
     float Bdotu = B_dot_u(i, j, k, fluidvar, Nx, Ny, Nz);
     int cube_size = Nx * Ny * Nz;
-    return fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] + pressure + Bsq 
-        * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] / fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)])
+    return fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] + pressure 
+        + Bsq * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] / fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)])
         - Bdotu * fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size];
 }
 __device__ float YFluxE(const int i, const int j, const int k, const float* fluidvar, const int Nx, const int Ny, const int Nz)
@@ -258,8 +258,8 @@ __device__ float YFluxE(const int i, const int j, const int k, const float* flui
     float pressure = p(i, j, k, fluidvar, Bsq, ke, Nx, Ny, Nz);
     float Bdotu = B_dot_u(i, j, k, fluidvar, Nx, Ny, Nz);
     int cube_size = Nx * Ny * Nz;
-    return fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] + pressure + Bsq 
-        * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] / fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)])
+    return fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] + pressure 
+        + Bsq * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] / fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)])
         - Bdotu * fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size];
 }
 __device__ float ZFluxE(const int i, const int j, const int k, const float* fluidvar, const int Nx, const int Ny, const int Nz)
@@ -269,7 +269,7 @@ __device__ float ZFluxE(const int i, const int j, const int k, const float* flui
     float pressure = p(i, j, k, fluidvar, Bsq, ke, Nx, Ny, Nz);
     float Bdotu = B_dot_u(i, j, k, fluidvar, Nx, Ny, Nz);
     int cube_size = Nx * Ny * Nz;
-    return fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] + pressure + Bsq 
-        * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] / fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)])
+    return fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] + pressure 
+        + Bsq * (fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] / fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)])
         - Bdotu * fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size];
 }
