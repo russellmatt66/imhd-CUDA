@@ -252,12 +252,10 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
         __syncthreads(); 
 
         // PBCs
-        for (int i = tidx ; i < Nx; i += xthreads){ // Do not ignore the edges b/c intermediate variables got calculated there
-            for (int j = tidy ; j < Ny ; j += ythreads){
-                for (int ivf = 0; ivf < 8; ivf++){ // PBCs - they the SAME point 
-                    intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size] += intvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size];
-                    intvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
-                }
+        if (i < Nx && j < Ny){ // Do not ignore the edges b/c intermediate variables got calculated there
+            for (int ivf = 0; ivf < 8; ivf++){ // PBCs - they the SAME point 
+                intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size] += intvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size];
+                intvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
             }
         }
         return;
@@ -609,7 +607,7 @@ __device__ float intBYFrontRight(const int i,
             - (dt / dz) * (ZFluxBY(i, Ny-1, 1, fluidvar, Nx, Ny, Nz) - ZFluxBY(i, Ny-1, 0, fluidvar, Nx, Ny, Nz));  
     }
 
-__device__ float intBZFrontTop(const int i,
+__device__ float intBZFrontRight(const int i,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -620,7 +618,7 @@ __device__ float intBZFrontTop(const int i,
             - (dt / dz) * (ZFluxBZ(i, Ny-1, 1, fluidvar, Nx, Ny, Nz) - ZFluxBZ(i, Ny-1, 0, fluidvar, Nx, Ny, Nz));  
     }
 
-__device__ float intEFrontTop(const int i, 
+__device__ float intEFrontRight(const int i, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -631,286 +629,282 @@ __device__ float intEFrontTop(const int i,
             - (dt / dz) * (ZFluxE(i, Ny-1, 1, fluidvar, Nx, Ny, Nz) - ZFluxE(i, Ny-1, 0, fluidvar, Nx, Ny, Nz));  
     }
 
-/* NEED TO FIX */
 // Kernels that deal with FrontBottom Line
 // i = Nx-1
 // j \in [0, Ny-2]
 // k = 0
-__device__ float intRhoFrontLeft(const int i, 
+__device__ float intRhoFrontBottom(const int j, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(i, 0, 0, Nx, Ny, Nz)]
-            - (dt / dx) * (XFluxRho(i, 0, 0, fluidvar, Nx, Ny, Nz) - XFluxRho(i-1, 0, 0, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxRho(i, 0, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxRho(i, 0, 0, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall       
+        return fluidvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz)]
+            - (dt / dx) * (-XFluxRho(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall 
+            - (dt / dy) * (YFluxRho(Nx-1, j+1, 0, fluidvar, Nx, Ny, Nz) - YFluxRho(Nx-1, j, 0, fluidvar, Nx, Ny, Nz))
+            - (dt / dz) * (ZFluxRho(Nx-1, j, 1, fluidvar, Nx, Ny, Nz) - ZFluxRho(Nx-1, j, 0, fluidvar, Nx, Ny, Nz));       
     }
 
-__device__ float intRhoVXFrontLeft(const int i,
+__device__ float intRhoVXFrontBottom(const int j,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(i, 0, 0, Nx, Ny, Nz) + Nx * Ny * Nz]
-            - (dt / dx) * (XFluxRhoVX(i, 0, 0, fluidvar, Nx, Ny, Nz) - XFluxRhoVX(i-1, 0, 0, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxRhoVX(i, 0, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxRhoVX(i, 0, 0, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall
+        return fluidvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz) + Nx * Ny * Nz]
+            - (dt / dx) * (-XFluxRhoVX(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (YFluxRhoVX(Nx-1, j+1, 0, fluidvar, Nx, Ny, Nz) - YFluxRhoVX(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)) 
+            - (dt / dz) * (ZFluxRhoVX(Nx-1, j, 1, fluidvar, Nx, Ny, Nz) - ZFluxRhoVX(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)); 
     }
 
-__device__ float intRhoVYFrontLeft(const int i,
+__device__ float intRhoVYFrontBottom(const int j,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(i, 0, 0, Nx, Ny, Nz) + 2 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxRhoVY(i, 0, 0, fluidvar, Nx, Ny, Nz) - XFluxRhoVY(i-1, 0, 0, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxRhoVY(i, 0, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxRhoVY(i, 0, 0, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall
+        return fluidvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz) + 2 * Nx * Ny * Nz]
+            - (dt / dx) * (-XFluxRhoVY(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (YFluxRhoVY(Nx-1, j+1, 0, fluidvar, Nx, Ny, Nz) - YFluxRhoVY(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)) 
+            - (dt / dz) * (ZFluxRhoVY(Nx-1, j, 1, fluidvar, Nx, Ny, Nz) - ZFluxRhoVY(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)); 
     }
 
-__device__ float intRhoVZFrontLeft(const int i,
+__device__ float intRhoVZFrontBottom(const int j,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(i, 0, 0, Nx, Ny, Nz) + 3 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxRhoVZ(i, 0, 0, fluidvar, Nx, Ny, Nz) - XFluxRhoVZ(i-1, 0, 0, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxRhoVZ(i, 0, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxRhoVZ(i, 0, 0, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall
+        return fluidvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz) + 3 * Nx * Ny * Nz]
+            - (dt / dx) * (-XFluxRhoVZ(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (YFluxRhoVZ(Nx-1, j+1, 0, fluidvar, Nx, Ny, Nz) - YFluxRhoVZ(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)) 
+            - (dt / dz) * (ZFluxRhoVZ(Nx-1, j, 1, fluidvar, Nx, Ny, Nz) - YFluxRhoVZ(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)); 
     }
 
-__device__ float intBXFrontLeft(const int i,
+__device__ float intBXFrontBottom(const int j,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(i, 0, 0, Nx, Ny, Nz) + 4 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxBX(i, 0, 0, fluidvar, Nx, Ny, Nz) - XFluxBX(i-1, 0, 0, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxBX(i, 0, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxBX(i, 0, 0, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall
+        return fluidvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz) + 4 * Nx * Ny * Nz]
+            - (dt / dx) * (-XFluxBX(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (YFluxBX(Nx-1, j+1, 0, fluidvar, Nx, Ny, Nz) - YFluxBX(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)) 
+            - (dt / dz) * (ZFluxBX(Nx-1, j, 1, fluidvar, Nx, Ny, Nz) - ZFluxBX(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)); 
     }
 
-__device__ float intBYFrontLeft(const int i,
+__device__ float intBYFrontBottom(const int j,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(i, 0, 0, Nx, Ny, Nz) + 5 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxBY(i, 0, 0, fluidvar, Nx, Ny, Nz) - XFluxBY(i-1, 0, 0, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxBY(i, 0, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxBY(i, 0, 0, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall
+        return fluidvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz) + 5 * Nx * Ny * Nz]
+            - (dt / dx) * (-XFluxBY(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (YFluxBY(Nx-1, j+1, 0, fluidvar, Nx, Ny, Nz) - YFluxBY(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)) 
+            - (dt / dz) * (ZFluxBY(Nx-1, j, 1, fluidvar, Nx, Ny, Nz) - ZFluxBY(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)); 
     }
 
-__device__ float intBZFrontLeft(const int i, 
+__device__ float intBZFrontBottom(const int j, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(i, 0, 0, Nx, Ny, Nz) + 6 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxBZ(i, 0, 0, fluidvar, Nx, Ny, Nz) - XFluxBZ(i-1, 0, 0, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxBZ(i, 0, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxBZ(i, 0, 0, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall  
+        return fluidvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz) + 6 * Nx * Ny * Nz]
+            - (dt / dx) * (-XFluxBZ(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall 
+            - (dt / dy) * (YFluxBZ(Nx-1, j+1, 0, fluidvar, Nx, Ny, Nz) - YFluxBZ(Nx-1, j+1, 0, fluidvar, Nx, Ny, Nz))
+            - (dt / dz) * (ZFluxBZ(Nx-1, j, 1, fluidvar, Nx, Ny, Nz) - ZFluxBZ(Nx-1, j, 0, fluidvar, Nx, Ny, Nz));   
     }
 
-__device__ float intEFrontLeft(const int i,
+__device__ float intEFrontBottom(const int j,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(i, 0, 0, Nx, Ny, Nz) + 7 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxE(i, 0, 0, fluidvar, Nx, Ny, Nz) - XFluxE(i-1, 0, 0, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxE(i, 0, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxE(i, 0, 0, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall
+        return fluidvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz) + 7 * Nx * Ny * Nz]
+            - (dt / dx) * (-XFluxE(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall 
+            - (dt / dy) * (YFluxE(Nx-1, j+1, 0, fluidvar, Nx, Ny, Nz) - YFluxE(Nx-1, j, 0, fluidvar, Nx, Ny, Nz)) 
+            - (dt / dz) * (ZFluxE(Nx-1, j, 1, fluidvar, Nx, Ny, Nz) - YFluxE(Nx-1, j, 0, fluidvar, Nx, Ny, Nz));
     }
 
-/* NEED TO FIX */
 // Kernels that deal with the BottomRight Line
 // i = Nx-1
 // j = Ny-1
 // k \in [0, Nz-2]
-__device__ float intRhoTopLeft(const int k,
+__device__ float intRhoBottomRight(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(0, 0, k, Nx, Ny, Nz)]
-            - (dt / dx) * (XFluxRho(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dy) * (YFluxRho(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxRho(0, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxRho(0, 0, k-1, fluidvar, Nx, Ny, Nz));
+        return fluidvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz)]
+            - (dt / dx) * (-XFluxRho(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (-YFluxRho(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (ZFluxRho(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxRho(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intRhoVXTopLeft(const int k,
+__device__ float intRhoVXBottomRight(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(0, 0, k, Nx, Ny, Nz) + Nx * Ny * Nz]
-            - (dt / dx) * (XFluxRhoVX(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dy) * (YFluxRhoVX(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxRhoVX(0, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxRhoVX(0, 0, k-1, fluidvar, Nx, Ny, Nz));
+        return fluidvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + Nx * Ny * Nz]
+            - (dt / dx) * (-XFluxRhoVX(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (-YFluxRhoVX(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (ZFluxRhoVX(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxRhoVX(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intRhoVYTopLeft(const int k,
+__device__ float intRhoVYBottomRight(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(0, 0, k, Nx, Ny, Nz) + 2 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxRhoVY(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dy) * (YFluxRhoVY(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxRhoVY(0, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxRhoVY(0, 0, k-1, fluidvar, Nx, Ny, Nz));
+        return fluidvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + 2 * Nx * Ny * Nz]
+            - (dt / dx) * (-XFluxRhoVY(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (-YFluxRhoVY(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (ZFluxRhoVY(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxRhoVY(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intRhoVZTopLeft(const int k,
+__device__ float intRhoVZBottomRight(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(0, 0, k, Nx, Ny, Nz) + Nx * Ny * Nz]
-            - (dt / dx) * (XFluxRhoVZ(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dy) * (YFluxRhoVZ(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxRhoVZ(0, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxRhoVZ(0, 0, k-1, fluidvar, Nx, Ny, Nz));
+        return fluidvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + Nx * Ny * Nz]
+            - (dt / dx) * (-XFluxRhoVZ(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (-YFluxRhoVZ(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (ZFluxRhoVZ(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxRhoVZ(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intBXTopLeft(const int k,
+__device__ float intBXBottomRight(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(0, 0, k, Nx, Ny, Nz) + 4 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxBX(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dy) * (YFluxBX(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxBX(0, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxBX(0, 0, k-1, fluidvar, Nx, Ny, Nz));
+        return fluidvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + 4 * Nx * Ny * Nz]
+            - (dt / dx) * (-XFluxBX(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (-YFluxBX(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (ZFluxBX(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxBX(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intBYTopLeft(const int k,
+__device__ float intBYBottomRight(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(0, 0, k, Nx, Ny, Nz) + 5 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxBY(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dy) * (YFluxBY(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxBY(0, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxBY(0, 0, k-1, fluidvar, Nx, Ny, Nz));
+        return fluidvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + 5 * Nx * Ny * Nz]
+            - (dt / dx) * (-XFluxBY(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (-YFluxBY(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (ZFluxBY(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxBY(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intBZTopLeft(const int k,
+__device__ float intBZBottomRight(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(0, 0, k, Nx, Ny, Nz) + 6 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxBZ(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dy) * (YFluxBZ(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxBZ(0, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxBZ(0, 0, k-1, fluidvar, Nx, Ny, Nz));
+        return fluidvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + 6 * Nx * Ny * Nz]
+            - (dt / dx) * (-XFluxBZ(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (-YFluxBZ(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (ZFluxBZ(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxBZ(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intETopLeft(const int k,
+__device__ float intEBottomRight(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(0, 0, k, Nx, Ny, Nz) + 7 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxE(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dy) * (YFluxE(0, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxE(0, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxE(0, 0, k-1, fluidvar, Nx, Ny, Nz));
+        return fluidvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + 7 * Nx * Ny * Nz]
+            - (dt / dx) * (-XFluxE(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (-YFluxE(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (ZFluxE(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxE(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-/* NEED TO FIX */
 // Kernels that deal with the BackBottom Line
 // i = Nx-1
 // j \in [0, Ny-2]
 // k = Nz-1
-__device__ float intRhoBottomLeft(const int k, 
+__device__ float intRhoBackBottom(const int j, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz)]
-            - (dt / dx) * (XFluxRho(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - XFluxRho(Nx-2, 0, k, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxRho(Nx-1, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite site of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxRho(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxRho(Nx-1, 0, k-1, fluidvar, Nx, Ny, Nz));        
+        return fluidvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz)]
+            - (dt / dx) * (-XFluxRho(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (YFluxRho(Nx-1, j+1, Nz-1, fluidvar, Nx, Ny, Nz) - YFluxRho(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) 
+            - (dt / dz) * (-ZFluxRho(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall        
     }
 
-__device__ float intRhoVXBottomLeft(const int k,
+__device__ float intRhoVXBackBottom(const int j, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz) + Nx * Ny * Nz]
-            - (dt / dx) * (XFluxRhoVX(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - XFluxRhoVX(Nx-2, 0, k, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxRhoVX(Nx-1, 0, k, fluidvar, Nx, Ny, Nz))  // No flux on opposite site of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxRhoVX(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxRhoVX(Nx-1, 0, k-1, fluidvar, Nx, Ny, Nz));
+        return fluidvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + Nx*Ny*Nz]
+            - (dt / dx) * (-XFluxRhoVX(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (YFluxRhoVX(Nx-1, j+1, Nz-1, fluidvar, Nx, Ny, Nz) - YFluxRhoVX(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) 
+            - (dt / dz) * (-ZFluxRhoVX(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall        
     }
 
-__device__ float intRhoVYBottomLeft(const int k,
+__device__ float intRhoVYBackBottom(const int j, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz) + 2 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxRhoVY(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - XFluxRhoVY(Nx-2, 0, k, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxRhoVY(Nx-1, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite site of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxRhoVY(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxRhoVY(Nx-1, 0, k-1, fluidvar, Nx, Ny, Nz));
+        return fluidvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 2*Nx*Ny*Nz]
+            - (dt / dx) * (-XFluxRhoVY(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (YFluxRhoVY(Nx-1, j+1, Nz-1, fluidvar, Nx, Ny, Nz) - YFluxRhoVY(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) 
+            - (dt / dz) * (-ZFluxRhoVY(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall        
     }
 
-__device__ float intRhoVZBottomLeft(const int k,
+__device__ float intRhoVZBackBottom(const int j, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz) + 3 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxRhoVZ(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - XFluxRhoVZ(Nx-2, 0, k, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxRhoVZ(Nx-1, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite site of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxRhoVZ(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxRhoVZ(Nx-1, 0, k-1, fluidvar, Nx, Ny, Nz));
+        return fluidvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 3*Nx*Ny*Nz]
+            - (dt / dx) * (-XFluxRhoVZ(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (YFluxRhoVZ(Nx-1, j+1, Nz-1, fluidvar, Nx, Ny, Nz) - YFluxRhoVZ(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) 
+            - (dt / dz) * (-ZFluxRhoVZ(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall        
     }
 
-__device__ float intBXBottomLeft(const int k,
+__device__ float intBXBackBottom(const int j, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz) + 4 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxBX(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - XFluxBX(Nx-2, 0, k, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxBX(Nx-1, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite site of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxBX(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxBX(Nx-1, 0, k-1, fluidvar, Nx, Ny, Nz));
+        return fluidvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 4*Nx*Ny*Nz]
+            - (dt / dx) * (-XFluxBX(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (YFluxBX(Nx-1, j+1, Nz-1, fluidvar, Nx, Ny, Nz) - YFluxBX(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) 
+            - (dt / dz) * (-ZFluxBX(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall        
     }
 
-__device__ float intBYBottomLeft(const int k,
+__device__ float intBYBackBottom(const int j, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz) + 5 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxBY(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - XFluxBY(Nx-2, 0, k, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxBY(Nx-1, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite site of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxBY(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxBY(Nx-1, 0, k-1, fluidvar, Nx, Ny, Nz));
+        return fluidvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 5*Nx*Ny*Nz]
+            - (dt / dx) * (-XFluxBY(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (YFluxBY(Nx-1, j+1, Nz-1, fluidvar, Nx, Ny, Nz) - YFluxBY(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) 
+            - (dt / dz) * (-ZFluxBY(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall        
     }
 
-__device__ float intBZBottomLeft(const int k, 
+__device__ float intBZBackBottom(const int j, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz) + 6 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxBZ(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - XFluxBZ(Nx-2, 0, k, fluidvar, Nx, Ny, Nz))
-            - (dt / dy) * (YFluxBZ(Nx-1, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite site of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxBZ(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxBZ(Nx-1, 0, k-1, fluidvar, Nx, Ny, Nz));  
+        return fluidvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 3*Nx*Ny*Nz]
+            - (dt / dx) * (-XFluxBZ(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (YFluxBZ(Nx-1, j+1, Nz-1, fluidvar, Nx, Ny, Nz) - YFluxBZ(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) 
+            - (dt / dz) * (-ZFluxBZ(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall        
     }
 
-__device__ float intEBottomLeft(const int k,
+__device__ float intEBackBottom(const int j, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
-        return fluidvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz) + 7 * Nx * Ny * Nz]
-            - (dt / dx) * (XFluxE(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - XFluxE(Nx-2, 0, k, fluidvar, Nx, Ny, Nz)) 
-            - (dt / dy) * (YFluxE(Nx-1, 0, k, fluidvar, Nx, Ny, Nz)) // No flux on opposite site of rigid, perfectly-conducting wall
-            - (dt / dz) * (ZFluxE(Nx-1, 0, k, fluidvar, Nx, Ny, Nz) - ZFluxE(Nx-1, 0, k-1, fluidvar, Nx, Ny, Nz));
+        return fluidvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 3*Nx*Ny*Nz]
+            - (dt / dx) * (-XFluxE(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dy) * (YFluxE(Nx-1, j+1, Nz-1, fluidvar, Nx, Ny, Nz) - YFluxE(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)) 
+            - (dt / dz) * (-ZFluxE(Nx-1, j, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall        
     }
 
-/* NEED TO ADD */
 // Kernels that deal with BackRight
 // i \in [0, Nx-2]
 // j = Ny-1
@@ -921,9 +915,85 @@ __device__ float intRhoBackRight(const int i,
     const int Nx, const int Ny, const int Nz)
     {
         return fluidvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz)]
-            - (dt / dx) * ()
-            - (dt / dy) * ()
-            - (dt / dz) * ();
+            - (dt / dx) * (XFluxRho(i+1, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz) - XFluxRho(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz))
+            - (dt / dy) * (-YFluxRho(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (-ZFluxRho(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall
     }
 
+__device__ float intRhoVXBackRight(const int i,
+    const float* fluidvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        return fluidvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + Nx*Ny*Nz]
+            - (dt / dx) * (XFluxRhoVX(i+1, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz) - XFluxRhoVX(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz))
+            - (dt / dy) * (-YFluxRhoVX(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (-ZFluxRhoVX(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall
+    }
+
+__device__ float intRhoVYBackRight(const int i,
+    const float* fluidvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        return fluidvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 2*Nx*Ny*Nz]
+            - (dt / dx) * (XFluxRhoVY(i+1, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz) - XFluxRhoVY(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz))
+            - (dt / dy) * (-YFluxRhoVY(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (-ZFluxRhoVY(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall
+    }
+
+__device__ float intRhoVZBackRight(const int i,
+    const float* fluidvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        return fluidvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 3*Nx*Ny*Nz]
+            - (dt / dx) * (XFluxRhoVZ(i+1, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz) - XFluxRhoVZ(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz))
+            - (dt / dy) * (-YFluxRhoVZ(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (-ZFluxRhoVZ(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall
+    }
+
+__device__ float intBXBackRight(const int i,
+    const float* fluidvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        return fluidvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 4*Nx*Ny*Nz]
+            - (dt / dx) * (XFluxBX(i+1, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz) - XFluxBX(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz))
+            - (dt / dy) * (-YFluxBX(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (-ZFluxBX(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall
+    }
+
+__device__ float intBYBackRight(const int i,
+    const float* fluidvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        return fluidvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 5*Nx*Ny*Nz]
+            - (dt / dx) * (XFluxBY(i+1, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz) - XFluxBY(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz))
+            - (dt / dy) * (-YFluxBY(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (-ZFluxBY(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall
+    }
+
+__device__ float intBZBackRight(const int i,
+    const float* fluidvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        return fluidvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 6*Nx*Ny*Nz]
+            - (dt / dx) * (XFluxBZ(i+1, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz) - XFluxBZ(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz))
+            - (dt / dy) * (-YFluxBZ(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (-ZFluxBZ(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall
+    }
+
+__device__ float intEBackRight(const int i,
+    const float* fluidvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        return fluidvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 7*Nx*Ny*Nz]
+            - (dt / dx) * (XFluxE(i+1, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz) - XFluxE(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz))
+            - (dt / dy) * (-YFluxE(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)) // No flux on opposite side of rigid, perfectly-conducting wall
+            - (dt / dz) * (-ZFluxE(i, Ny-1, Nz-1, fluidvar, Nx, Ny, Nz)); // No flux on opposite side of rigid, perfectly-conducting wall
+    }
 // I think that's everything! 
