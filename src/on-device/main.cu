@@ -11,6 +11,7 @@
 #include "kernels_od.cuh"
 #include "kernels_fluidbcs.cuh"
 #include "kernels_od_intvar.cuh"
+#include "kernels_intvarbcs.cuh"
 
 #include "utils.cuh"
 #include "utils.hpp"

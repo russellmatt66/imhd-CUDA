@@ -7,6 +7,7 @@
 #include "../../include/on-device/kernels_fluidbcs.cuh"
 #include "../../include/on-device/initialize_od.cuh"
 #include "../../include/on-device/kernels_od_intvar.cuh"
+#include "../../include/on-device/kernels_intvarbcs.cuh"
 #include "../../include/on-device/utils/utils.hpp"
 
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api

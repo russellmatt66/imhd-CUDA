@@ -456,7 +456,7 @@ __device__ float intRhoBack(const int i, const int j,
     {
         return fluidvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz)]
             - (dt / dx) * (XFluxRho(i+1, j, Nz-1, fluidvar, Nx, Ny, Nz) - XFluxRho(i, j, Nz-1, fluidvar, Nx, Ny, Nz))
-            - (dt / dy) * (YFluxRho(i, j+1, Nz-1, fluidvar, Nx, Ny, Nz - YFluxRho(i, j, Nz-1, fluidvar, Nx, Ny, Nz))) 
+            - (dt / dy) * (YFluxRho(i, j+1, Nz-1, fluidvar, Nx, Ny, Nz) - YFluxRho(i, j, Nz-1, fluidvar, Nx, Ny, Nz)) 
             - (dt / dz) * (ZFluxRho(i, j, 1, fluidvar, Nx, Ny, Nz) - ZFluxRho(i, j, Nz-1, fluidvar, Nx, Ny, Nz)); // PBCs
     }
 
