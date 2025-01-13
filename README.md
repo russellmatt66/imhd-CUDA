@@ -40,11 +40,11 @@ See `build/README.md`
 - Go through and update all READMEs
 - Go through and clean up stray comments
 - QoL:
-    -`lib/on-device/`: Move definition of `IDX3D` to a single location
-    -`src/on-device/main.cu`: Add additional arguments for threadblock execution configurations
-    -`src/on-device/main.cu`: Stream standard output to a log file
-    -`visualization/src/make_movie2D/`: Implement 2D visualization of a given slice of a given plane 
-    -`visualization/src/view_frame/`: Add additional arguments for camera settings, and other parameters
+    - `lib/on-device/`: Move definition of `IDX3D` to a single location
+    - `src/on-device/main.cu`: Add additional arguments for threadblock execution configurations
+    - `src/on-device/main.cu`: Stream standard output to a log file
+    - `visualization/src/make_movie2D/`: Implement 2D visualization of a given slice of a given plane 
+    - `visualization/src/view_frame/`: Add additional arguments for camera settings, and other parameters
     - `data`: Separate the output data from the different solver versions into their own folders
 
 (2) Stabilize
@@ -72,10 +72,10 @@ See `build/README.md`
 (7) Build Instructions
 - Develop document that describes how to build the project from a fresh install of Ubuntu 22.04
 - Enumerate dependencies
-* CUDA
-* MPI
-* HDF5
-* VTK
+    - CUDA
+    - MPI
+    - HDF5
+    - VTK
 
 
 
@@ -94,7 +94,7 @@ What all these terms are exactly will not be explained here. In the future I wil
 
 ![Lax-Wendroff](./.svgs/predictor_corrector.svg)
 
-This is of course absent the diffusion, which is discretized with a second-order central difference approach, and is only present in the first place to add a numerical means of controlling numerical instabilities which may arise. The Lax-Wendroff scheme utilized here is one of the classical means of capturing shocks, but it also comes with the tradeoff of being notorious for introducing numerical instabilities into the solution field.  
+This is of course missing a factor of two in the backward-differenced fluxes. It is also absent the diffusion, which is discretized with a second-order central difference approach, and is only present in the first place to add a numerical means of controlling numerical instabilities which may arise. The Lax-Wendroff scheme utilized here is one of the classical means of capturing shocks, but it also comes with the tradeoff of being notorious for introducing numerical instabilities into the solution field due to dispersion error.  
 
 ## On-Device vs. Host-Device
 One solution in this arena of limited VRAM is to update the fluid variables one-by-one, and only have what fluid variables are needed for this task on the device at any given moment. While this sounds simple, in practice implementing it correctly involves significant complexity due to the substantial communication and synchronization involved. The advantage of this `host-device` approach is that, by utilizing host RAM, it will enable simulations that are larger than a purely `on-device` approach where all the necessary data to update fluid variables is stored directly in device memory, at all times. However, the required memory migration, and synchronization barriers, all but ensure that this will be much slower than the `on-device` implementation would be. There is also the question of what *exactly* the architecture, and runtime, of the `host-device` approach would look like. 
