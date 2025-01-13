@@ -48,17 +48,17 @@ After you have all the dependencies installed
 1. Navigate to the `build/` folder (which you are currently in if you are reading this). 
 2. Run `cmake ../src -DARCH_NAME=ON`, with `ARCH_NAME` corresponding to the solver architecture that you want to build. You can build more than one. 
 - `ARCH_NAME`:
-* `ARCH_ONDEV` = The `on-device` solver architecture
-* `ARCH_HOSTDEV` = The `host-device` solver architecture
-* `ARCH_CPUSER` = The serial host (CPU) solver
-* `ARCH_CPUPAR` = The parallel host (CPU) solver
+    - `ARCH_ONDEV` = The `on-device` solver architecture
+    - `ARCH_HOSTDEV` = The `host-device` solver architecture
+    - `ARCH_CPUSER` = The serial host (CPU) solver
+    - `ARCH_CPUPAR` = The parallel host (CPU) solver
 3. Run `make` 
 
 Currently, only `ARCH_ONDEV` is end-to-end implemented. `make` will cause a set of binaries to be built in the appropriate directories. 
 
 ### Run Instructions
-`python simulation_launcher.py`
-- Since only the `on-device` architecture is currently implemented, this does not need any arguments to be accepted.
+`python simulation_launcher.py -`
+- Since only the `on-device` architecture is currently implemented, this does not need any arguments to be accepted, however following the principle of YAGNI (You Are Gonna Need It) I have added a `mode` argument. It currently does nothing so I just input the `-` character as a placeholder.
 
 The above command reads the file `input.inp` in the specified build folder (which is currently `on-device/`), and launches the simulation accordingly. 
 
