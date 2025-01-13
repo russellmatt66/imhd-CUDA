@@ -18,50 +18,56 @@ See `build/README.md`
 - Header files
 
 `visualization/`
-- VTK lives here
+- VTK code lives here
+
+`data/`
+- Output data from the solver lives here
+
+`debug/`
+- Main code launches with Python so this is where a version that is easier to debug lives
+
+`benchmarking/`
+- This is where all the code that is used to benchmark and profile the performance of the code lives
 
 `tests/`
 - Source code for the unit tests
 
-### Current Tasks
-[O] = "Occomplished"
-[] = "(Not Occomplished)"
+`deprecated/`
+- Old examples, will get deleted at some point
 
+### Current Tasks
 (1) Clean up project and QoL Refactor
 - Go through and update all READMEs
 - Go through and clean up stray comments
 - QoL:
-* `lib/on-device/`: Move definition of `IDX3D` to a single location
-* `src/on-device/main.cu`: Add additional arguments for threadblock execution configurations
-* `src/on-device/main.cu`: Stream standard output to a log file
-* `visualization/src/make_movie/`: Add additional arguments for camera settings, and other parameters
-* `visualization/src/view_frame/`: Add additional arguments for camera settings, and other parameters
-* `data`: Separate the output data from the different solver versions into their own folders
+    -`lib/on-device/`: Move definition of `IDX3D` to a single location
+    -`src/on-device/main.cu`: Add additional arguments for threadblock execution configurations
+    -`src/on-device/main.cu`: Stream standard output to a log file
+    -`visualization/src/make_movie2D/`: Implement 2D visualization of a given slice of a given plane 
+    -`visualization/src/view_frame/`: Add additional arguments for camera settings, and other parameters
+    - `data`: Separate the output data from the different solver versions into their own folders
 
 (2) Stabilize
-- Integrate PoC functionality to scan for numerical instability points using `Eigen`, and write data out with `PHDF5`
-* P: Above has been done, timestep altered, solver is still unstable. 
-* Q: Is CFL being violated?
-- Boundary Conditions or Initial Conditions to blame?
-- Incorrect implementation of numerical diffusion to blame?
-* Noticed that a factor of `\delta t` is missing
+- Check Numerical Diffusion
+    - I think Qint might be missing it at the bdry calculation
+- Implement Adaptive Timestep
 
 (3) Debugging and Tests
 - Unit tests of functional components, see `tests/README.md`
 - Numerical test problems
 
 (4) Profile simulation
-- Compare with CPU code
-- Figure out how to profile `304x304x592` case
+- Compare with CPU code to obtain speedup
+- Figure out how to profile largest case
 - Compare GPU and CPU code to directive-based methods, i.e., OpenACC, and OpenMP
 
 (5) Optimize
-- Kernels need to be refactored again for global memory coalescing
-- Execution configurations should (?) go to 1B1T (test this)
 - Shared memory access needs to be implemented in kernels
+- Microkernels
 
 (6) CPU Code
-- Implement single-, and multi-threaded CPU versions of the solver
+- Implement single-threaded CPU version of the solver
+- Implement multi-threaded CPU version of the solver
 
 (7) Build Instructions
 - Develop document that describes how to build the project from a fresh install of Ubuntu 22.04
@@ -70,6 +76,8 @@ See `build/README.md`
 * MPI
 * HDF5
 * VTK
+
+
 
 ### VCS
 - `v1.1`: (10/11/24) End-to-end pipeline is complete. Data is written to .h5 files, and a high-performance visualization pipeline renders both individual frames, as well as the totality as a `.avi` file. 

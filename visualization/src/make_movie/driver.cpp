@@ -62,6 +62,9 @@ int main(int argc, char* argv[]){
     float opacity_min = atof(argv[34]);
     float opacity_max = atof(argv[35]);
 
+    std::string dt = argv[36];
+    std::string D = argv[37];
+
     /* REPLACE THIS WITH LIBRARY FUNCTION */
     // Get mesh dimensions, and spacing
     // Allocate shared memory that will store the necessary attributes
@@ -150,6 +153,16 @@ int main(int argc, char* argv[]){
     frameText->GetTextProperty()->SetColor(frametext_red, frametext_green, frametext_blue);
     std::cout << "textActor instantiated" << std::endl;
 
+    /* Didn't show up */
+    // std::cout << "Instantiating textActor for simulation parameters" << std::endl;
+    // vtkNew<vtkTextActor> frameText_simparams;
+    // frameText_simparams->GetPositionCoordinate()->SetCoordinateSystemToNormalizedDisplay();
+    // frameText_simparams->SetPosition(frametext_x, frametext_y - 0.1);
+    // frameText_simparams->GetTextProperty()->SetFontSize(frametext_fontsize);
+    // frameText_simparams->GetTextProperty()->SetColor(frametext_red, frametext_green, frametext_blue);
+    // std::string simparams_text = "dt=" + dt + "\nD=" + D + "\n";
+    // std::cout << "textActor for simparams instantiated" << std::endl;
+
     std::cout << "Instantiating colorTransfer" << std::endl;
     vtkNew<vtkColorTransferFunction> colorTF;
     std::cout << "colorTransfer instantiated" << std::endl;
@@ -216,7 +229,8 @@ int main(int argc, char* argv[]){
     std::cout << "Instantiating videoWriter" << std::endl;
     std::string video_filename = "../" + dset_name 
         + "_Nx" + std::to_string(Nx) + "Ny" + std::to_string(Ny) + "Nz" + std::to_string(Nz) 
-        + "_x" + std::to_string(static_cast<int>(camera_x)) + "y" + std::to_string(static_cast<int>(camera_y)) + "z" + std::to_string(static_cast<int>(camera_z)) + ".avi"; // Being run from inside 'build/'
+        + "_x" + std::to_string(static_cast<int>(camera_x)) + "y" + std::to_string(static_cast<int>(camera_y)) + "z" + std::to_string(static_cast<int>(camera_z)) 
+        + ".avi"; // Being run from inside 'build/'
     vtkNew<vtkFFMPEGWriter> videoWriter;
     videoWriter->SetInputConnection(windowToImageFilter->GetOutputPort());
     videoWriter->SetFileName(video_filename.data());
@@ -275,8 +289,9 @@ int main(int argc, char* argv[]){
         frame_data->Modified();
 
         fluidvar_filename += "\n"; // No reason not to use this as the container - maybe needs a better name
-        fluidvar_filename += dset_name + " frame " + std::to_string(i);
+        fluidvar_filename += dset_name + " frame " + std::to_string(i) + " dt=" + dt + " D=" + D;
         frameText->SetInput(fluidvar_filename.data());
+        // frameText_simparams->SetInput(simparams_text.data());
 
         renderWindow->Render();
 

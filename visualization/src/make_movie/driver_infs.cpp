@@ -317,7 +317,7 @@ int main(int argc, char* argv[]){
     std::cout << "windowToImageFilter instantiated - renderWindow connected" << std::endl;
 
     std::cout << "Instantiating videoWriter" << std::endl;
-    std::string video_filename = "../" + dset_name + "_Nx" + std::to_string(Nx) + "Ny" + std::to_string(Ny) + "Nz" + std::to_string(Nz) + ".avi"; // Being run from inside 'build/'
+    std::string video_filename = "../" + dset_name + "_Nx" + std::to_string(Nx) + "Ny" + std::to_string(Ny) + "Nz" + std::to_string(Nz) + "_naninfs" + ".avi"; // Being run from inside 'build/'
     vtkNew<vtkFFMPEGWriter> videoWriter;
     videoWriter->SetInputConnection(windowToImageFilter->GetOutputPort());
     videoWriter->SetFileName(video_filename.data());

@@ -95,7 +95,7 @@ int main(int argc, char* argv[]){
    ScrewPinch<<<exec_grid_dims, init_block_dims>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
-   InitializeIntvars<<<exec_grid_dims, intvar_block_dims>>>(intvars, Nx, Ny, Nz);
+   InitializeIntvars<<<exec_grid_dims, intvar_block_dims>>>(intvars, Nx, Ny, Nz); /* I think this is unnecessary */
    checkCuda(cudaDeviceSynchronize());
 
    ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
@@ -176,7 +176,7 @@ int main(int argc, char* argv[]){
    }
 
    if (!(eigen_bin_name == "none")){ // Don't always want to check stability - expensive raster scan
-      std::cout << "Forking to process for checking stability" << std::endl;
+      std::cout << "Forking to process for computing CFL number (checking stability)" << std::endl;
       ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
       if (ret != 0) {
          std::cerr << "Error executing Eigen binary: " << eigen_bin_name << std::endl;
@@ -218,6 +218,15 @@ int main(int argc, char* argv[]){
       }  
 
       std::cout << "Timestep " << it << " complete" << std::endl;
+
+      if (!(eigen_bin_name == "none")){ // Don't always want to check stability - expensive raster scan
+         std::cout << "Forking to process for computing CFL number (checking stability)" << std::endl;
+         ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
+         if (ret != 0) {
+            std::cerr << "Error executing Eigen binary: " << eigen_bin_name << std::endl;
+            std::cerr << "Error code: " << ret << std::endl;
+         }
+      }  
    } 
 
    // FREE EVERYTHING

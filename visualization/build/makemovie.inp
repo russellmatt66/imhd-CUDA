@@ -27,5 +27,5 @@ renderer_backgroundred=0.0
 renderer_backgroundgreen=0.0
 renderer_backgroundblue=0.0
 videowriter_fps=2
-opacity_min=0.2
-opacity_max=0.8
+opacity_min=0.1
+opacity_max=0.9
