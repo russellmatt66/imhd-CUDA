@@ -1,7 +1,9 @@
 #include "kernels_od_fluxes.cuh"
 #include "kernels_od_intvar.cuh"
 #include "kernels_intvarbcs.cuh"
+#include "diffusion.cuh"
 
+/* THIS NEEDS TO BE DEFINED A SINGLE TIME IN A SINGLE PLACE */
 #define IDX3D(i, j, k, Nx, Ny, Nz) (k) * (Nx) * (Ny) + (i) * (Ny) + j
 
 /* 
@@ -27,16 +29,25 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
         // i \in [0,Nx-2]
         // j \in [0,Ny-2]
         if (i < Nx-1 && j < Ny-1){
-            intvar[IDX3D(i, j, 0, Nx, Ny, Nz)] = intRho(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + cube_size] = intRhoVX(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 2 * cube_size] = intRhoVY(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZ(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 4 * cube_size] = intBX(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 5 * cube_size] = intBY(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 6 * cube_size] = intBZ(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 7 * cube_size] = intE(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz)] = intRho(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 0, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + cube_size] = intRhoVX(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                            + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 1, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 2 * cube_size] = intRhoVY(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 2, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZ(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                                                                + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 3, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 4 * cube_size] = intBX(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                                                                + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 4, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 5 * cube_size] = intBY(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                                                                + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 5, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 6 * cube_size] = intBZ(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                                                                + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 6, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 7 * cube_size] = intE(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                                                                + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 7, Nx, Ny, Nz);
         }
 
+        /* SURELY THESE DON'T NEED DIFFUSION */
         // Right Face
         // j = Ny - 1
         // i \in [0,Nx-2] 
@@ -52,6 +63,7 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
             intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 7 * cube_size] = intERight(i, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
         }
 
+        /* SURELY THESE DON'T NEED DIFFUSION */
         // Top Face
         // i = 0
         // j \in [0,Ny-2]
@@ -67,6 +79,7 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
             intvar[IDX3D(0, j, k, Nx, Ny, Nz) + 7 * cube_size] = intE(0, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
         }
 
+        /* SURELY THESE DON'T NEED DIFFUSION */
         // Left Face
         // j = 0
         // i \in [0, Nx-2]
@@ -82,6 +95,7 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
             intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 7 * cube_size] = intE(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
         }
 
+        /* SURELY THESE DON'T NEED DIFFUSION */
         // Bottom Face
         // i = Nx - 1
         // j \in [0,Ny-2]
@@ -102,17 +116,25 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
         // i \in [0, Nx-2]
         // j \in [0, Ny-2]
         if (i < Nx-1 && j < Ny-1){
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz)] = intRhoBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + cube_size] = intRhoVXBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 4 * cube_size] = intBXBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 5 * cube_size] = intBYBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 6 * cube_size] = intBZBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 7 * cube_size] = intEBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz)] = intRhoBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                                                    + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 0, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + cube_size] = intRhoVXBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                                                                + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 1, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                                                                    + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 2, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                                                                    + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 3, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 4 * cube_size] = intBXBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                                                                    + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 4, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 5 * cube_size] = intBYBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                                                                    + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 5, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 6 * cube_size] = intBZBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                                                                    + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 6, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 7 * cube_size] = intEBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+                                                                    + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 7, Nx, Ny, Nz);
         }
 
-        /* BELOW NEEDS WORK */
+        /* SURELY THESE DON'T NEED DIFFUSION */
         // After the above is done, there are still FIVE lines where data has not been specified
         // {(i, Ny-1, 0), (Nx-1, j, 0), (Nx-1, Ny-1, k), (Nx-1, j, Nz-1), (i, Ny-1, Nz-1)} 
         // (i, Ny-1, 0) - "FrontRight"

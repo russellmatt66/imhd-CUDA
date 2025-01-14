@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include "diffusion.cuh"
 
-#define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx * Ny) + (i) * Ny + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
+/* THIS NEEDS TO BE DEFINED A SINGLE TIME IN A SINGLE PLACE */
+#define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx) * (Ny) + (i) * (Ny) + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
-// Can be used for Front and Back
+// Can be used for Front and Back w/suitable passage of arguments
 __device__ float numericalDiffusionLocal(const float fluidvar, 
     const float fluidvar_ip1, const float fluidvar_jp1, const float fluidvar_kp1, 
     const float fluidvar_im1, const float fluidvar_jm1, const float fluidvar_km1,
