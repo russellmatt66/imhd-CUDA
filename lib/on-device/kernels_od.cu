@@ -6,8 +6,9 @@
 #include "helper_functions.cuh"
 #include "diffusion.cuh"
 
+/* THIS SHOULD BE DEFINED A SINGLE TIME IN A SINGLE PLACE */
 // row-major, column-minor order
-#define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx * Ny) + (i) * Ny + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
+#define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx) * (Ny) + (i) * (Ny) + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
 /* 
 Here is what the storage pattern looks like:

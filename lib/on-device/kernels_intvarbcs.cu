@@ -4,7 +4,7 @@
 #include "diffusion.cuh"
 
 /* THIS NEEDS TO BE DEFINED A SINGLE TIME IN A SINGLE PLACE */
-#define IDX3D(i, j, k, Nx, Ny, Nz) (k) * (Nx) * (Ny) + (i) * (Ny) + j
+#define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx) * (Ny) + (i) * (Ny) + j)
 
 /* 
 THREAD DIVERGENCE WILL BE A PROBLEM HERE 
