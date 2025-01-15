@@ -26,9 +26,9 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
 
         // Front Face
         // k = 0
-        // i \in [0,Nx-2]
-        // j \in [0,Ny-2]
-        if (i < Nx-1 && j < Ny-1){
+        // i \in [1,Nx-2]
+        // j \in [1,Ny-2]
+        if (i > 0 && i < Nx-1 && j > 0 && j < Ny-1){
             intvar[IDX3D(i, j, 0, Nx, Ny, Nz)] = intRho(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz) 
                                                 + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 0, Nx, Ny, Nz);
             intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + cube_size] = intRhoVX(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz) 

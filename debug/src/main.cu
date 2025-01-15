@@ -24,7 +24,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 int main(int argc, char* argv[]){
 	// Parse inputs - provided by imhdLauncher.py because Python parsing is easiest, and Python launching is easy
     std::vector<float> inputs (25, 0.0);
-    parseInputFileDebug(inputs, "./debug.inp"); /* Write this again - it disappeared */
+    parseInputFileDebug(inputs, "./debug.inp"); 
 	
 	for (int i = 0; i < inputs.size(); i++){
 		std::cout << "inputs[" << i << "] = " << inputs[i] << std::endl; 
@@ -34,6 +34,7 @@ int main(int argc, char* argv[]){
 	int Nx = int(inputs[1]);
 	int Ny = int(inputs[2]);
 	int Nz = int(inputs[3]);
+
 	float J0 = inputs[4];
 	float D = inputs[5];
 	float x_min = inputs[6];
@@ -44,21 +45,21 @@ int main(int argc, char* argv[]){
 	float z_max = inputs[11];
 	float dt = inputs[12];
 
-	int grid_xthreads=inputs[13];
-	int grid_ythreads=inputs[14];
-	int grid_zthreads=inputs[15];
+	int grid_xthreads=int(inputs[13]);
+	int grid_ythreads=int(inputs[14]);
+	int grid_zthreads=int(inputs[15]);
 
-	int init_xthreads=inputs[16];
-	int init_ythreads=inputs[17];
-	int init_zthreads=inputs[18];
+	int init_xthreads=int(inputs[16]);
+	int init_ythreads=int(inputs[17]);
+	int init_zthreads=int(inputs[18]);
 
-	int intvar_xthreads=inputs[19];
-	int intvar_ythreads=inputs[20];
-	int intvar_zthreads=inputs[21];
+	int intvar_xthreads=int(inputs[19]);
+	int intvar_ythreads=int(inputs[20]);
+	int intvar_zthreads=int(inputs[21]);
 
-	int fluid_xthreads=inputs[22];
-	int fluid_ythreads=inputs[23];
-	int fluid_zthreads=inputs[24];
+	int fluid_xthreads=int(inputs[22]);
+	int fluid_ythreads=int(inputs[23]);
+	int fluid_zthreads=int(inputs[24]);
 
 	float dx = (x_max - x_min) / (Nx - 1);
 	float dy = (y_max - y_min) / (Ny - 1);
@@ -84,12 +85,12 @@ int main(int argc, char* argv[]){
 	checkCuda(cudaMalloc(&y_grid, sizeof(float) * Ny));
 	checkCuda(cudaMalloc(&z_grid, sizeof(float) * Nz));
 
-	/* FIX THIS LOL */
+	// Different execution configurations are needed to varying register pressures
 	dim3 exec_grid_dimensions(numberOfSMs, numberOfSMs, numberOfSMs);
 	dim3 block_dims_grid(grid_xthreads, grid_ythreads, grid_zthreads); // 1024 threads per block
 	dim3 block_dims_init(init_xthreads, init_ythreads, init_zthreads); // 256 < 923 threads per block
-	dim3 block_dims_intvar(intvar_xthreads, init_ythreads, init_zthreads); // 128 < 334 threads per block 
-	dim3 block_dims_fluid(fluid_xthreads, fluid_ythreads, fluid_zthreads); // 128 < 331 threads per block - based on register requirement of FluidAdvance + BCs kernels
+	dim3 block_dims_intvar(intvar_xthreads, intvar_ythreads, intvar_zthreads); 
+	dim3 block_dims_fluid(fluid_xthreads, fluid_ythreads, fluid_zthreads); 
 
 	// Initialize
 	InitializeGrid<<<exec_grid_dimensions, block_dims_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz,

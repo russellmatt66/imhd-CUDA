@@ -31,7 +31,7 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     //     printf("Beginning Hello from (%d, %d, %d))\n", tidx, tidy, tidz);
     // }
 
-    // k = 0 and k = Nz - 1
+    // k = 0
     k = 0;
     if (i > 0 && i < Nx - 1 && j > 0 && j < Ny - 1){
         // k = 0;
@@ -100,6 +100,7 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     }
     // printf("Made it past Front update\n");
 
+    /* DONT NEED THIS - PBCs*/
     // printf("Trying to update Back\n");
     // k = Nz - 1;
     // if (i > 0 && i < Nx - 1 && j > 0 && j < Ny - 1){
@@ -136,7 +137,6 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     //     // printf("Made it past e update - Back\n");
     // }
     // printf("Made it past update - Back\n");
-
 
     /* 
     B.Cs on Top (II) 
@@ -207,7 +207,7 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
 
     __syncthreads(); // PBCs require this
 
-    // THEN, ACCUMULATE THE RESULTS ONTO ONE FACE, MAP AROUND TO THE OTHER, AND CONTINUE
+    // PBCs
     if (i < Nx && j < Ny){ // Do not ignore the edges b/c intermediate variables got calculated there
         for (int ivf = 0; ivf < 8; ivf++){ // PBCs - they are the SAME point 
             fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
