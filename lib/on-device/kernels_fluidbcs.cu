@@ -101,40 +101,40 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     // printf("Made it past Front update\n");
 
     // printf("Trying to update Back\n");
-    k = Nz - 1;
-    if (i > 0 && i < Nx - 1 && j > 0 && j < Ny - 1){
-        fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRho(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
-                                                    + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 0, Nx, Ny, Nz);
-        // printf("Made it past rho update - Back\n");
+    // k = Nz - 1;
+    // if (i > 0 && i < Nx - 1 && j > 0 && j < Ny - 1){
+    //     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRho(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz);
+    //                                                 + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 0, Nx, Ny, Nz);
+    //     // printf("Made it past rho update - Back\n");
 
-        fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = LaxWendroffAdvRhoVX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                    + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 1, Nx, Ny, Nz);
-        // printf("Made it past rhovx update - Back\n");
+    //     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = LaxWendroffAdvRhoVX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz)
+    //                                                 + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 1, Nx, Ny, Nz);
+    //     // printf("Made it past rhovx update - Back\n");
         
-        fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = LaxWendroffAdvRhoVY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                    + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 2, Nx, Ny, Nz);
-        // printf("Made it past rhovy update - Back\n");
+    //     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = LaxWendroffAdvRhoVY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz)
+    //                                                 + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 2, Nx, Ny, Nz);
+    //     // printf("Made it past rhovy update - Back\n");
 
-        fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = LaxWendroffAdvRhoVZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                    + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 3, Nx, Ny, Nz);
-        // printf("Made it past rhovz update - Back\n");
+    //     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = LaxWendroffAdvRhoVZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz)
+    //                                                 + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 3, Nx, Ny, Nz);
+    //     // printf("Made it past rhovz update - Back\n");
 
-        fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = LaxWendroffAdvBX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                    + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 4, Nx, Ny, Nz);
-        // printf("Made it past Bx update - Back\n");
+    //     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = LaxWendroffAdvBX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz)
+    //                                                 + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 4, Nx, Ny, Nz);
+    //     // printf("Made it past Bx update - Back\n");
 
-        fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = LaxWendroffAdvBY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                    + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 5, Nx, Ny, Nz);
-        // printf("Made it past By update - Back\n");
+    //     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = LaxWendroffAdvBY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz)
+    //                                                 + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 5, Nx, Ny, Nz);
+    //     // printf("Made it past By update - Back\n");
 
-        fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = LaxWendroffAdvBZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                    + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 6, Nx, Ny, Nz);
-        // printf("Made it past Bz update - Back\n");
+    //     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = LaxWendroffAdvBZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz)
+    //                                                 + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 6, Nx, Ny, Nz);
+    //     // printf("Made it past Bz update - Back\n");
 
-        fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = LaxWendroffAdvE(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                    + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 7, Nx, Ny, Nz);
-        // printf("Made it past e update - Back\n");
-    }
+    //     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = LaxWendroffAdvE(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz)
+    //                                                 + dt * numericalDiffusionBack(i, j, intvar, D, dx, dy, dz, 7, Nx, Ny, Nz);
+    //     // printf("Made it past e update - Back\n");
+    // }
     // printf("Made it past update - Back\n");
 
 
@@ -208,12 +208,17 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     __syncthreads(); // PBCs require this
 
     // THEN, ACCUMULATE THE RESULTS ONTO ONE FACE, MAP AROUND TO THE OTHER, AND CONTINUE
-    if (i > 0 && i > Nx-1 && j > 0 && j < Ny-1){
-        for (int ivf = 0; ivf < 8; ivf++){
-            fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size] += fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size];
+    if (i < Nx && j < Ny){ // Do not ignore the edges b/c intermediate variables got calculated there
+        for (int ivf = 0; ivf < 8; ivf++){ // PBCs - they are the SAME point 
             fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
         }
     }
+    // if (i > 0 && i > Nx-1 && j > 0 && j < Ny-1){
+    //     for (int ivf = 0; ivf < 8; ivf++){
+    //         fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size] += fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size];
+    //         fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
+    //     }
+    // }
     // printf("Made it past update - PBCs\n");
 
     return;

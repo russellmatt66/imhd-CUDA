@@ -111,28 +111,28 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
             intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 7 * cube_size] = intEBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
         }
 
-        // Back Face
+        // Back Face - DON'T CALCULATE THIS: PBCs
         // k = Nz-1
         // i \in [0, Nx-2]
         // j \in [0, Ny-2]
-        if (i < Nx-1 && j < Ny-1){
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz)] = intRhoBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                    + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 0, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + cube_size] = intRhoVXBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                                + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 1, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                                    + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 2, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                                    + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 3, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 4 * cube_size] = intBXBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                                    + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 4, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 5 * cube_size] = intBYBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                                    + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 5, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 6 * cube_size] = intBZBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                                    + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 6, Nx, Ny, Nz);
-            intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 7 * cube_size] = intEBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-                                                                    + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 7, Nx, Ny, Nz);
-        }
+        // if (i < Nx-1 && j < Ny-1){
+        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz)] = intRhoBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+        //                                             + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 0, Nx, Ny, Nz);
+        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + cube_size] = intRhoVXBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+        //                                                         + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 1, Nx, Ny, Nz);
+        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+        //                                                             + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 2, Nx, Ny, Nz);
+        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+        //                                                             + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 3, Nx, Ny, Nz);
+        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 4 * cube_size] = intBXBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+        //                                                             + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 4, Nx, Ny, Nz);
+        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 5 * cube_size] = intBYBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+        //                                                             + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 5, Nx, Ny, Nz);
+        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 6 * cube_size] = intBZBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+        //                                                             + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 6, Nx, Ny, Nz);
+        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 7 * cube_size] = intEBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
+        //                                                             + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 7, Nx, Ny, Nz);
+        // }
 
         /* SURELY THESE DON'T NEED DIFFUSION */
         // After the above is done, there are still FIVE lines where data has not been specified
@@ -273,13 +273,18 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
         */
         __syncthreads(); 
 
-        // PBCs
+        // PBCs @ Nz-1
         if (i < Nx && j < Ny){ // Do not ignore the edges b/c intermediate variables got calculated there
-            for (int ivf = 0; ivf < 8; ivf++){ // PBCs - they the SAME point 
-                intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size] += intvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size];
+            for (int ivf = 0; ivf < 8; ivf++){ // PBCs - they are the SAME point 
                 intvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
             }
         }
+        // if (i < Nx && j < Ny){ // Do not ignore the edges b/c intermediate variables got calculated there
+        //     for (int ivf = 0; ivf < 8; ivf++){ // PBCs - they are the SAME point 
+        //         intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size] += intvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size];
+        //         intvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
+        //     }
+        // }
         return;
     }
 
