@@ -1,0 +1,60 @@
+Script started on 2025-01-15 16:32:48-05:00 [TERM="xterm-256color" TTY="/dev/pts/6" COLUMNS="193" LINES="14"]
+[?2004h]0;matt@matt-dadhp: ~/Desktop/imhd-CUDA/debug/build[01;32mmatt@matt-dadhp[00m:[01;34m~/Desktop/imhd-CUDA/debug/build[00m$ python simulation_launcher.py -make[Kcmake ../src -DARCH_ONDEV=ON[18Pmake cleanpython simulation_launcher.py -make clean[Kcmake ../src -DARCH_ONDEV=ONmake[Kpython simulation_launcher.py -[Kcompute-sanitizer --tool memcheck --report-api-errors all ./imhe[Kd-cuda_debug 
+[?2004l========= COMPUTE-SANITIZER
+inputs[0] = 10
+inputs[1] = 128
+inputs[2] = 128
+inputs[3] = 128
+inputs[4] = 1
+inputs[5] = 0
+inputs[6] = -3.14159
+inputs[7] = 3.14159
+inputs[8] = -3.14159
+inputs[9] = 3.14159
+inputs[10] = -3.14159
+inputs[11] = 3.14159
+inputs[12] = 0.0001
+inputs[13] = 8
+inputs[14] = 8
+inputs[15] = 8
+inputs[16] = 8
+inputs[17] = 8
+inputs[18] = 8
+inputs[19] = 6
+inputs[20] = 6
+inputs[21] = 6
+inputs[22] = 6
+inputs[23] = 6
+inputs[24] = 6
+Taking timestep 1
+Evolving fluid interior
+Evolving fluid boundaries
+Taking timestep 2
+Evolving fluid interior
+Evolving fluid boundaries
+Taking timestep 3
+Evolving fluid interior
+Evolving fluid boundaries
+Taking timestep 4
+Evolving fluid interior
+Evolving fluid boundaries
+Taking timestep 5
+Evolving fluid interior
+Evolving fluid boundaries
+Taking timestep 6
+Evolving fluid interior
+Evolving fluid boundaries
+Taking timestep 7
+Evolving fluid interior
+Evolving fluid boundaries
+Taking timestep 8
+Evolving fluid interior
+Evolving fluid boundaries
+Taking timestep 9
+Evolving fluid interior
+Evolving fluid boundaries
+========= ERROR SUMMARY: 0 errors
+[?2004h]0;matt@matt-dadhp: ~/Desktop/imhd-CUDA/debug/build[01;32mmatt@matt-dadhp[00m:[01;34m~/Desktop/imhd-CUDA/debug/build[00m$ [?2004l
+exit
+
+Script done on 2025-01-15 19:26:18-05:00 [COMMAND_EXIT_CODE="0"]

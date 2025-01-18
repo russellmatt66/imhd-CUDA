@@ -56,6 +56,10 @@ int main(int argc, char* argv[]){
    int fluidblockdims_ythreads = atoi(argv[30]);
    int fluidblockdims_zthreads = atoi(argv[31]);
 
+	int SM_mult_intvar_x = atoi(argv[32]);
+	int SM_mult_intvar_y = atoi(argv[33]);
+	int SM_mult_intvar_z = atoi(argv[34]);
+
    // CUDA BOILERPLATE 
    int deviceId;
    int numberOfSMs;
@@ -64,6 +68,8 @@ int main(int argc, char* argv[]){
    cudaDeviceGetAttribute(&numberOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
 
    dim3 exec_grid_dims(numberOfSMs, numberOfSMs, numberOfSMs);
+   dim3 exec_grid_dims_intvar(SM_mult_intvar_x * numberOfSMs, SM_mult_intvar_y * numberOfSMs, SM_mult_intvar_z * numberOfSMs);
+
    dim3 mesh_block_dims(meshblockdims_xthreads, meshblockdims_ythreads, meshblockdims_zthreads);
    dim3 init_block_dims(initblockdims_xthreads, initblockdims_ythreads, initblockdims_zthreads);
    dim3 intvar_block_dims(intvarblockdims_xthreads, intvarblockdims_ythreads, intvarblockdims_zthreads);
@@ -76,7 +82,6 @@ int main(int argc, char* argv[]){
    float *fluidvars, *intvars;
 
    checkCuda(cudaMalloc(&fluidvars, fluid_data_size));
-   // checkCuda(cudaMalloc(&fluidvars_np1, fluid_data_size));
    checkCuda(cudaMalloc(&intvars, fluid_data_size));
    
    float *x_grid, *y_grid, *z_grid;
@@ -95,13 +100,13 @@ int main(int argc, char* argv[]){
    ScrewPinch<<<exec_grid_dims, init_block_dims>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
-   InitializeIntvars<<<exec_grid_dims, intvar_block_dims>>>(intvars, Nx, Ny, Nz); /* I think this is unnecessary */
-   checkCuda(cudaDeviceSynchronize());
+   // InitializeIntvars<<<exec_grid_dims, intvar_block_dims>>>(intvars, Nx, Ny, Nz); /* I think this is unnecessary */
+   // checkCuda(cudaDeviceSynchronize());
 
-   ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntermediateVariables<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
    
-   ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntermediateVariablesBoundary<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
    // WRITE INITIAL DATA OUT 
@@ -111,6 +116,7 @@ int main(int argc, char* argv[]){
       std::cerr << "Failed to create shared memory!" << std::endl;
       return EXIT_FAILURE;
    }
+   
    ftruncate(shm_fd, fluid_data_size);
    float* shm_h_fluidvar = (float*)mmap(0, fluid_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
    if (shm_h_fluidvar == MAP_FAILED) {
@@ -198,11 +204,11 @@ int main(int argc, char* argv[]){
       std::cout << "Kernels for computing fluid variables completed" << std::endl;
       
       std::cout << "Launching kernel for computing intermediate variables" << std::endl; 
-      ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntermediateVariables<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
 
       std::cout << "Launching kernels for computing intermediate boundaries" << std::endl; 
-      ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntermediateVariablesBoundary<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
       
       std::cout << "Transferring updated fluid data to host" << std::endl;
       cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);

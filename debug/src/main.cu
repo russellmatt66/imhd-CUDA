@@ -61,6 +61,10 @@ int main(int argc, char* argv[]){
 	int fluid_ythreads=int(inputs[23]);
 	int fluid_zthreads=int(inputs[24]);
 
+	int SM_mult_intvar_x=int(inputs[25]);
+	int SM_mult_intvar_y=int(inputs[26]);
+	int SM_mult_intvar_z=int(inputs[27]);
+
 	float dx = (x_max - x_min) / (Nx - 1);
 	float dy = (y_max - y_min) / (Ny - 1);
 	float dz = (z_max - z_min) / (Nz - 1);
@@ -86,41 +90,43 @@ int main(int argc, char* argv[]){
 	checkCuda(cudaMalloc(&z_grid, sizeof(float) * Nz));
 
 	// Different execution configurations are needed to varying register pressures
-	dim3 exec_grid_dimensions(numberOfSMs, numberOfSMs, numberOfSMs);
+	dim3 exec_grid_dim(numberOfSMs, numberOfSMs, numberOfSMs);
+	dim3 exec_grid_dim_intvar(SM_mult_intvar_x * numberOfSMs, SM_mult_intvar_y * numberOfSMs, SM_mult_intvar_z * numberOfSMs);
+
 	dim3 block_dims_grid(grid_xthreads, grid_ythreads, grid_zthreads); // 1024 threads per block
 	dim3 block_dims_init(init_xthreads, init_ythreads, init_zthreads); // 256 < 923 threads per block
 	dim3 block_dims_intvar(intvar_xthreads, intvar_ythreads, intvar_zthreads); 
 	dim3 block_dims_fluid(fluid_xthreads, fluid_ythreads, fluid_zthreads); 
 
 	// Initialize
-	InitializeGrid<<<exec_grid_dimensions, block_dims_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz,
+	InitializeGrid<<<exec_grid_dim, block_dims_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz,
 															x_grid, y_grid, z_grid, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());
 
-	ScrewPinch<<<exec_grid_dimensions, block_dims_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz); // Screw-pinch
+	ScrewPinch<<<exec_grid_dim, block_dims_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz); // Screw-pinch
 	checkCuda(cudaDeviceSynchronize());
 	
-	ComputeIntermediateVariables<<<exec_grid_dimensions, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+	ComputeIntermediateVariables<<<exec_grid_dim_intvar, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
     checkCuda(cudaDeviceSynchronize());
 
-	ComputeIntermediateVariablesBoundary<<<exec_grid_dimensions, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+	ComputeIntermediateVariablesBoundary<<<exec_grid_dim_intvar, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());
 
 	// Timestep
 	for (int it = 1; it < Nt; it++){
 		std::cout << "Taking timestep " << it << std::endl;
 		std::cout << "Evolving fluid interior" << std::endl; 
-		FluidAdvanceLocal<<<exec_grid_dimensions, block_dims_fluid>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+		FluidAdvanceLocal<<<exec_grid_dim, block_dims_fluid>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
 		checkCuda(cudaDeviceSynchronize());
 
 		std::cout << "Evolving fluid boundaries" << std::endl; 
-		BoundaryConditions<<<exec_grid_dimensions, block_dims_fluid>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+		BoundaryConditions<<<exec_grid_dim, block_dims_fluid>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
 		checkCuda(cudaDeviceSynchronize());
 		
-		ComputeIntermediateVariables<<<exec_grid_dimensions, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+		ComputeIntermediateVariables<<<exec_grid_dim_intvar, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
 		checkCuda(cudaDeviceSynchronize());
 
-		ComputeIntermediateVariablesBoundary<<<exec_grid_dimensions, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+		ComputeIntermediateVariablesBoundary<<<exec_grid_dim_intvar, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
 		checkCuda(cudaDeviceSynchronize());
 	}
 

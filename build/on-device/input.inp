@@ -29,3 +29,6 @@ intvarblockdims_zthreads=6
 fluidvarblockdims_xthreads=6
 fluidvarblockdims_ythreads=6
 fluidvarblockdims_zthreads=6
+SM_mult_x_intvar=3
+SM_mult_y_intvar=3
+SM_mult_z_intvar=3
