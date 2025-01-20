@@ -56,9 +56,13 @@ int main(int argc, char* argv[]){
    int fluidblockdims_ythreads = atoi(argv[30]);
    int fluidblockdims_zthreads = atoi(argv[31]);
 
-	int SM_mult_intvar_x = atoi(argv[32]);
-	int SM_mult_intvar_y = atoi(argv[33]);
-	int SM_mult_intvar_z = atoi(argv[34]);
+   int SM_mult_x_grid = atoi(argv[32]);
+   int SM_mult_y_grid = atoi(argv[33]);
+   int SM_mult_z_grid = atoi(argv[34]);
+
+	int SM_mult_x_intvar = atoi(argv[35]);
+	int SM_mult_y_intvar = atoi(argv[36]);
+	int SM_mult_z_intvar = atoi(argv[37]);
 
    // CUDA BOILERPLATE 
    int deviceId;
@@ -68,7 +72,8 @@ int main(int argc, char* argv[]){
    cudaDeviceGetAttribute(&numberOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
 
    dim3 exec_grid_dims(numberOfSMs, numberOfSMs, numberOfSMs);
-   dim3 exec_grid_dims_intvar(SM_mult_intvar_x * numberOfSMs, SM_mult_intvar_y * numberOfSMs, SM_mult_intvar_z * numberOfSMs);
+   dim3 exec_grid_dims_grid(SM_mult_x_grid * numberOfSMs, SM_mult_y_grid * numberOfSMs, SM_mult_z_grid * numberOfSMs);
+   dim3 exec_grid_dims_intvar(SM_mult_x_intvar * numberOfSMs, SM_mult_y_intvar * numberOfSMs, SM_mult_z_intvar * numberOfSMs);
 
    dim3 mesh_block_dims(meshblockdims_xthreads, meshblockdims_ythreads, meshblockdims_zthreads);
    dim3 init_block_dims(initblockdims_xthreads, initblockdims_ythreads, initblockdims_zthreads);
@@ -94,7 +99,7 @@ int main(int argc, char* argv[]){
 	float dy = (y_max - y_min) / (Ny - 1);
 	float dz = (z_max - z_min) / (Nz - 1);
 
-   InitializeGrid<<<exec_grid_dims, mesh_block_dims>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   InitializeGrid<<<exec_grid_dims_grid, mesh_block_dims>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
    ScrewPinch<<<exec_grid_dims, init_block_dims>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);

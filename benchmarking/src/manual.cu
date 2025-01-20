@@ -5,8 +5,10 @@
 #include <fstream>
 
 #include "../../include/on-device/kernels_od.cuh"
+#include "../../include/on-device/kernels_fluidbcs.cuh"
 #include "../../include/on-device/initialize_od.cuh"
 #include "../../include/on-device/kernels_od_intvar.cuh"
+#include "../../include/on-device/kernels_intvarbcs.cuh"
 
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define checkCuda(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -52,6 +54,14 @@ int main(int argc, char* argv[]){
 	int fluidblockdims_ythreads = atoi(argv[25]);
 	int fluidblockdims_zthreads = atoi(argv[26]);
 
+	int SM_mult_x_grid = atoi(argv[27]);
+	int SM_mult_y_grid = atoi(argv[28]);
+	int SM_mult_z_grid = atoi(argv[29]);
+
+	int SM_mult_x_intvar = atoi(argv[30]);
+	int SM_mult_y_intvar = atoi(argv[31]);
+	int SM_mult_z_intvar = atoi(argv[32]);
+
 	float dx = (x_max - x_min) / (Nx - 1);
 	float dy = (y_max - y_min) / (Ny - 1);
 	float dz = (z_max - z_min) / (Nz - 1);
@@ -86,6 +96,9 @@ int main(int argc, char* argv[]){
 	checkCuda(cudaMalloc(&z_grid, sizeof(float) * Nz));
 
 	dim3 exec_grid_dims(numberOfSMs, numberOfSMs, numberOfSMs);
+	dim3 exec_grid_dims_grid(SM_mult_x_grid * numberOfSMs, SM_mult_y_grid * numberOfSMs, SM_mult_z_grid * numberOfSMs);
+	dim3 exec_grid_dims_intvar(SM_mult_x_intvar * numberOfSMs, SM_mult_y_intvar * numberOfSMs, SM_mult_z_intvar * numberOfSMs);
+
 	dim3 mesh_block_dims(meshblockdims_xthreads, meshblockdims_ythreads, meshblockdims_zthreads);
 	dim3 init_block_dims(initblockdims_xthreads, initblockdims_ythreads, initblockdims_zthreads);
 	dim3 intvar_block_dims(intvarblockdims_xthreads, intvarblockdims_ythreads, intvarblockdims_zthreads);
@@ -157,14 +170,14 @@ int main(int argc, char* argv[]){
         cudaEventElapsedTime(&intvar_time, start_intvar, stop_intvar);
 
 		std::cout << "Benchmarking intermediate B.Cs" << std::endl;
-		std::cout << "Currently thrashes cache so badly that it kills performance - not being benchmarked until fixed" << std::endl;
-        // cudaEventRecord(start_intvar_bcs);
-		// for (size_t il = 0; il < num_bench_iters; il++){
-		// 	ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
-		// }
-		// cudaEventRecord(stop_intvar_bcs);
-        // cudaEventSynchronize(stop_intvar_bcs);
-        // cudaEventElapsedTime(&intvar_bcs_time, start_intvar_bcs, stop_intvar_bcs);
+		// std::cout << "Currently thrashes cache so badly that it kills performance - not being benchmarked until fixed" << std::endl;
+        cudaEventRecord(start_intvar_bcs);
+		for (size_t il = 0; il < num_bench_iters; il++){
+			ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+		}
+		cudaEventRecord(stop_intvar_bcs);
+        cudaEventSynchronize(stop_intvar_bcs);
+        cudaEventElapsedTime(&intvar_bcs_time, start_intvar_bcs, stop_intvar_bcs);
 
 		bench_file << it << "," << fluid_time / num_bench_iters << "," << bcs_time / num_bench_iters << "," 
 			<< intvar_time / num_bench_iters << "," << intvar_bcs_time / num_bench_iters << "," 
