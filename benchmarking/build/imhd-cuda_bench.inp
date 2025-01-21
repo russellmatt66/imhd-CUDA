@@ -1,8 +1,8 @@
 Nt=10
 num_bench_iters=25
-Nx=128
-Ny=128
-Nz=128
+Nx=256
+Ny=256
+Nz=256
 J0=1.0
 D=0.0
 x_min=-3.14159

@@ -27,14 +27,16 @@ add_library(intvar_od_lib ${PROJECT_ROOT}/lib/on-device/kernels_od_intvar.cu)
 add_library(intvarbcs_lib ${PROJECT_ROOT}/lib/on-device/kernels_intvarbcs.cu)
 add_library(utils_lib ${PROJECT_ROOT}/lib/on-device/utils/utils.cpp)
 
-add_executable(imhd-cuda_bench manual.cu)
+add_executable(imhd-cuda_bench-mega manual_mega.cu)
+add_executable(imhd-cuda_bench-micro manual_micro.cu)
 add_executable(imhd-cuda_fullprofile profile_full.cu)
 
 target_link_libraries(fluxes_lib PRIVATE helper_lib)
 target_link_libraries(intvar_od_lib PRIVATE fluxes_lib)
 target_link_libraries(kernels_od_lib PRIVATE fluxes_lib diffusion_lib helper_lib)
 
-target_link_libraries(imhd-cuda_bench PRIVATE kernels_od_lib fluidbcs_lib initialize_od_lib intvar_od_lib intvarbcs_lib utils_lib)
+target_link_libraries(imhd-cuda_bench-mega PRIVATE kernels_od_lib fluidbcs_lib initialize_od_lib intvar_od_lib intvarbcs_lib utils_lib)
+target_link_libraries(imhd-cuda_bench-micro PRIVATE kernels_od_lib fluidbcs_lib initialize_od_lib intvar_od_lib intvarbcs_lib utils_lib)
 target_link_libraries(imhd-cuda_fullprofile PRIVATE kernels_od_lib fluidbcs_lib initialize_od_lib intvar_od_lib intvarbcs_lib utils_lib)
 
 set_target_properties(kernels_od_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
@@ -45,5 +47,6 @@ set_target_properties(intvar_od_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARA
 set_target_properties(intvarbcs_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(diffusion_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(helper_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
-set_target_properties(imhd-cuda_bench PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
+set_target_properties(imhd-cuda_bench-mega PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
+set_target_properties(imhd-cuda_bench-micro PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(imhd-cuda_fullprofile PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)

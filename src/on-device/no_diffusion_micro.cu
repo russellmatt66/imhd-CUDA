@@ -76,7 +76,7 @@ int main(int argc, char* argv[]){
    dim3 exec_grid_dims_grid(SM_mult_x_grid * numberOfSMs, SM_mult_y_grid * numberOfSMs, SM_mult_z_grid * numberOfSMs);
    dim3 exec_grid_dims_intvar(SM_mult_x_intvar * numberOfSMs, SM_mult_y_intvar * numberOfSMs, SM_mult_z_intvar * numberOfSMs);
 
-   // Gridblock configurations for the Qint boundary microkernels
+   // Execution grid configurations for the Qint boundary microkernels
    dim3 exec_grid_dims_qintbdry_front(numberOfSMs, numberOfSMs, 1); // can also be used for PBCs
    dim3 exec_grid_dims_qintbdry_leftright(numberOfSMs, 1, numberOfSMs);
    dim3 exec_grid_dims_qintbdry_topbottom(1, numberOfSMs, numberOfSMs);
