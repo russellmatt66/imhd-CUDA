@@ -9,7 +9,9 @@
 
 #include "initialize_od.cuh"
 #include "kernels_od.cuh"
+#include "kernels_fluidbcs.cuh"
 #include "kernels_od_intvar.cuh"
+#include "kernels_intvarbcs.cuh"
 
 #include "utils.cuh"
 #include "utils.hpp"
@@ -54,6 +56,14 @@ int main(int argc, char* argv[]){
    int fluidblockdims_ythreads = atoi(argv[30]);
    int fluidblockdims_zthreads = atoi(argv[31]);
 
+   int SM_mult_x_grid = atoi(argv[32]);
+   int SM_mult_y_grid = atoi(argv[33]);
+   int SM_mult_z_grid = atoi(argv[34]);
+
+	int SM_mult_x_intvar = atoi(argv[35]);
+	int SM_mult_y_intvar = atoi(argv[36]);
+	int SM_mult_z_intvar = atoi(argv[37]);
+
    // CUDA BOILERPLATE 
    int deviceId;
    int numberOfSMs;
@@ -61,11 +71,34 @@ int main(int argc, char* argv[]){
    cudaGetDevice(&deviceId); // number of blocks should be a multiple of the number of device SMs
    cudaDeviceGetAttribute(&numberOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
 
+   // Execution grid configurations
    dim3 exec_grid_dims(numberOfSMs, numberOfSMs, numberOfSMs);
+   dim3 exec_grid_dims_grid(SM_mult_x_grid * numberOfSMs, SM_mult_y_grid * numberOfSMs, SM_mult_z_grid * numberOfSMs);
+   dim3 exec_grid_dims_intvar(SM_mult_x_intvar * numberOfSMs, SM_mult_y_intvar * numberOfSMs, SM_mult_z_intvar * numberOfSMs);
+
+   // Gridblock configurations for the Qint boundary microkernels
+   dim3 exec_grid_dims_qintbdry_front(numberOfSMs, numberOfSMs, 1); // can also be used for PBCs
+   dim3 exec_grid_dims_qintbdry_leftright(numberOfSMs, 1, numberOfSMs);
+   dim3 exec_grid_dims_qintbdry_topbottom(1, numberOfSMs, numberOfSMs);
+
+   dim3 exec_grid_dims_qintbdry_frontright(numberOfSMs, 1, 1);
+   dim3 exec_grid_dims_qintbdry_frontbottom(1, numberOfSMs, 1);
+   dim3 exec_grid_dims_qintbdry_bottomright(1, 1, numberOfSMs);
+
+   // Threadblock execution configurations for the megakernels
    dim3 mesh_block_dims(meshblockdims_xthreads, meshblockdims_ythreads, meshblockdims_zthreads);
    dim3 init_block_dims(initblockdims_xthreads, initblockdims_ythreads, initblockdims_zthreads);
    dim3 intvar_block_dims(intvarblockdims_xthreads, intvarblockdims_ythreads, intvarblockdims_zthreads);
    dim3 fluid_block_dims(fluidblockdims_xthreads, fluidblockdims_ythreads, fluidblockdims_zthreads);
+
+   // Threadblock execution configurations for the Qint boundary microkernels
+   /* Really doubt these need to ever be changed. Maybe 8 -> 10 */
+   dim3 qintbdry_front_blockdims(8, 8, 1); // can also be used for PBCs
+   dim3 qintbdry_leftright_blockdims(8, 1, 8);
+   dim3 qintbdry_topbottom_blockdims(1, 8, 8);
+   dim3 qintbdry_frontright_blockdims(1024, 1, 1);
+   dim3 qintbdry_frontbottom_blockdims(1, 1024, 1);
+   dim3 qintbdry_bottomright_blockdims(1, 1, 1024);
 
    size_t cube_size = Nx * Ny * Nz;
    size_t fluidvar_size = sizeof(float) * cube_size;
@@ -74,7 +107,6 @@ int main(int argc, char* argv[]){
    float *fluidvars, *intvars;
 
    checkCuda(cudaMalloc(&fluidvars, fluid_data_size));
-   // checkCuda(cudaMalloc(&fluidvars_np1, fluid_data_size));
    checkCuda(cudaMalloc(&intvars, fluid_data_size));
    
    float *x_grid, *y_grid, *z_grid;
@@ -87,30 +119,35 @@ int main(int argc, char* argv[]){
 	float dy = (y_max - y_min) / (Ny - 1);
 	float dz = (z_max - z_min) / (Nz - 1);
 
-   InitializeGrid<<<exec_grid_dims, mesh_block_dims>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   InitializeGrid<<<exec_grid_dims_grid, mesh_block_dims>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
    ScrewPinch<<<exec_grid_dims, init_block_dims>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
-   InitializeIntvars<<<exec_grid_dims, intvar_block_dims>>>(intvars, Nx, Ny, Nz);
-   checkCuda(cudaDeviceSynchronize());
-
-   ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
-   ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntermediateVariablesNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   checkCuda(cudaDeviceSynchronize());    
+   
+   // Maybe this should be in a wrapper
+   QintBdryFrontNoDiff<<<exec_grid_dims_qintbdry_front, qintbdry_front_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   QintBdryLeftRightNoDiff<<<exec_grid_dims_qintbdry_leftright, qintbdry_leftright_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   QintBdryTopBottomNoDiff<<<exec_grid_dims_qintbdry_topbottom, qintbdry_topbottom_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   QintBdryFrontBottomNoDiff<<<exec_grid_dims_qintbdry_frontbottom, qintbdry_frontbottom_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   QintBdryFrontRightNoDiff<<<exec_grid_dims_qintbdry_frontright, qintbdry_frontright_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   QintBdryBottomRightNoDiff<<<exec_grid_dims_qintbdry_bottomright, qintbdry_bottomright_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
-   /* 
-   COMPUTE AND WRITE OUT INTERMEDIATE VARIABLES, FLUXES, and INT. FLUXES 
-   */
+   QintBdryPBCs<<<exec_grid_dims_qintbdry_front, qintbdry_front_blockdims>>>(fluidvars, intvars, Nx, Ny, Nz);
+   checkCuda(cudaDeviceSynchronize());    
 
-   // WRITE INITIAL DATA OUT 
+   // Use IPC to write data out in order to avoid redundant work 
    std::string shm_name_fluidvar = "/shared_h_fluidvar";
    int shm_fd = shm_open(shm_name_fluidvar.data(), O_CREAT | O_RDWR, 0666);
    if (shm_fd == -1) {
       std::cerr << "Failed to create shared memory!" << std::endl;
       return EXIT_FAILURE;
    }
+   
    ftruncate(shm_fd, fluid_data_size);
    float* shm_h_fluidvar = (float*)mmap(0, fluid_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
    if (shm_h_fluidvar == MAP_FAILED) {
@@ -176,7 +213,7 @@ int main(int argc, char* argv[]){
    }
 
    if (!(eigen_bin_name == "none")){ // Don't always want to check stability - expensive raster scan
-      std::cout << "Forking to process for checking stability" << std::endl;
+      std::cout << "Forking to process for computing CFL number (checking stability)" << std::endl;
       ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
       if (ret != 0) {
          std::cerr << "Error executing Eigen binary: " << eigen_bin_name << std::endl;
@@ -188,16 +225,32 @@ int main(int argc, char* argv[]){
    for (int it = 1; it < Nt; it++){
       std::cout << "Starting timestep " << it << std::endl;
 
-      std::cout << "Launching kernels for computing fluid variables" << std::endl;
-      FluidAdvanceLocal<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      std::cout << "Launching kernel for computing fluid variables" << std::endl;
+      FluidAdvanceLocalNoDiff<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      checkCuda(cudaDeviceSynchronize());
+      
+      std::cout << "Launching kernel for computing fluid boundaries" << std::endl; 
       BoundaryConditions<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       std::cout << "Kernels for computing fluid variables completed" << std::endl;
       
-      std::cout << "Launching kernels for computing intermediate variables" << std::endl; 
-      ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
-      
+      std::cout << "Launching kernel for computing intermediate variables" << std::endl; 
+      ComputeIntermediateVariablesNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      checkCuda(cudaDeviceSynchronize());
+
+      std::cout << "Launching kernels for computing Qint boundaries" << std::endl; 
+      QintBdryFrontNoDiff<<<exec_grid_dims_qintbdry_front, qintbdry_front_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      QintBdryLeftRightNoDiff<<<exec_grid_dims_qintbdry_leftright, qintbdry_leftright_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      QintBdryTopBottomNoDiff<<<exec_grid_dims_qintbdry_topbottom, qintbdry_topbottom_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      QintBdryFrontBottomNoDiff<<<exec_grid_dims_qintbdry_frontbottom, qintbdry_frontbottom_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      QintBdryFrontRightNoDiff<<<exec_grid_dims_qintbdry_frontright, qintbdry_frontright_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      QintBdryBottomRightNoDiff<<<exec_grid_dims_qintbdry_bottomright, qintbdry_bottomright_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      checkCuda(cudaDeviceSynchronize());    
+
+      std::cout << "Launching kernel for computing Qint PBCs" << std::endl; 
+      QintBdryPBCs<<<exec_grid_dims_qintbdry_front, qintbdry_front_blockdims>>>(fluidvars, intvars, Nx, Ny, Nz);
+      checkCuda(cudaDeviceSynchronize());    
+
       std::cout << "Transferring updated fluid data to host" << std::endl;
       cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);
       checkCuda(cudaDeviceSynchronize());
@@ -212,6 +265,15 @@ int main(int argc, char* argv[]){
       }  
 
       std::cout << "Timestep " << it << " complete" << std::endl;
+
+      if (!(eigen_bin_name == "none")){ // Don't always want to check stability - expensive raster scan
+         std::cout << "Forking to process for computing CFL number (checking stability)" << std::endl;
+         ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
+         if (ret != 0) {
+            std::cerr << "Error executing Eigen binary: " << eigen_bin_name << std::endl;
+            std::cerr << "Error code: " << ret << std::endl;
+         }
+      }  
    } 
 
    // FREE EVERYTHING

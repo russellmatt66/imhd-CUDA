@@ -21,10 +21,10 @@ arg_list = []
 
 mode = sys.argv[1]
 
-if mode == "full": # read out fluxes and intermediate variables
-    driver = './on-device/imhd-cuda_full'
-elif mode == "nodiff": # launch w/out diffusion
-    driver = './on-device/imhd-cuda_nodiff'
+if mode == "nodiff-mega": # launch w/out diffusion, using megakernels for qint bdry
+    driver = './on-device/imhd-cuda_nodiff_qintmega'
+elif mode == "nodiff-micro": # launch w/out diffusion, using microkernels for qint bdry
+    driver = './on-device/imhd-cuda_nodiff_qintmicro'
 else:
     driver = './on-device/imhd-cuda'
 arg_list.append(driver)

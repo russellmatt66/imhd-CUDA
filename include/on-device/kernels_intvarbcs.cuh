@@ -1,6 +1,7 @@
 #ifndef INTVAR_BCS_CUH
 #define INTVAR_BCS_CUH
 
+// Megakernels that suffer from thread divergence
 __global__ void ComputeIntermediateVariablesBoundaryNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
@@ -9,12 +10,40 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
     const float D, const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
-// Kernels that deal with the Right Face
+// Microkernels to eliminate the problem of thread divergence in the megakernels that make them a serious bottleneck
+__global__ void QintBdryFrontNoDiff(const float* fluidvar, float* intvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void QintBdryPBCs(const float* fluidvar, float* intvar,
+    const int Nx, const int Ny, const int Nz);
+
+// Can deal with Left and Right Faces at the same time 
+__global__ void QintBdryLeftRightNoDiff(const float* fluidvar, float* intvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz); 
+
+// Can deal with Top and Bottom Faces at the same time
+__global__ void QintBdryTopBottomNoDiff(const float* fluidvar, float* intvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz); 
+
+__global__ void QintBdryFrontRightNoDiff(const float* fluidvar, float* intvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void QintBdryFrontBottomNoDiff(const float* fluidvar, float* intvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz); 
+
+__global__ void QintBdryBottomRightNoDiff(const float* fluidvar, float* intvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz); 
+
+// Device kernels that deal with the Right Face
 // j = Ny-1
 // i \in [0, Nx-1]
 // k \in [1, Nz-2]
-__global__ void QintBdryRightNoDiff(); // microkernel to eliminate thread divergence - megakernel is a bottleneck
-
 __device__ float intRhoRight(const int i, const int k, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
@@ -55,12 +84,10 @@ __device__ float intERight(const int i, const int k,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
-// Kernels that deal with Bottom Face
+// Device kernels that deal with the Bottom Face
 // i = Nx-1
 // j \in [1,Ny-1]
 // k \in [1,Nz-2] - leave the front / back faces alone
-__global__ void QintBdryBottomNoDiff(); // microkernel to eliminate thread divergence - megakernel is a bottleneck
-
 __device__ float intRhoBottom(const int j, const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
@@ -101,12 +128,14 @@ __device__ float intEBottom(const int j, const int k,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
+/* 
+I THINK THE FOLLOWING IS UNNECESSARY
+COMPUTING ANYTHING TO DO WITH THE Back Face IS POINTLESS 
+*/
 // Kernels that deal with the Back Face 
 // k = Nz-1
 // i \in [1, Nx-2]
 // j \in [1, Nz-2]
-__global__ void QintBdryBackNoDiff(); // microkernel to eliminate thread divergence - megakernel is a bottleneck
-
 __device__ float intRhoBack(const int i, const int j,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
@@ -147,12 +176,10 @@ __device__ float intEBack(const int i, const int j,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
-// Kernels that deal with the Front Right line
+// Device kernels that deal with the Front Right line
 // k = 0
 // i \in [0, Nx-2]
 // j = Ny-1 
-__global__ void QintBdryFrontRightNoDiff(); // microkernel to eliminate thread divergence - megakernel is a bottleneck
-
 __device__ float intRhoFrontRight(const int i, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
@@ -193,12 +220,10 @@ __device__ float intEFrontRight(const int i,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
-// Kernels that deal with the Front Bottom Line
+// Device kernels that deal with the Front Bottom Line
 // i = Nx-1
 // j \in [0, Ny-2]
 // k = 0
-__global__ void QintBdryFrontBottomNoDiff(); // microkernel to eliminate thread divergence - megakernel is a bottleneck
-
 __device__ float intRhoFrontBottom(const int j, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
@@ -238,12 +263,10 @@ __device__ float intEFrontBottom(const int j,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
-// Kernels that deal with the Bottom Right Line
+// Device kernels that deal with the Bottom Right Line
 // i = Nx-1
 // j = Ny-1
 // k \in [0, Nz-2]
-__global__ void QintBdryBottomRightNoDiff(); // microkernel to eliminate thread divergence - megakernel is a bottleneck
-
 __device__ float intRhoBottomRight(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
@@ -284,12 +307,14 @@ __device__ float intEBottomRight(const int k,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
-// Kernels that deal with the Back Bottom Line
+/* 
+I THINK THE FOLLOWING IS UNNECESSARY
+COMPUTING ANYTHING TO DO WITH THE Back Face IS POINTLESS 
+*/
+// Device kernels that deal with the Back Bottom Line
 // i = Nx-1
 // j \in [0, Ny-2]
 // k = Nz-1
-__global__ void QintBdryBackBottomNoDiff(); // microkernel to eliminate thread divergence - megakernel is a bottleneck
-
 __device__ float intRhoBackBottom(const int j, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
@@ -328,12 +353,14 @@ __device__ float intEBackBottom(const int j,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
-// Kernels that deal with the Back Right line
+/* 
+I THINK THE FOLLOWING IS UNNECESSARY
+COMPUTING ANYTHING TO DO WITH THE Back Face IS POINTLESS 
+*/
+// Device kernels that deal with the Back Right line
 // i \in [0, Nx-2]
 // j = Ny-1
 // k = Nz-1 
-__global__ void QintBdryBackRightNoDiff(); // microkernel to eliminate thread divergence - megakernel is a bottleneck
-
 __device__ float intRhoBackRight(const int i,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
