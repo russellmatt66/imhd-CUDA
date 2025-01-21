@@ -89,15 +89,15 @@ int main(int argc, char* argv[]){
 	ScrewPinch<<<grid_dimensions, block_dims_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz); // Screw-pinch
 	checkCuda(cudaDeviceSynchronize());
 	
-	ComputeIntermediateVariables<<<grid_dimensions, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+	ComputeIntermediateVariablesNoDiff<<<grid_dimensions, block_dims_intvar>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
     checkCuda(cudaDeviceSynchronize());
 
-	ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+	ComputeIntermediateVariablesBoundaryNoDiff<<<grid_dimensions, block_dims_intvar>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());
 
 	// Timestep
     std::cout << "Evolving fluid interior" << std::endl; 
-    FluidAdvanceLocal<<<grid_dimensions, block_dims_fluid>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+    FluidAdvanceLocalNoDiff<<<grid_dimensions, block_dims_fluid>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
     checkCuda(cudaDeviceSynchronize());
 
     std::cout << "Evolving fluid boundaries" << std::endl; 
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]){
     ComputeIntermediateVariables<<<grid_dimensions, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
     checkCuda(cudaDeviceSynchronize());
 
-    ComputeIntermediateVariablesBoundary<<<grid_dimensions, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+    ComputeIntermediateVariablesBoundaryNoDiff<<<grid_dimensions, block_dims_intvar>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
     checkCuda(cudaDeviceSynchronize());
 
 	// Free device data 

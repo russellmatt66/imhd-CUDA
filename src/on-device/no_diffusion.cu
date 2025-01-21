@@ -105,10 +105,10 @@ int main(int argc, char* argv[]){
    ScrewPinch<<<exec_grid_dims, init_block_dims>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
-   ComputeIntermediateVariables<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntermediateVariablesNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
    
-   ComputeIntermediateVariablesBoundary<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntermediateVariablesBoundaryNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
    // Use IPC to write data out in order to avoid redundant work 
@@ -197,7 +197,7 @@ int main(int argc, char* argv[]){
       std::cout << "Starting timestep " << it << std::endl;
 
       std::cout << "Launching kernel for computing fluid variables" << std::endl;
-      FluidAdvanceLocal<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceLocalNoDiff<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       
       std::cout << "Launching kernel for computing fluid boundaries" << std::endl; 
@@ -206,11 +206,11 @@ int main(int argc, char* argv[]){
       std::cout << "Kernels for computing fluid variables completed" << std::endl;
       
       std::cout << "Launching kernel for computing intermediate variables" << std::endl; 
-      ComputeIntermediateVariables<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntermediateVariablesNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
 
       std::cout << "Launching kernels for computing intermediate boundaries" << std::endl; 
-      ComputeIntermediateVariablesBoundary<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntermediateVariablesBoundaryNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       
       std::cout << "Transferring updated fluid data to host" << std::endl;
       cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);

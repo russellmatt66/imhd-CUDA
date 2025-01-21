@@ -1,4 +1,4 @@
-Nt=2
+Nt=10
 num_bench_iters=25
 Nx=256
 Ny=256

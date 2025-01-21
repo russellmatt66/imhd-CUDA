@@ -8,10 +8,11 @@
 
 /* 
 THREAD DIVERGENCE WILL BE A PROBLEM HERE 
-Just an MVP - microkernels in the future
+Just an MVP 
+Performance is absolutely killed by this kernel
 */
-__global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, float* intvar,
-    const float dt, const float dx, const float dy, const float dz, const float D,
+__global__ void ComputeIntermediateVariablesBoundaryNoDiff(const float* fluidvar, float* intvar,
+    const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
         int i = threadIdx.x + blockDim.x * blockIdx.x; 
@@ -39,25 +40,175 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
             intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 7 * cube_size] = intE(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
         }
 
-        // if (i > 0 && i < Nx-1 && j > 0 && j < Ny-1){
-        //     intvar[IDX3D(i, j, 0, Nx, Ny, Nz)] = intRho(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-        //                                         + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 0, Nx, Ny, Nz);
-        //     intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + cube_size] = intRhoVX(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-        //                                                     + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 1, Nx, Ny, Nz);
-        //     intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 2 * cube_size] = intRhoVY(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-        //                                                         + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 2, Nx, Ny, Nz);
-        //     intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZ(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-        //                                                         + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 3, Nx, Ny, Nz);
-        //     intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 4 * cube_size] = intBX(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-        //                                                         + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 4, Nx, Ny, Nz);
-        //     intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 5 * cube_size] = intBY(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-        //                                                         + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 5, Nx, Ny, Nz);
-        //     intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 6 * cube_size] = intBZ(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-        //                                                         + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 6, Nx, Ny, Nz);
-        //     intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 7 * cube_size] = intE(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-        //                                                         + dt * numericalDiffusionFront(i, j, fluidvar, D, dx, dy, dz, 7, Nx, Ny, Nz);
-        // }
+        // Left and Right Faces
+        // j = {0, Ny - 1}
+        // i \in [0,Nx-2] 
+        // k \in [1,Nz-2]
+        if (i < Nx-1 && k > 0 && k < Nz-1){
 
+            // Left Face
+            // j = 0
+            // i \in [0,Nx-2] 
+            // k \in [1,Nz-2]
+            intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz)] = intRhoRight(i, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
+            intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + cube_size] = intRhoVXRight(i, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
+            intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYRight(i, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
+            intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZRight(i, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
+            intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 4 * cube_size] = intBXRight(i, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
+            intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 5 * cube_size] = intBYRight(i, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
+            intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 6 * cube_size] = intBZRight(i, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
+            intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 7 * cube_size] = intERight(i, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
+
+            // Right Face
+            // j = Ny-1
+            // i \in [0,Nx-2] 
+            // k \in [1,Nz-2]
+            intvar[IDX3D(i, 0, k, Nx, Ny, Nz)] = intRho(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
+            intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + cube_size] = intRhoVX(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
+            intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 2 * cube_size] = intRhoVY(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
+            intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZ(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
+            intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 4 * cube_size] = intBX(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
+            intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 5 * cube_size] = intBY(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
+            intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 6 * cube_size] = intBZ(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
+            intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 7 * cube_size] = intE(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
+        }
+
+        // Top and Bottom Faces
+        // i = {0, Nx-1}
+        // j \in [0,Ny-2]
+        // k \in [1,Nz-2]
+        if (j < Ny-1 && k > 0 && k < Nz-1){
+            
+            // Top Face
+            // i = 0
+            // j \in [0,Ny-2]
+            // k \in [1,Nz-2]
+            intvar[IDX3D(0, j, k, Nx, Ny, Nz)] = intRho(0, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
+            intvar[IDX3D(0, j, k, Nx, Ny, Nz) + cube_size] = intRhoVX(0, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
+            intvar[IDX3D(0, j, k, Nx, Ny, Nz) + 2 * cube_size] = intRhoVY(0, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
+            intvar[IDX3D(0, j, k, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZ(0, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
+            intvar[IDX3D(0, j, k, Nx, Ny, Nz) + 4 * cube_size] = intBX(0, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
+            intvar[IDX3D(0, j, k, Nx, Ny, Nz) + 5 * cube_size] = intBY(0, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
+            intvar[IDX3D(0, j, k, Nx, Ny, Nz) + 6 * cube_size] = intBZ(0, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
+            intvar[IDX3D(0, j, k, Nx, Ny, Nz) + 7 * cube_size] = intE(0, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
+            
+            // Bottom Face
+            // i = Nx - 1
+            // j \in [0,Ny-2]
+            // k \in [1,Nz-2]
+            intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz)] = intRhoBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
+            intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + cube_size] = intRhoVXBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
+            intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
+            intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
+            intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 4 * cube_size] = intBXBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
+            intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 5 * cube_size] = intBYBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
+            intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 6 * cube_size] = intBZBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
+            intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 7 * cube_size] = intEBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
+        }
+
+        // After the above is done, there are still FIVE lines where data has not been specified
+        // {(i, Ny-1, 0), (Nx-1, j, 0), (Nx-1, Ny-1, k), (Nx-1, j, Nz-1), (i, Ny-1, Nz-1)} 
+        // {"FrontRight", "FrontBottom", "BottomRight", "BackBottom", "BackRight"}        
+        // "FrontRight" and "BackRight"
+        if (i < Nx-1){
+            // (i, Ny-1, 0) - "FrontRight"
+            intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz)] = intRhoFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
+            intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + cube_size] = intRhoVXFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
+            intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
+            intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
+            intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 4 * cube_size] = intBXFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
+            intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 5 * cube_size] = intBYFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
+            intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 6 * cube_size] = intBZFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
+            intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 7 * cube_size] = intEFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
+            
+            // (i, Ny-1, Nz-1) - "BackRight"
+            intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz)] = intRhoBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
+            intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + cube_size] = intRhoVXBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
+            intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
+            intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
+            intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 4 * cube_size] = intBXBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
+            intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 5 * cube_size] = intBYBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
+            intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 6 * cube_size] = intBZBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
+            intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 7 * cube_size] = intEBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
+        }
+
+        // "FrontBottom" and "BackBottom"
+        if (j < Ny-1){
+            // (Nx-1, j, 0) - "FrontBottom"
+            intvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz)] = intRhoFrontBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
+            intvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz) + cube_size] = intRhoVXFrontBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
+            intvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYFrontBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
+            intvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZFrontBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
+            intvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz) + 4 * cube_size] = intBXFrontBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
+            intvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz) + 5 * cube_size] = intBYFrontBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
+            intvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz) + 6 * cube_size] = intBZFrontBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
+            intvar[IDX3D(Nx-1, j, 0, Nx, Ny, Nz) + 7 * cube_size] = intEFrontBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
+            
+            // (Nx-1, j, Nz-1) - "BackBottom"
+            intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz)] = intRhoBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
+            intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + cube_size] = intRhoVXBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
+            intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
+            intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
+            intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 4 * cube_size] = intBXBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
+            intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 5 * cube_size] = intBYBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
+            intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 6 * cube_size] = intBZBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
+            intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 7 * cube_size] = intEBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
+        }
+
+        // (Nx-1, Ny-1, k) - "BottomRight"
+        if (k < Nz-1){
+            intvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz)] = intRhoBottomRight(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
+            intvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + cube_size] = intRhoVXBottomRight(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
+            intvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYBottomRight(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
+            intvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZBottomRight(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
+            intvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + 4 * cube_size] = intBXBottomRight(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
+            intvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + 5 * cube_size] = intBYBottomRight(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
+            intvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + 6 * cube_size] = intBZBottomRight(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
+            intvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + 7 * cube_size] = intEBottomRight(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
+        }
+
+        // Avoid race condition when settings PBCs
+        __syncthreads(); 
+
+        // PBCs @ Nz-1
+        if (i < Nx && j < Ny){ // Do not ignore the edges b/c intermediate variables got calculated there
+            for (int ivf = 0; ivf < 8; ivf++){ // PBCs - they are the SAME point 
+                intvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
+            }
+        }
+
+        return;
+    }
+
+/* ADD DIFFUSION */
+__global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, float* intvar,
+    const float D, const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        int i = threadIdx.x + blockDim.x * blockIdx.x; 
+        int j = threadIdx.y + blockDim.y * blockIdx.y;
+        int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int xthreads = blockDim.x * gridDim.x;
+        int ythreads = blockDim.y * gridDim.y;
+        int zthreads = blockDim.z * gridDim.z;
+    
+        int cube_size = Nx * Ny * Nz;
+
+        // Front Face
+        // k = 0
+        // i \in [1,Nx-2]
+        // j \in [1,Ny-2]
+        if (i < Nx-1 && j < Ny-1){
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz)] = intRho(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + cube_size] = intRhoVX(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 2 * cube_size] = intRhoVY(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZ(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 4 * cube_size] = intBX(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 5 * cube_size] = intBY(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 6 * cube_size] = intBZ(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
+            intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 7 * cube_size] = intE(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
+        }
 
         /* SURELY THESE DON'T NEED DIFFUSION */
         // Left and Right Faces
@@ -128,61 +279,6 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
         }
 
         /* SURELY THESE DON'T NEED DIFFUSION */
-        // Left Face
-        // j = 0
-        // i \in [0, Nx-2]
-        // k \in [1, Nz-2]
-        // if (i < Nx-1 && k > 0 && k < Nz-1){
-        //     intvar[IDX3D(i, 0, k, Nx, Ny, Nz)] = intRho(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
-        //     intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + cube_size] = intRhoVX(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
-        //     intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 2 * cube_size] = intRhoVY(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
-        //     intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZ(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
-        //     intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 4 * cube_size] = intBX(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
-        //     intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 5 * cube_size] = intBY(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
-        //     intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 6 * cube_size] = intBZ(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
-        //     intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 7 * cube_size] = intE(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
-        // }
-
-        /* SURELY THESE DON'T NEED DIFFUSION */
-        // Bottom Face
-        // i = Nx - 1
-        // j \in [0,Ny-2]
-        // k \in [1,Nz-2]
-        // if (j < Ny-1 && k > 0 && k < Nz-1){
-        //     intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz)] = intRhoBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
-        //     intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + cube_size] = intRhoVXBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
-        //     intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
-        //     intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
-        //     intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 4 * cube_size] = intBXBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
-        //     intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 5 * cube_size] = intBYBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
-        //     intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 6 * cube_size] = intBZBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
-        //     intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 7 * cube_size] = intEBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
-        // }
-
-        // Back Face - DON'T CALCULATE THIS: PBCs
-        // k = Nz-1
-        // i \in [0, Nx-2]
-        // j \in [0, Ny-2]
-        // if (i < Nx-1 && j < Ny-1){
-        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz)] = intRhoBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-        //                                             + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 0, Nx, Ny, Nz);
-        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + cube_size] = intRhoVXBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-        //                                                         + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 1, Nx, Ny, Nz);
-        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-        //                                                             + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 2, Nx, Ny, Nz);
-        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-        //                                                             + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 3, Nx, Ny, Nz);
-        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 4 * cube_size] = intBXBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-        //                                                             + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 4, Nx, Ny, Nz);
-        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 5 * cube_size] = intBYBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-        //                                                             + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 5, Nx, Ny, Nz);
-        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 6 * cube_size] = intBZBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-        //                                                             + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 6, Nx, Ny, Nz);
-        //     intvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + 7 * cube_size] = intEBack(i, j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz)
-        //                                                             + dt * numericalDiffusionBack(i, j, fluidvar, D, dx, dy, dz, 7, Nx, Ny, Nz);
-        // }
-
-        /* SURELY THESE DON'T NEED DIFFUSION */
         // After the above is done, there are still FIVE lines where data has not been specified
         // {(i, Ny-1, 0), (Nx-1, j, 0), (Nx-1, Ny-1, k), (Nx-1, j, Nz-1), (i, Ny-1, Nz-1)} 
         // {"FrontRight", "FrontBottom", "BottomRight", "BackBottom", "BackRight"}
@@ -245,104 +341,7 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
             intvar[IDX3D(Nx-1, Ny-1, k, Nx, Ny, Nz) + 7 * cube_size] = intEBottomRight(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
         }
 
-        // (Nx-1, j, Nz-1) - "BackBottom"
-        // if (j < Ny-1){
-        //     intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz)] = intRhoBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
-        //     intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + cube_size] = intRhoVXBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
-        //     intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
-        //     intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
-        //     intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 4 * cube_size] = intBXBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
-        //     intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 5 * cube_size] = intBYBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
-        //     intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 6 * cube_size] = intBZBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
-        //     intvar[IDX3D(Nx-1, j, Nz-1, Nx, Ny, Nz) + 7 * cube_size] = intEBackBottom(j, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
-        // }
-        
-        // (i, Ny-1, Nz-1) - "BackRight"
-        // if (i < Nx-1){
-        //     intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz)] = intRhoBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
-        //     intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + cube_size] = intRhoVXBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
-        //     intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
-        //     intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
-        //     intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 4 * cube_size] = intBXBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
-        //     intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 5 * cube_size] = intBYBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
-        //     intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 6 * cube_size] = intBZBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
-        //     intvar[IDX3D(i, Ny-1, Nz-1, Nx, Ny, Nz) + 7 * cube_size] = intEBackRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
-        // }
-
-        // (Nx-1, 0, k) - "BottomLeft"
-        // for (int k = tidz + 1; k < Nz - 1; k += zthreads){
-        //     intvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz)] = intRhoBottomLeft(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
-        //     intvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz) + cube_size] = intRhoVXBottomLeft(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
-        //     intvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYBottomLeft(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
-        //     intvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZBottomLeft(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
-        //     intvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz) + 4 * cube_size] = intBXBottomLeft(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
-        //     intvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz) + 5 * cube_size] = intBYBottomLeft(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
-        //     intvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz) + 6 * cube_size] = intBZBottomLeft(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
-        //     intvar[IDX3D(Nx-1, 0, k, Nx, Ny, Nz) + 7 * cube_size] = intEBottomLeft(k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
-        // }
-
-        /* 
-        [1/3/25]
-        I DON'T BELIEVE THIS NEEDS TO BE CALCULATED
-        So why do something you don't believe in?
-        Because, I believe that it is good practice to do as complete a job as possible
-        More importantly, I don't believe that this will cause a serious performance hit 
-        But, I could be wrong about that 
-        */
-        // Pick up straggler point: {(0, 0, 0)}
-        // if (tidx == 0 && tidy == 0 && tidz == 0){
-        //     intvar[0] = fluidvar[0] 
-        //         - (dt / dx) * (XFluxRho(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dy) * (YFluxRho(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dz) * (ZFluxRho(0, 0, 0, fluidvar, Nx, Ny, Nz) - ZFluxRho(0, 0, Nz-2, fluidvar, Nx, Ny, Nz));
-            
-        //     intvar[Nx * Ny * Nz] = fluidvar[Nx * Ny * Nz]
-        //         - (dt / dx) * (XFluxRhoVX(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dy) * (YFluxRhoVX(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dz) * (ZFluxRhoVX(0, 0, 0, fluidvar, Nx, Ny, Nz) - ZFluxRhoVX(0, 0, Nz-2, fluidvar, Nx, Ny, Nz));  
-
-        //     intvar[2 * Nx * Ny * Nz] = fluidvar[2 * Nx * Ny * Nz]
-        //         - (dt / dx) * (XFluxRhoVY(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dy) * (YFluxRhoVY(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dz) * (ZFluxRhoVY(0, 0, 0, fluidvar, Nx, Ny, Nz) - ZFluxRhoVY(0, 0, Nz-2, fluidvar, Nx, Ny, Nz)); 
-    
-        //     intvar[3 * Nx * Ny * Nz] = fluidvar[3 * Nx * Ny * Nz]
-        //         - (dt / dx) * (XFluxRhoVY(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dy) * (YFluxRhoVY(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dz) * (ZFluxRhoVY(0, 0, 0, fluidvar, Nx, Ny, Nz) - ZFluxRhoVY(0, 0, Nz-2, fluidvar, Nx, Ny, Nz)); 
-
-                
-        //     intvar[4 * Nx * Ny * Nz] = fluidvar[4 * Nx * Ny * Nz]
-        //         - (dt / dx) * (XFluxBX(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dy) * (YFluxBX(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dz) * (ZFluxBX(0, 0, 0, fluidvar, Nx, Ny, Nz) - ZFluxBX(0, 0, Nz-2, fluidvar, Nx, Ny, Nz)); 
-
-                
-        //     intvar[5 * Nx * Ny * Nz] = fluidvar[5 * Nx * Ny * Nz]
-        //         - (dt / dx) * (XFluxBY(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dy) * (YFluxBY(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dz) * (ZFluxBY(0, 0, 0, fluidvar, Nx, Ny, Nz) - ZFluxBY(0, 0, Nz-2, fluidvar, Nx, Ny, Nz)); 
-
-                
-        //     intvar[6 * Nx * Ny * Nz] = fluidvar[6 * Nx * Ny * Nz]
-        //         - (dt / dx) * (XFluxBZ(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dy) * (YFluxBZ(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dz) * (ZFluxBZ(0, 0, 0, fluidvar, Nx, Ny, Nz) - ZFluxBZ(0, 0, Nz-2, fluidvar, Nx, Ny, Nz)); 
-
-                
-        //     intvar[7 * Nx * Ny * Nz] = fluidvar[7 * Nx * Ny * Nz]
-        //         - (dt / dx) * (XFluxE(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dy) * (YFluxE(0, 0, 0, fluidvar, Nx, Ny, Nz))
-        //         - (dt / dz) * (ZFluxE(0, 0, 0, fluidvar, Nx, Ny, Nz) - ZFluxE(0, 0, Nz-2, fluidvar, Nx, Ny, Nz));
-        // }
-
-        /*
-        [1/3/25] 
-        Does this slow things down - YES 
-        Does it matter - PROBABLY NOT: O(max(Nx*Ny, Nx*Nz, Ny*Nz)) < O(Nx*Ny*Nz)), [BCs] vs. [Interior] 
-        Is it necessary to avoid a race condition - YES
-        Does \bar{Q}_{0, 0, 0} need to be calculated - Honestly, no
-        */
+        // Avoid race condition when settings PBCs
         __syncthreads(); 
 
         // PBCs @ Nz-1
@@ -351,12 +350,7 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
                 intvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
             }
         }
-        // if (i < Nx && j < Ny){ // Do not ignore the edges b/c intermediate variables got calculated there
-        //     for (int ivf = 0; ivf < 8; ivf++){ // PBCs - they are the SAME point 
-        //         intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size] += intvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size];
-        //         intvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
-        //     }
-        // }
+
         return;
     }
 

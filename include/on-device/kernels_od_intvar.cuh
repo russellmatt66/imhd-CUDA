@@ -6,16 +6,16 @@ __global__ void ComputeIntVarsLocal(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz, const float D,
     const int Nx, const int Ny, const int Nz);
 
-// Cache thrashing megakernels 
+// Cache-thrashing megakernels 
 __global__ void ComputeIntermediateVariables(const float* fluidvar, float* intvar,
     const float D, const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
-// __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, float* intvar,
-//     const float D, const float dt, const float dx, const float dy, const float dz,
-//     const int Nx, const int Ny, const int Nz);
+__global__ void ComputeIntermediateVariablesNoDiff(const float* fluidvar, float* intvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
 
-// Standard functions for calculating the intermediate variables
+// Standard, cache-thrashing functions for calculating the intermediate variables
 __device__ float intRho(const int i, const int j, const int k, 
     const float* fluidvar, 
     const float dt, const float dx, const float dy, const float dz, 

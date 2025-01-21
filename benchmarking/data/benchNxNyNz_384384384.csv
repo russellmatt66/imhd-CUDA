@@ -1,3 +1,0 @@
-it, fluid_time (ms), bcs_time (ms), intvar_time (ms), intvar_bcs_time (ms), fluid_threads, bcs_threads, intvar_threads, intvar_bcs_threads
-0,3615.1,5578.04,6121.81,0,216,216,512,512
-1,3653.45,5585.93,6130.77,0,216,216,512,512

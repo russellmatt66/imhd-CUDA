@@ -10,6 +10,8 @@
 #include "../../include/on-device/kernels_od_intvar.cuh"
 #include "../../include/on-device/kernels_intvarbcs.cuh"
 
+void doSomethingWithTransfer(float *h_fluidvars, int Nx, int Ny, int Nz);
+
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define checkCuda(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
@@ -75,6 +77,13 @@ int main(int argc, char* argv[]){
 	int intvar_threads = intvarblockdims_xthreads * intvarblockdims_ythreads * intvarblockdims_zthreads;
 	std::cout << "intvar_threads=" << intvar_threads << std::endl;
 
+	size_t fluid_var_size = sizeof(float) * Nx * Ny * Nz;
+	size_t fluid_data_size = 8 * fluid_var_size;
+	
+	float* h_fluidvars;
+
+	h_fluidvars = (float*)malloc(fluid_data_size);
+
 	// Initialize device data 
 	int deviceId;
 	int numberOfSMs;
@@ -85,11 +94,9 @@ int main(int argc, char* argv[]){
 	float *fluidvars, *intvars;
 	float *x_grid, *y_grid, *z_grid;
 
-	int fluid_data_size = sizeof(float) * Nx * Ny * Nz;
-
 	// Get that data on device global memory 
-	checkCuda(cudaMalloc(&fluidvars, 8 * fluid_data_size));
-	checkCuda(cudaMalloc(&intvars, 8 * fluid_data_size));
+	checkCuda(cudaMalloc(&fluidvars, 8 * fluid_var_size));
+	checkCuda(cudaMalloc(&intvars, 8 * fluid_var_size));
 
 	checkCuda(cudaMalloc(&x_grid, sizeof(float) * Nx));
 	checkCuda(cudaMalloc(&y_grid, sizeof(float) * Ny));
@@ -104,19 +111,16 @@ int main(int argc, char* argv[]){
 	dim3 intvar_block_dims(intvarblockdims_xthreads, intvarblockdims_ythreads, intvarblockdims_zthreads);
 	dim3 fluid_block_dims(fluidblockdims_xthreads, fluidblockdims_ythreads, fluidblockdims_zthreads);
 
-	InitializeGrid<<<exec_grid_dims, mesh_block_dims>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+	InitializeGrid<<<exec_grid_dims_grid, mesh_block_dims>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());
 
 	ScrewPinch<<<exec_grid_dims, init_block_dims>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());
 
-	InitializeIntvars<<<exec_grid_dims, intvar_block_dims>>>(intvars, Nx, Ny, Nz);
-	checkCuda(cudaDeviceSynchronize());
-
-	ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+	ComputeIntermediateVariablesNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());    
 	
-	ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+	ComputeIntermediateVariablesBoundaryNoDiff<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());  
     
 	// Benchmarking
@@ -130,19 +134,40 @@ int main(int argc, char* argv[]){
 	cudaEventCreate(&start_intvar_bcs);
 	cudaEventCreate(&stop_intvar_bcs);
 
-    float fluid_time = 0.0, bcs_time = 0.0, intvar_time = 0.0, intvar_bcs_time = 0.0; 
+	cudaEvent_t start_nodiff, stop_nodiff, start_intvar_nodiff, stop_intvar_nodiff;
+	cudaEventCreate(&start_nodiff);
+	cudaEventCreate(&stop_nodiff);
+	cudaEventCreate(&start_intvar_nodiff);
+	cudaEventCreate(&stop_intvar_nodiff);
+
+	cudaEvent_t start_d2h, stop_d2h;
+	cudaEventCreate(&start_d2h);
+	cudaEventCreate(&stop_d2h);
+
+    float fluid_time = 0.0, bcs_time = 0.0, intvar_time = 0.0, intvar_bcs_time = 0.0;
+	float fluid_time_nodiff = 0.0, intvar_time_nodiff = 0.0; 
+	float d2h_time = 0.0;
 
     // For recording the benchmarking data
     std::ofstream bench_file;
     bench_file.open("../data/benchNxNyNz_" + std::to_string(Nx) + std::to_string(Ny) + std::to_string(Nz) + ".csv");
 
-    bench_file << "it, fluid_time (ms), bcs_time (ms), intvar_time (ms), intvar_bcs_time (ms), fluid_threads, bcs_threads, intvar_threads, intvar_bcs_threads" << std::endl; 
+    bench_file << "it, fluid_time_nodiff(ms), fluid_time (ms), bcs_time (ms), intvar_time (ms), intvar_time_nodiff (ms), intvar_bcs_time (ms), d2h_time (ms), fluid_threads, bcs_threads, intvar_threads, intvar_bcs_threads" << std::endl; 
 
 	// Simulation loop
 	for (size_t it = 0; it < Nt; it++){
 		std::cout << "Starting iteration " << it << std::endl;
 
-		std::cout << "Benchmarking fluid interior" << std::endl; 
+		std::cout << "Benchmarking fluid interior w/no diffusion" << std::endl; 
+        cudaEventRecord(start_nodiff);
+		for (size_t il = 0; il < num_bench_iters; il++){
+			FluidAdvanceLocalNoDiff<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+		}
+		cudaEventRecord(stop_nodiff);
+        cudaEventSynchronize(stop_nodiff);
+        cudaEventElapsedTime(&fluid_time_nodiff, start_nodiff, stop_nodiff);
+
+		std::cout << "Benchmarking fluid interior w/diffusion" << std::endl; 
         cudaEventRecord(start);
 		for (size_t il = 0; il < num_bench_iters; il++){
 			FluidAdvanceLocal<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
@@ -160,27 +185,48 @@ int main(int argc, char* argv[]){
         cudaEventSynchronize(stop_bcs);
         cudaEventElapsedTime(&bcs_time, start_bcs, stop_bcs);
 		
-		std::cout << "Benchmarking intermediate vars" << std::endl;
+		std::cout << "Benchmarking intermediate vars w/no diffusion" << std::endl;
+        cudaEventRecord(start_intvar_nodiff);
+		for (size_t il = 0; il < num_bench_iters; il++){
+			ComputeIntermediateVariablesNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+		}
+		cudaEventRecord(stop_intvar_nodiff);
+        cudaEventSynchronize(stop_intvar_nodiff);
+        cudaEventElapsedTime(&intvar_time_nodiff, start_intvar_nodiff, stop_intvar_nodiff);
+
+		std::cout << "Benchmarking intermediate vars w/diffusion" << std::endl;
         cudaEventRecord(start_intvar);
 		for (size_t il = 0; il < num_bench_iters; il++){
-			ComputeIntermediateVariables<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+			ComputeIntermediateVariables<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
 		}
 		cudaEventRecord(stop_intvar);
         cudaEventSynchronize(stop_intvar);
         cudaEventElapsedTime(&intvar_time, start_intvar, stop_intvar);
 
 		std::cout << "Benchmarking intermediate B.Cs" << std::endl;
-		// std::cout << "Currently thrashes cache so badly that it kills performance - not being benchmarked until fixed" << std::endl;
+		// std::cout << "Current involves so much thread divergence that it kills performance" << std::endl;
         cudaEventRecord(start_intvar_bcs);
 		for (size_t il = 0; il < num_bench_iters; il++){
-			ComputeIntermediateVariablesBoundary<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+			ComputeIntermediateVariablesBoundaryNoDiff<<<exec_grid_dims, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
 		}
 		cudaEventRecord(stop_intvar_bcs);
         cudaEventSynchronize(stop_intvar_bcs);
         cudaEventElapsedTime(&intvar_bcs_time, start_intvar_bcs, stop_intvar_bcs);
 
-		bench_file << it << "," << fluid_time / num_bench_iters << "," << bcs_time / num_bench_iters << "," 
-			<< intvar_time / num_bench_iters << "," << intvar_bcs_time / num_bench_iters << "," 
+		std::cout << "Benchmarking data transfer" << std::endl;
+		cudaEventRecord(start_d2h);
+		for (size_t il = 0; il < num_bench_iters; il++){
+      		cudaMemcpy(h_fluidvars, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);
+		}
+		cudaEventRecord(stop_d2h);
+        cudaEventSynchronize(stop_d2h);
+		cudaEventElapsedTime(&d2h_time, start_d2h, stop_d2h);
+
+		doSomethingWithTransfer(h_fluidvars, Nx, Ny, Nz); // Don't want transfers optimized away
+
+		bench_file << it << "," << fluid_time_nodiff / num_bench_iters << "," << fluid_time / num_bench_iters << "," << bcs_time / num_bench_iters << "," 
+			<< intvar_time / num_bench_iters << "," << intvar_time_nodiff / num_bench_iters << "," << intvar_bcs_time / num_bench_iters << "," 
+			<< d2h_time / num_bench_iters << ","
 			<< fluid_threads << "," << fluid_threads << "," << intvar_threads << "," << intvar_threads << std::endl;
 	}
 
@@ -194,5 +240,17 @@ int main(int argc, char* argv[]){
 
     /* Free host data */
     bench_file.close();
+	free(h_fluidvars);
 	return 0;
+}
+
+// Don't want the migration optimized away
+void doSomethingWithTransfer(float *h_fluidvars, int Nx, int Ny, int Nz){
+	for (int k = 0; k < Nz; k++){
+		for (int i = 0; i < Nx; i++){
+			for (int j = 0; j < Ny; j++){
+				h_fluidvars[Nx * Ny * k + Ny * i + j] = 0.0;
+			}
+		}
+	}
 }

@@ -21,13 +21,14 @@ partitioned into two sets:
 __global__ void FluidAdvance(float* fluidvar, const float* intvar, 
      const float D, const float dt, const float dx, const float dy, const float dz, 
      const int Nx, const int Ny, const int Nz);
+
 __global__ void FluidAdvanceLocal(float* fluidvar, const float* intvar, 
     const float D, const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
-// __global__ void FluidAdvance(float* fluidvar_np1, const float* fluidvar, const float* intvar, 
-//      const float D, const float dt, const float dx, const float dy, const float dz, 
-//      const int Nx, const int Ny, const int Nz);
 
+__global__ void FluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
 
 __global__ void BoundaryConditions(float* fluidvar, const float* intvar, 
      const float D, const float dt, const float dx, const float dy, const float dz,
