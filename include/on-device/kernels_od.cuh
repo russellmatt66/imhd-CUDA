@@ -16,8 +16,7 @@ partitioned into two sets:
 #define gamma (5.0 / 3.0)
 
 // Global kernels
-// __global__ void SwapSimData(float* fluidvar, const float* fluidvar_np1, const int Nx, const int Ny, const int Nz); // Don't actually need this
-
+// Megakernels
 __global__ void FluidAdvance(float* fluidvar, const float* intvar, 
      const float D, const float dt, const float dx, const float dy, const float dz, 
      const int Nx, const int Ny, const int Nz);
@@ -33,9 +32,39 @@ __global__ void FluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar,
 __global__ void BoundaryConditions(float* fluidvar, const float* intvar, 
      const float D, const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);
-// __global__ void BoundaryConditions(volatile float* fluidvar_np1, const float* fluidvar, const float* intvar, 
-//      const float D, const float dt, const float dx, const float dy, const float dz,
-//      const int Nx, const int Ny, const int Nz);
+
+// Microkernels
+__global__ void FluidAdvanceMicroRhoLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void FluidAdvanceMicroRhoVXLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void FluidAdvanceMicroRhoVYLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void FluidAdvanceMicroRhoVZLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void FluidAdvanceMicroBXLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void FluidAdvanceMicroBYLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void FluidAdvanceMicroBZLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void FluidAdvanceMicroELocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
 
 // Device kernels
 __device__ float LaxWendroffAdvRho(const int i, const int j, const int k, 

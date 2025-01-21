@@ -15,8 +15,7 @@ Here is what the storage pattern looks like:
 fluidvar -> [rho_{000}, rho_{010}, rho_{020}, ..., rho_{0,Ny-1,0}, rho_{100}, ..., rho_{Nx-1,Ny-1,Nz-1}, rhov_x_{000}, rhov_x_{010}, ... , e_{Nx-1,Ny-1,Nz-1}]
 */
 
-// Global kernels
-
+// Megakernels
 // FluidAdvance uses kernels that thrash the cache, very badly
 // FluidAdvance2 uses kernels that thrash the cache, less badly
 // FluidAdvanceLocal uses kernels that do not thrash the cache, but it puts a lot of pressure on the registers
@@ -312,9 +311,9 @@ __global__ void FluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar,
         float rho_int_im1 = 0.0, rhovx_int_im1 = 0.0, rhovy_int_im1 = 0.0, rhovz_int_im1 = 0.0, Bx_int_im1 = 0.0, By_int_im1 = 0.0, Bz_int_im1 = 0.0, e_int_im1 = 0.0;
         float rho_int_jm1 = 0.0, rhovx_int_jm1 = 0.0, rhovy_int_jm1 = 0.0, rhovz_int_jm1 = 0.0, Bx_int_jm1 = 0.0, By_int_jm1 = 0.0, Bz_int_jm1 = 0.0, e_int_jm1 = 0.0;
         float rho_int_km1 = 0.0, rhovx_int_km1 = 0.0, rhovy_int_km1 = 0.0, rhovz_int_km1 = 0.0, Bx_int_km1 = 0.0, By_int_km1 = 0.0, Bz_int_km1 = 0.0, e_int_km1 = 0.0;
-        float rho_int_ip1 = 0.0, rhovx_int_ip1 = 0.0, rhovy_int_ip1 = 0.0, rhovz_int_ip1 = 0.0, Bx_int_ip1 = 0.0, By_int_ip1 = 0.0, Bz_int_ip1 = 0.0, e_int_ip1 = 0.0;
-        float rho_int_jp1 = 0.0, rhovx_int_jp1 = 0.0, rhovy_int_jp1 = 0.0, rhovz_int_jp1 = 0.0, Bx_int_jp1 = 0.0, By_int_jp1 = 0.0, Bz_int_jp1 = 0.0, e_int_jp1 = 0.0;
-        float rho_int_kp1 = 0.0, rhovx_int_kp1 = 0.0, rhovy_int_kp1 = 0.0, rhovz_int_kp1 = 0.0, Bx_int_kp1 = 0.0, By_int_kp1 = 0.0, Bz_int_kp1 = 0.0, e_int_kp1 = 0.0;
+        // float rho_int_ip1 = 0.0, rhovx_int_ip1 = 0.0, rhovy_int_ip1 = 0.0, rhovz_int_ip1 = 0.0, Bx_int_ip1 = 0.0, By_int_ip1 = 0.0, Bz_int_ip1 = 0.0, e_int_ip1 = 0.0;
+        // float rho_int_jp1 = 0.0, rhovx_int_jp1 = 0.0, rhovy_int_jp1 = 0.0, rhovz_int_jp1 = 0.0, Bx_int_jp1 = 0.0, By_int_jp1 = 0.0, Bz_int_jp1 = 0.0, e_int_jp1 = 0.0;
+        // float rho_int_kp1 = 0.0, rhovx_int_kp1 = 0.0, rhovy_int_kp1 = 0.0, rhovz_int_kp1 = 0.0, Bx_int_kp1 = 0.0, By_int_kp1 = 0.0, Bz_int_kp1 = 0.0, e_int_kp1 = 0.0;
 
         float KE_ijk = 0.0, KE_im1jk = 0.0, KE_ijm1k = 0.0, KE_ijkm1 = 0.0;
         float p_ijk = 0.0, p_im1jk = 0.0, p_ijm1k = 0.0, p_ijkm1 = 0.0;
@@ -358,14 +357,14 @@ __global__ void FluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar,
                     By_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 5 * cube_size];
                     Bz_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 6 * cube_size];
                     e_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 7 * cube_size];
-                    rho_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz)];
-                    rhovx_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz) + cube_size];
-                    rhovy_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz) + 2 * cube_size];
-                    rhovz_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz) + 3 * cube_size];
-                    Bx_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz) + 4 * cube_size];
-                    By_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz) + 5 * cube_size];
-                    Bz_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz) + 6 * cube_size];
-                    e_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz) + 7 * cube_size];
+                    // rho_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz)];
+                    // rhovx_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz) + cube_size];
+                    // rhovy_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz) + 2 * cube_size];
+                    // rhovz_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz) + 3 * cube_size];
+                    // Bx_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz) + 4 * cube_size];
+                    // By_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz) + 5 * cube_size];
+                    // Bz_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz) + 6 * cube_size];
+                    // e_int_ip1 = intvar[IDX3D(i+1, j, k, Nx, Ny, Nz) + 7 * cube_size];
                     
                     rho_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz)];
                     rhovx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + cube_size];
@@ -376,14 +375,14 @@ __global__ void FluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar,
                     Bz_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 6 * cube_size];
                     e_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 7 * cube_size];
 
-                    rho_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz)];
-                    rhovx_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz) + cube_size];
-                    rhovy_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz) + 2 * cube_size];
-                    rhovz_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz) + 3 * cube_size];
-                    Bx_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz) + 4 * cube_size];
-                    By_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz) + 5 * cube_size];
-                    Bz_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz) + 6 * cube_size];
-                    e_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz) + 7 * cube_size];
+                    // rho_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz)];
+                    // rhovx_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz) + cube_size];
+                    // rhovy_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz) + 2 * cube_size];
+                    // rhovz_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz) + 3 * cube_size];
+                    // Bx_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz) + 4 * cube_size];
+                    // By_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz) + 5 * cube_size];
+                    // Bz_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz) + 6 * cube_size];
+                    // e_int_jp1 = intvar[IDX3D(i, j+1, k, Nx, Ny, Nz) + 7 * cube_size];
                     
                     rho_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz)];
                     rhovx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + cube_size];
@@ -394,14 +393,14 @@ __global__ void FluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar,
                     Bz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 6 * cube_size];
                     e_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 7 * cube_size];
 
-                    rho_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz)];
-                    rhovx_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz) + cube_size];
-                    rhovy_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz) + 2 * cube_size];
-                    rhovz_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz) + 3 * cube_size];
-                    Bx_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz) + 4 * cube_size];
-                    By_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz) + 5 * cube_size];
-                    Bz_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz) + 6 * cube_size];
-                    e_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz) + 7 * cube_size];
+                    // rho_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz)];
+                    // rhovx_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz) + cube_size];
+                    // rhovy_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz) + 2 * cube_size];
+                    // rhovz_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz) + 3 * cube_size];
+                    // Bx_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz) + 4 * cube_size];
+                    // By_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz) + 5 * cube_size];
+                    // Bz_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz) + 6 * cube_size];
+                    // e_int_kp1 = intvar[IDX3D(i, j, k+1, Nx, Ny, Nz) + 7 * cube_size];
 
                     // KE_ijk = KE(i, j, k, intvar, Nx, Ny, Nz);
                     // KE_im1jk = KE(i - 1, j, k, intvar, Nx, Ny, Nz);
@@ -446,7 +445,7 @@ __global__ void FluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar,
                     // Update and store fluidvars
                     // rho
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRhoLocal(rho, rho_int, 
-                                                                rhovx_int, rho_int_im1, 
+                                                                rhovx_int, rhovx_int_im1, 
                                                                 rhovy_int, rhovy_int_jm1, 
                                                                 rhovz_int, rhovz_int_km1, 
                                                                 dt, dx, dy, dz); 
@@ -500,7 +499,7 @@ __global__ void FluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar,
                                                                                 Bx_int, Bx_int_im1, 
                                                                                 By, By_int, By_int_im1, By_int_km1, 
                                                                                 Bz_int, Bz_int_km1, 
-                                                                                dt, dx, dy, dz);; 
+                                                                                dt, dx, dy, dz);
                     // Bz
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] =  LaxWendroffAdvBZLocal(rho_int, rho_int_im1, rho_int_jm1, 
                                                                                 rhovx_int, rhovx_int_im1, 
@@ -522,13 +521,825 @@ __global__ void FluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar,
                                                                                 p_ijk, p_im1jk, p_ijm1k, p_ijkm1, 
                                                                                 Bsq_ijk, Bsq_im1jk, Bsq_ijm1k, Bsq_ijkm1, 
                                                                                 Bdotu_ijk, Bdotu_im1jk, Bdotu_ijm1k, Bdotu_ijkm1,  
-                                                                                dt, dx, dy, dz);; 
+                                                                                dt, dx, dy, dz);
                 }
             }
         }
         return;
     }
 
+// 88 registers per thread
+__global__ void FluidAdvance(float* fluidvar, const float* intvar, 
+    const float D, const float dt, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz)
+    {
+        int tidx = threadIdx.x + blockDim.x * blockIdx.x; 
+        int tidy = threadIdx.y + blockDim.y * blockIdx.y;
+        int tidz = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int xthreads = blockDim.x * gridDim.x;
+        int ythreads = blockDim.y * gridDim.y;
+        int zthreads = blockDim.z * gridDim.z;
+
+        int cube_size = Nx * Ny * Nz;
+
+        for (int k = tidz + 1; k < Nz - 1; k += zthreads){
+            for (int i = tidx + 1; i < Nx - 1; i += xthreads){
+                for (int j = tidy + 1; j < Ny - 1; j += ythreads){
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRho(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 0, Nx, Ny, Nz); // rho
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] =  LaxWendroffAdvRhoVX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 1, Nx, Ny, Nz); // rhov_x
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] =  LaxWendroffAdvRhoVY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 2, Nx, Ny, Nz); // rhov_y
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] =  LaxWendroffAdvRhoVZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 3, Nx, Ny, Nz); // rhov_z
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] =  LaxWendroffAdvBX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 4, Nx, Ny, Nz); // Bx
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] =  LaxWendroffAdvBY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 5, Nx, Ny, Nz); // By 
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] =  LaxWendroffAdvBZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 6, Nx, Ny, Nz); // Bz
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] =  LaxWendroffAdvE(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 7, Nx, Ny, Nz); // e
+                }
+            }
+        }
+        return;
+    }
+
+// Microkernels 
+__global__ void FluidAdvanceMicroRhoLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        int i = threadIdx.x + blockDim.x * blockIdx.x;
+        int j = threadIdx.y + blockDim.y * blockIdx.y;
+        int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int cube_size = Nx * Ny * Nz;
+
+        float rho = 0.0;
+
+        float rho_int = 0.0;
+        
+        float rhovx_int = 0.0, rhovx_int_im1 = 0.0;
+        
+        float rhovy_int = 0.0, rhovy_int_jm1 = 0.0;
+        
+        float rhovz_int = 0.0, rhovz_int_km1 = 0.0;
+
+        if (i > 0 && i < Nx-1 && j > 0 && j < Ny-1 && k > 0 && k < Nz-1){ // Ignore boundaries
+            rho = fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)];
+
+            rho_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz)];
+            
+            rhovx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + cube_size];
+            
+            rhovy_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 2 * cube_size];
+            
+            rhovz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size];
+            rhovz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 3 * cube_size];
+
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRhoLocal(rho, rho_int, 
+                                                        rhovx_int, rhovx_int_im1, 
+                                                        rhovy_int, rhovy_int_jm1, 
+                                                        rhovz_int, rhovz_int_km1, 
+                                                        dt, dx, dy, dz); 
+        }
+        return;
+    }
+
+__global__ void FluidAdvanceMicroRhoVXLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        int i = threadIdx.x + blockDim.x * blockIdx.x;
+        int j = threadIdx.y + blockDim.y * blockIdx.y;
+        int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int cube_size = Nx * Ny * Nz;
+
+        float rhovx = 0.0;
+
+        float rho_int = 0.0, rho_int_im1 = 0.0, rho_int_jm1 = 0.0, rho_int_km1 = 0.0;
+        float rhovx_int = 0.0, rhovx_int_im1 = 0.0, rhovx_int_jm1 = 0.0, rhovx_int_km1 = 0.0; 
+        float rhovy_int = 0.0, rhovy_int_im1 = 0.0, rhovy_int_jm1 = 0.0;
+        float rhovz_int = 0.0, rhovz_int_im1 = 0.0, rhovz_int_km1 = 0.0;
+        float Bx_int = 0.0, Bx_int_im1 = 0.0, Bx_int_jm1 = 0.0, Bx_int_km1 = 0.0;
+        float By_int = 0.0, By_int_jm1 = 0.0;
+        float Bz_int = 0.0, Bz_int_km1 = 0.0;
+
+        float e_int_ijk = 0.0, e_int_im1jk = 0.0;
+        
+        float p_ijk = 0.0, p_im1jk = 0.0, KE_ijk = 0.0, KE_im1jk = 0.0, Bsq_ijk = 0.0, Bsq_im1jk = 0.0;
+
+        if (i > 0 && i < Nx-1 && j > 0 && j < Ny-1 && k > 0 && k < Nz-1){ // Ignore boundaries
+            rhovx = fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size];
+
+            rho_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz)];
+            rho_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz)];
+            rho_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz)];
+            rho_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz)];
+
+            rhovx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + cube_size];
+
+            rhovy_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 2 * cube_size];
+            
+            rhovz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size];
+            rhovz_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 3 * cube_size];
+            rhovz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 3 * cube_size];
+
+            Bx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size];
+            Bx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 4 * cube_size];
+            Bx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 4 * cube_size];
+            Bx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 4 * cube_size];
+
+            By_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size];
+            By_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 5 * cube_size];
+
+            Bz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size];
+            Bz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 6 * cube_size];
+
+            e_int_ijk = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size];
+            e_int_im1jk = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 7 * cube_size];
+
+            Bsq_ijk = B_sq_local(Bx_int, By_int, Bz_int);
+            Bsq_im1jk = B_sq_local(Bx_int_im1, By_int, Bz_int);
+
+            KE_ijk = KE_local(rho_int, rhovx_int, rhovy_int, rhovz_int);
+            KE_im1jk = KE_local(rho_int_im1, rhovx_int_im1, rhovy_int_im1, rhovz_int_im1);
+
+            p_ijk = p_local(e_int_ijk, Bsq_ijk, KE_ijk);
+            p_im1jk = p_local(e_int_im1jk, Bsq_im1jk, KE_im1jk);
+
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] =  LaxWendroffAdvRhoVXLocal(rho_int, rho_int_im1, rho_int_jm1, rho_int_km1, 
+                                                                    rhovx, rhovx_int, rhovx_int_im1, rhovx_int_jm1, rhovx_int_km1, 
+                                                                    rhovy_int, rhovy_int_jm1, 
+                                                                    rhovz_int, rhovz_int_km1, 
+                                                                    Bx_int, Bx_int_im1, Bx_int_jm1, Bx_int_km1, 
+                                                                    By_int, By_int_jm1, 
+                                                                    Bz_int, Bz_int_km1, 
+                                                                    p_ijk, p_im1jk, 
+                                                                    Bsq_ijk, Bsq_im1jk, 
+                                                                    dt, dx, dy, dz);
+        }
+        return;
+    }
+
+__global__ void FluidAdvanceMicroRhoVYLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        int i = threadIdx.x + blockDim.x * blockIdx.x;
+        int j = threadIdx.y + blockDim.y * blockIdx.y;
+        int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int cube_size = Nx * Ny * Nz;
+
+        float rhovy = 0.0;
+
+        float rho_int = 0.0, rho_int_im1 = 0.0, rho_int_jm1 = 0.0, rho_int_km1 = 0.0;
+        // float rhovx_int = 0.0, rhovx_int_im1 = 0.0, rhovx_int_jm1 = 0.0, rhovx_int_km1 = 0.0; 
+        float rhovx_int = 0.0, rhovx_int_im1 = 0.0, rhovx_int_jm1 = 0.0; 
+        float rhovy_int = 0.0, rhovy_int_im1 = 0.0, rhovy_int_jm1 = 0.0, rhovy_int_km1 = 0.0;
+        float rhovz_int = 0.0, rhovz_int_jm1 = 0.0, rhovz_int_km1 = 0.0;
+        // float Bx_int = 0.0, Bx_int_im1 = 0.0, Bx_int_jm1 = 0.0, Bx_int_km1 = 0.0;
+        float Bx_int = 0.0, Bx_int_im1 = 0.0, Bx_int_jm1 = 0.0;
+        float By_int = 0.0, By_int_im1 = 0.0, By_int_jm1 = 0.0, By_int_km1 = 0.0;
+        float Bz_int = 0.0, Bz_int_jm1 = 0.0, Bz_int_km1 = 0.0;
+
+        float e_int_ijk = 0.0, e_int_ijm1k = 0.0;
+        
+        float p_ijk = 0.0, p_ijm1k = 0.0; 
+        float KE_ijk = 0.0, KE_ijm1k = 0.0;
+        float Bsq_ijk = 0.0, Bsq_ijm1k = 0.0;
+
+        if (i > 0 && i < Nx-1 && j > 0 && j < Ny-1 && k > 0 && k < Nz-1){ // Ignore boundaries
+            rhovy = fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size];
+
+            rho_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz)];
+            rho_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz)];
+            rho_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz)];
+            rho_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz)];
+
+            rhovx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + cube_size];
+            // rhovx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + cube_size];
+
+            rhovy_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 2 * cube_size];
+
+            rhovz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size];
+            rhovz_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 3 * cube_size];
+            rhovz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 3 * cube_size];
+
+            Bx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size];
+            Bx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 4 * cube_size];
+            // Bx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 4 * cube_size];
+            // Bx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 4 * cube_size];
+
+            By_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size];
+            By_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 5 * cube_size];
+            By_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 5 * cube_size];
+            By_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 5 * cube_size];
+
+            Bz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size];
+            Bz_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 6 * cube_size];
+            Bz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 6 * cube_size];
+
+            e_int_ijk = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size];
+            e_int_ijm1k = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 7 * cube_size];
+
+            Bsq_ijk = B_sq_local(Bx_int, By_int, Bz_int);
+            Bsq_ijm1k = B_sq_local(Bx_int_jm1, By_int_jm1, Bz_int_jm1);
+
+            KE_ijk = KE_local(rho_int, rhovx_int, rhovy_int, rhovz_int);
+            KE_ijm1k = KE_local(rho_int_jm1, rhovx_int_jm1, rhovy_int_jm1, rhovz_int_jm1);
+
+            p_ijk = p_local(e_int_ijk, Bsq_ijk, KE_ijk);
+            p_ijm1k = p_local(e_int_ijm1k, Bsq_ijm1k, KE_ijm1k);
+
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] =  LaxWendroffAdvRhoVYLocal(rho_int, rho_int_im1, rho_int_jm1, rho_int_km1, 
+                                                                        rhovx_int, rhovx_int_im1, 
+                                                                        rhovy, rhovy_int, rhovy_int_im1, rhovy_int_jm1, rhovy_int_km1, 
+                                                                        rhovz_int, rhovz_int_km1, 
+                                                                        Bx_int, Bx_int_im1, 
+                                                                        By_int, By_int_im1, By_int_jm1, By_int_km1, 
+                                                                        Bz_int, Bz_int_km1, 
+                                                                        Bsq_ijk, Bsq_ijm1k, 
+                                                                        p_ijk, p_ijm1k, 
+                                                                        dt, dx, dy, dz); 
+        }
+        return;
+    }
+
+__global__ void FluidAdvanceMicroRhoVZLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        int i = threadIdx.x + blockDim.x * blockIdx.x;
+        int j = threadIdx.y + blockDim.y * blockIdx.y;
+        int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int cube_size = Nx * Ny * Nz;
+
+        float rhovz = 0.0;
+
+        float rho_int = 0.0, rho_int_im1 = 0.0, rho_int_jm1 = 0.0, rho_int_km1 = 0.0;
+        
+        // float rhovx_int = 0.0, rhovx_int_im1 = 0.0, rhovx_int_jm1 = 0.0, rhovx_int_km1 = 0.0; 
+        float rhovx_int = 0.0, rhovx_int_im1 = 0.0, rhovx_int_km1 = 0.0; 
+        
+        // float rhovy_int = 0.0, rhovy_int_im1 = 0.0, rhovy_int_jm1 = 0.0, rhovy_int_km1 = 0.0;
+        float rhovy_int = 0.0, rhovy_int_jm1 = 0.0, rhovy_int_km1 = 0.0;
+        
+        // float rhovz_int = 0.0, rhovz_int_im1 = 0.0, rhovz_int_jm1 = 0.0, rhovz_int_km1 = 0.0;
+        float rhovz_int = 0.0, rhovz_int_im1 = 0.0, rhovz_int_jm1 = 0.0, rhovz_int_km1 = 0.0;
+
+        // float Bx_int = 0.0, Bx_int_im1 = 0.0, Bx_int_jm1 = 0.0, Bx_int_km1 = 0.0;
+        float Bx_int = 0.0, Bx_int_im1 = 0.0, Bx_int_km1 = 0.0;
+        
+        // float By_int = 0.0, By_int_im1 = 0.0, By_int_jm1 = 0.0, By_int_km1 = 0.0;
+        float By_int = 0.0, By_int_jm1 = 0.0, By_int_km1 = 0.0;
+        
+        // float Bz_int = 0.0, Bz_int_im1 = 0.0, Bz_int_jm1 = 0.0, Bz_int_km1 = 0.0;
+        float Bz_int = 0.0, Bz_int_im1 = 0.0, Bz_int_jm1 = 0.0, Bz_int_km1 = 0.0;
+
+        // float e_int_ijk = 0.0, e_int_im1jk = 0.0, e_int_ijm1k = 0.0, e_int_ijkm1 = 0.0;
+        float e_int_ijk = 0.0, e_int_ijkm1 = 0.0;
+        
+        // float p_ijk = 0.0, p_im1jk = 0.0, p_ijm1k = 0.0, p_ijm1k = 0.0; 
+        float p_ijk = 0.0, p_ijkm1 = 0.0; 
+
+        // float KE_ijk = 0.0, KE_im1jk = 0.0, KE_ijm1k = 0.0, KE_ijkm1 = 0.0; 
+        float KE_ijk = 0.0, KE_ijkm1 = 0.0;
+        
+        // float Bsq_ijk = 0.0, Bsq_im1jk = 0.0, Bsq_ijm1k = 0.0, Bsq_ijkm1 = 0.0; 
+        float Bsq_ijk = 0.0, Bsq_ijkm1 = 0.0;
+
+        if (i > 0 && i < Nx-1 && j > 0 && j < Ny-1 && k > 0 && k < Nz-1){ // Ignore boundaries
+            rhovz = fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size];
+
+            rho_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz)];
+            rho_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz)];
+            rho_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz)];
+            rho_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz)];
+
+            rhovx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + cube_size];
+            // rhovx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + cube_size];
+
+            rhovy_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            // rhovy_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 2 * cube_size];
+
+            rhovz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size];
+            rhovz_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 3 * cube_size];
+            // rhovz_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 3 * cube_size];
+            rhovz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 3 * cube_size];
+
+            Bx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size];
+            Bx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 4 * cube_size];
+            // Bx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 4 * cube_size];
+            Bx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 4 * cube_size];
+
+            By_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size];
+            // By_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 5 * cube_size];
+            By_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 5 * cube_size];
+            By_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 5 * cube_size];
+
+            Bz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size];
+            Bz_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 6 * cube_size];
+            Bz_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 6 * cube_size];
+            Bz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 6 * cube_size];
+
+            e_int_ijk = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size];
+            e_int_ijkm1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 7 * cube_size];
+
+            Bsq_ijk = B_sq_local(Bx_int, By_int, Bz_int);
+            Bsq_ijkm1 = B_sq_local(Bx_int_km1, By_int_km1, Bz_int_km1);
+
+            KE_ijk = KE_local(rho_int, rhovx_int, rhovy_int, rhovz_int);
+            KE_ijkm1 = KE_local(rho_int_km1, rhovx_int_km1, rhovy_int_km1, rhovz_int_km1);
+
+            p_ijk = p_local(e_int_ijk, Bsq_ijk, KE_ijk);
+            p_ijkm1 = p_local(e_int_ijkm1, Bsq_ijkm1, KE_ijkm1);
+
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] =  LaxWendroffAdvRhoVZLocal(rho_int, rho_int_im1, rho_int_jm1, rho_int_km1, 
+                                                                        rhovx_int, rhovx_int_im1, 
+                                                                        rhovy_int, rhovy_int_jm1, 
+                                                                        rhovz, rhovz_int, rhovz_int_im1, rhovz_int_jm1, rhovz_int_km1,
+                                                                        Bx_int, Bx_int_im1, 
+                                                                        By_int, By_int_jm1, 
+                                                                        Bz_int, Bz_int_im1, Bz_int_jm1, Bz_int_km1, 
+                                                                        p_ijk, p_ijkm1,
+                                                                        Bsq_ijk, Bsq_ijkm1,
+                                                                        dt, dx, dy, dz); 
+        }
+        return;
+    }
+
+__global__ void FluidAdvanceMicroBXLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        int i = threadIdx.x + blockDim.x * blockIdx.x;
+        int j = threadIdx.y + blockDim.y * blockIdx.y;
+        int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int cube_size = Nx * Ny * Nz;
+
+        float Bx = 0.0;
+
+        // float rho_int = 0.0, rho_int_im1 = 0.0, rho_int_jm1 = 0.0, rho_int_km1 = 0.0;
+        float rho_int = 0.0, rho_int_jm1 = 0.0, rho_int_km1 = 0.0;
+        
+        // float rhovx_int = 0.0, rhovx_int_im1 = 0.0, rhovx_int_jm1 = 0.0, rhovx_int_km1 = 0.0; 
+        float rhovx_int = 0.0, rhovx_int_jm1 = 0.0, rhovx_int_km1 = 0.0; 
+        
+        // float rhovy_int = 0.0, rhovy_int_im1 = 0.0, rhovy_int_jm1 = 0.0, rhovy_int_km1 = 0.0;
+        float rhovy_int = 0.0, rhovy_int_jm1 = 0.0;
+        
+        // float rhovz_int = 0.0, rhovz_int_im1 = 0.0, rhovz_int_jm1 = 0.0, rhovz_int_km1 = 0.0;
+        float rhovz_int = 0.0, rhovz_int_km1 = 0.0;
+
+        // float Bx_int = 0.0, Bx_int_im1 = 0.0, Bx_int_jm1 = 0.0, Bx_int_km1 = 0.0;
+        float Bx_int = 0.0, Bx_int_jm1 = 0.0, Bx_int_km1 = 0.0;
+        
+        // float By_int = 0.0, By_int_im1 = 0.0, By_int_jm1 = 0.0, By_int_km1 = 0.0;
+        float By_int = 0.0, By_int_jm1 = 0.0;
+        
+        // float Bz_int = 0.0, Bz_int_im1 = 0.0, Bz_int_jm1 = 0.0, Bz_int_km1 = 0.0;
+        float Bz_int = 0.0, Bz_int_km1 = 0.0;
+
+        // float e_int_ijk = 0.0, e_int_im1jk = 0.0, e_int_ijm1k = 0.0, e_int_ijkm1 = 0.0;
+        // float e_int_ijk = 0.0, e_int_ijkm1 = 0.0;
+        
+        // float p_ijk = 0.0, p_im1jk = 0.0, p_ijm1k = 0.0, p_ijm1k = 0.0; 
+        // float p_ijk = 0.0, p_ijkm1 = 0.0; 
+
+        // float KE_ijk = 0.0, KE_im1jk = 0.0, KE_ijm1k = 0.0, KE_ijkm1 = 0.0; 
+        // float KE_ijk = 0.0, KE_ijkm1 = 0.0;
+        
+        // float Bsq_ijk = 0.0, Bsq_im1jk = 0.0, Bsq_ijm1k = 0.0, Bsq_ijkm1 = 0.0; 
+        // float Bsq_ijk = 0.0, Bsq_ijkm1 = 0.0;
+
+        if (i > 0 && i < Nx-1 && j > 0 && j < Ny-1 && k > 0 && k < Nz-1){ // Ignore boundaries
+            Bx = fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size];
+
+            rho_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz)];
+            // rho_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz)];
+            rho_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz)];
+            rho_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz)];
+
+            rhovx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size];
+            // rhovx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + cube_size];
+
+            rhovy_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            // rhovy_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 2 * cube_size];
+            // rhovy_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 2 * cube_size];
+
+            rhovz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size];
+            // rhovz_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 3 * cube_size];
+            // rhovz_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 3 * cube_size];
+            rhovz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 3 * cube_size];
+
+            Bx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size];
+            // Bx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 4 * cube_size];
+            Bx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 4 * cube_size];
+            Bx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 4 * cube_size];
+
+            By_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size];
+            // By_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 5 * cube_size];
+            By_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 5 * cube_size];
+            // By_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 5 * cube_size];
+
+            Bz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size];
+            // Bz_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 6 * cube_size];
+            // Bz_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 6 * cube_size];
+            Bz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 6 * cube_size];
+
+            // e_int_ijk = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size];
+            // e_int_ijkm1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 7 * cube_size];
+
+            // Bsq_ijk = B_sq_local(Bx_int, By_int, Bz_int);
+            // Bsq_ijkm1 = B_sq_local(Bx_int_km1, By_int_km1, Bz_int_km1);
+
+            // KE_ijk = KE_local(rho_int, rhovx_int, rhovy_int, rhovz_int);
+            // KE_ijkm1 = KE_local(rho_int_km1, rhovx_int_km1, rhovy_int_km1, rhovz_int_km1);
+
+            // p_ijk = p_local(e_int_ijk, Bsq_ijk, KE_ijk);
+            // p_ijkm1 = p_local(e_int_ijkm1, Bsq_ijkm1, KE_ijkm1);
+
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] =  LaxWendroffAdvBXLocal(rho_int, rho_int_jm1, rho_int_km1, 
+                                                                        rhovx_int, rhovx_int_jm1, rhovx_int_km1, 
+                                                                        rhovy_int, rhovy_int_jm1, 
+                                                                        rhovz_int, rhovz_int_km1, 
+                                                                        Bx, Bx_int, Bx_int_jm1, Bx_int_km1, 
+                                                                        By_int, By_int_jm1, 
+                                                                        Bz_int, Bz_int_km1, 
+                                                                        dt, dx, dy, dz); 
+        }
+        return;
+    }
+
+__global__ void FluidAdvanceMicroBYLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        int i = threadIdx.x + blockDim.x * blockIdx.x;
+        int j = threadIdx.y + blockDim.y * blockIdx.y;
+        int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int cube_size = Nx * Ny * Nz;
+
+        float By = 0.0;
+
+        // float rho_int = 0.0, rho_int_im1 = 0.0, rho_int_jm1 = 0.0, rho_int_km1 = 0.0;
+        float rho_int = 0.0, rho_int_im1 = 0.0, rho_int_km1 = 0.0;
+        
+        // float rhovx_int = 0.0, rhovx_int_im1 = 0.0, rhovx_int_jm1 = 0.0, rhovx_int_km1 = 0.0; 
+        float rhovx_int = 0.0, rhovx_int_im1 = 0.0; 
+        
+        // float rhovy_int = 0.0, rhovy_int_im1 = 0.0, rhovy_int_jm1 = 0.0, rhovy_int_km1 = 0.0;
+        float rhovy_int = 0.0, rhovy_int_im1 = 0.0, rhovy_int_km1 = 0.0;
+        
+        // float rhovz_int = 0.0, rhovz_int_im1 = 0.0, rhovz_int_jm1 = 0.0, rhovz_int_km1 = 0.0;
+        float rhovz_int = 0.0, rhovz_int_km1 = 0.0;
+
+        // float Bx_int = 0.0, Bx_int_im1 = 0.0, Bx_int_jm1 = 0.0, Bx_int_km1 = 0.0;
+        float Bx_int = 0.0, Bx_int_im1 = 0.0;
+        
+        // float By_int = 0.0, By_int_im1 = 0.0, By_int_jm1 = 0.0, By_int_km1 = 0.0;
+        float By_int = 0.0, By_int_im1 = 0.0, By_int_km1 = 0.0;
+        
+        // float Bz_int = 0.0, Bz_int_im1 = 0.0, Bz_int_jm1 = 0.0, Bz_int_km1 = 0.0;
+        float Bz_int = 0.0, Bz_int_km1 = 0.0;
+
+        // float e_int_ijk = 0.0, e_int_im1jk = 0.0, e_int_ijm1k = 0.0, e_int_ijkm1 = 0.0;
+        // float e_int_ijk = 0.0, e_int_ijkm1 = 0.0;
+        
+        // float p_ijk = 0.0, p_im1jk = 0.0, p_ijm1k = 0.0, p_ijm1k = 0.0; 
+        // float p_ijk = 0.0, p_ijkm1 = 0.0; 
+
+        // float KE_ijk = 0.0, KE_im1jk = 0.0, KE_ijm1k = 0.0, KE_ijkm1 = 0.0; 
+        // float KE_ijk = 0.0, KE_ijkm1 = 0.0;
+        
+        // float Bsq_ijk = 0.0, Bsq_im1jk = 0.0, Bsq_ijm1k = 0.0, Bsq_ijkm1 = 0.0; 
+        // float Bsq_ijk = 0.0, Bsq_ijkm1 = 0.0;
+
+        if (i > 0 && i < Nx-1 && j > 0 && j < Ny-1 && k > 0 && k < Nz-1){ // Ignore boundaries
+            By = fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size];
+
+            rho_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz)];
+            rho_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz)];
+            // rho_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz)];
+            rho_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz)];
+
+            rhovx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + cube_size];
+            // rhovx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + cube_size];
+            // rhovx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + cube_size];
+
+            rhovy_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            // rhovy_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 2 * cube_size];
+
+            rhovz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size];
+            // rhovz_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 3 * cube_size];
+            // rhovz_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 3 * cube_size];
+            rhovz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 3 * cube_size];
+
+            Bx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size];
+            Bx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 4 * cube_size];
+            // Bx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 4 * cube_size];
+            // Bx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 4 * cube_size];
+
+            By_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size];
+            By_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 5 * cube_size];
+            // By_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 5 * cube_size];
+            By_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 5 * cube_size];
+
+            Bz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size];
+            // Bz_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 6 * cube_size];
+            // Bz_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 6 * cube_size];
+            Bz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 6 * cube_size];
+
+            // e_int_ijk = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size];
+            // e_int_ijkm1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 7 * cube_size];
+
+            // Bsq_ijk = B_sq_local(Bx_int, By_int, Bz_int);
+            // Bsq_ijkm1 = B_sq_local(Bx_int_km1, By_int_km1, Bz_int_km1);
+
+            // KE_ijk = KE_local(rho_int, rhovx_int, rhovy_int, rhovz_int);
+            // KE_ijkm1 = KE_local(rho_int_km1, rhovx_int_km1, rhovy_int_km1, rhovz_int_km1);
+
+            // p_ijk = p_local(e_int_ijk, Bsq_ijk, KE_ijk);
+            // p_ijkm1 = p_local(e_int_ijkm1, Bsq_ijkm1, KE_ijkm1);
+
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] =  LaxWendroffAdvBYLocal(rho_int, rho_int_im1, rho_int_km1, 
+                                                                        rhovx_int, rhovx_int_im1, 
+                                                                        rhovy_int, rhovy_int_im1, rhovy_int_km1, 
+                                                                        rhovz_int, rhovz_int_km1, 
+                                                                        Bx_int, Bx_int_im1, 
+                                                                        By, By_int, By_int_im1, By_int_km1, 
+                                                                        Bz_int, Bz_int_km1, 
+                                                                        dt, dx, dy, dz);
+        }
+        return;
+    }
+
+__global__ void FluidAdvanceMicroBZLocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        int i = threadIdx.x + blockDim.x * blockIdx.x;
+        int j = threadIdx.y + blockDim.y * blockIdx.y;
+        int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int cube_size = Nx * Ny * Nz;
+
+        float Bz = 0.0;
+
+        // float rho_int = 0.0, rho_int_im1 = 0.0, rho_int_jm1 = 0.0, rho_int_km1 = 0.0;
+        float rho_int = 0.0, rho_int_im1 = 0.0, rho_int_jm1 = 0.0;
+        
+        // float rhovx_int = 0.0, rhovx_int_im1 = 0.0, rhovx_int_jm1 = 0.0, rhovx_int_km1 = 0.0; 
+        float rhovx_int = 0.0, rhovx_int_im1 = 0.0; 
+        
+        // float rhovy_int = 0.0, rhovy_int_im1 = 0.0, rhovy_int_jm1 = 0.0, rhovy_int_km1 = 0.0;
+        float rhovy_int = 0.0, rhovy_int_jm1 = 0.0;
+        
+        // float rhovz_int = 0.0, rhovz_int_im1 = 0.0, rhovz_int_jm1 = 0.0, rhovz_int_km1 = 0.0;
+        float rhovz_int = 0.0, rhovz_int_im1 = 0.0, rhovz_int_jm1 = 0.0;
+
+        // float Bx_int = 0.0, Bx_int_im1 = 0.0, Bx_int_jm1 = 0.0, Bx_int_km1 = 0.0;
+        float Bx_int = 0.0, Bx_int_im1 = 0.0;
+        
+        // float By_int = 0.0, By_int_im1 = 0.0, By_int_jm1 = 0.0, By_int_km1 = 0.0;
+        float By_int = 0.0, By_int_jm1 = 0.0;
+        
+        // float Bz_int = 0.0, Bz_int_im1 = 0.0, Bz_int_jm1 = 0.0, Bz_int_km1 = 0.0;
+        float Bz_int = 0.0, Bz_int_im1 = 0.0, Bz_int_jm1 = 0.0;
+
+        // float e_int_ijk = 0.0, e_int_im1jk = 0.0, e_int_ijm1k = 0.0, e_int_ijkm1 = 0.0;
+        // float e_int_ijk = 0.0, e_int_ijkm1 = 0.0;
+        
+        // float p_ijk = 0.0, p_im1jk = 0.0, p_ijm1k = 0.0, p_ijm1k = 0.0; 
+        // float p_ijk = 0.0, p_ijkm1 = 0.0; 
+
+        // float KE_ijk = 0.0, KE_im1jk = 0.0, KE_ijm1k = 0.0, KE_ijkm1 = 0.0; 
+        // float KE_ijk = 0.0, KE_ijkm1 = 0.0;
+        
+        // float Bsq_ijk = 0.0, Bsq_im1jk = 0.0, Bsq_ijm1k = 0.0, Bsq_ijkm1 = 0.0; 
+        // float Bsq_ijk = 0.0, Bsq_ijkm1 = 0.0;
+
+        if (i > 0 && i < Nx-1 && j > 0 && j < Ny-1 && k > 0 && k < Nz-1){ // Ignore boundaries
+            Bz = fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size];
+
+            rho_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz)];
+            rho_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz)];
+            rho_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz)];
+            // rho_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz)];
+
+            rhovx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + cube_size];
+            // rhovx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + cube_size];
+            // rhovx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + cube_size];
+
+            rhovy_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            // rhovy_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 2 * cube_size];
+            // rhovy_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 2 * cube_size];
+
+            rhovz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size];
+            rhovz_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 3 * cube_size];
+            rhovz_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 3 * cube_size];
+            // rhovz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 3 * cube_size];
+
+            Bx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size];
+            Bx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 4 * cube_size];
+            // Bx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 4 * cube_size];
+            // Bx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 4 * cube_size];
+
+            By_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size];
+            // By_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 5 * cube_size];
+            By_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 5 * cube_size];
+            // By_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 5 * cube_size];
+
+            Bz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size];
+            Bz_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 6 * cube_size];
+            Bz_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 6 * cube_size];
+            // Bz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 6 * cube_size];
+
+            // e_int_ijk = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size];
+            // e_int_ijkm1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 7 * cube_size];
+
+            // Bsq_ijk = B_sq_local(Bx_int, By_int, Bz_int);
+            // Bsq_ijkm1 = B_sq_local(Bx_int_km1, By_int_km1, Bz_int_km1);
+
+            // KE_ijk = KE_local(rho_int, rhovx_int, rhovy_int, rhovz_int);
+            // KE_ijkm1 = KE_local(rho_int_km1, rhovx_int_km1, rhovy_int_km1, rhovz_int_km1);
+
+            // p_ijk = p_local(e_int_ijk, Bsq_ijk, KE_ijk);
+            // p_ijkm1 = p_local(e_int_ijkm1, Bsq_ijkm1, KE_ijkm1);
+
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] =  LaxWendroffAdvBZLocal(rho_int, rho_int_im1, rho_int_jm1, 
+                                                                        rhovx_int, rhovx_int_im1, 
+                                                                        rhovy_int, rhovy_int_jm1, 
+                                                                        rhovz_int, rhovz_int_im1, rhovz_int_jm1, 
+                                                                        Bx_int, Bx_int_im1, 
+                                                                        By_int, By_int_jm1, 
+                                                                        Bz, Bz_int, Bz_int_im1, Bz_int_jm1, 
+                                                                        dt, dx, dy, dz); 
+        }
+        return;
+    }
+
+__global__ void FluidAdvanceMicroELocalNoDiff(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        int i = threadIdx.x + blockDim.x * blockIdx.x;
+        int j = threadIdx.y + blockDim.y * blockIdx.y;
+        int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int cube_size = Nx * Ny * Nz;
+
+        float e = 0.0;
+
+        float rho_int = 0.0, rho_int_im1 = 0.0, rho_int_jm1 = 0.0, rho_int_km1 = 0.0;
+        // float rho_int = 0.0, rho_int_im1 = 0.0, rho_int_jm1 = 0.0;
+        
+        float rhovx_int = 0.0, rhovx_int_im1 = 0.0, rhovx_int_jm1 = 0.0, rhovx_int_km1 = 0.0; 
+        // float rhovx_int = 0.0, rhovx_int_im1 = 0.0; 
+        
+        float rhovy_int = 0.0, rhovy_int_im1 = 0.0, rhovy_int_jm1 = 0.0, rhovy_int_km1 = 0.0;
+        // float rhovy_int = 0.0, rhovy_int_jm1 = 0.0;
+        
+        float rhovz_int = 0.0, rhovz_int_im1 = 0.0, rhovz_int_jm1 = 0.0, rhovz_int_km1 = 0.0;
+        // float rhovz_int = 0.0, rhovz_int_im1 = 0.0, rhovz_int_jm1 = 0.0;
+
+        float Bx_int = 0.0, Bx_int_im1 = 0.0, Bx_int_jm1 = 0.0, Bx_int_km1 = 0.0;
+        // float Bx_int = 0.0, Bx_int_im1 = 0.0;
+        
+        float By_int = 0.0, By_int_im1 = 0.0, By_int_jm1 = 0.0, By_int_km1 = 0.0;
+        // float By_int = 0.0, By_int_jm1 = 0.0;
+        
+        float Bz_int = 0.0, Bz_int_im1 = 0.0, Bz_int_jm1 = 0.0, Bz_int_km1 = 0.0;
+        // float Bz_int = 0.0, Bz_int_im1 = 0.0, Bz_int_jm1 = 0.0;
+
+        float e_int = 0.0, e_int_im1 = 0.0, e_int_jm1 = 0.0, e_int_km1 = 0.0;
+        // float e_int_ijk = 0.0, e_int_ijkm1 = 0.0;
+        
+        float p_ijk = 0.0, p_im1jk = 0.0, p_ijm1k = 0.0, p_ijkm1 = 0.0; 
+        // float p_ijk = 0.0, p_ijkm1 = 0.0; 
+
+        float KE_ijk = 0.0, KE_im1jk = 0.0, KE_ijm1k = 0.0, KE_ijkm1 = 0.0; 
+        // float KE_ijk = 0.0, KE_ijkm1 = 0.0;
+        
+        float Bdotu_ijk = 0.0, Bdotu_im1jk = 0.0, Bdotu_ijm1k = 0.0, Bdotu_ijkm1 = 0.0; 
+
+        float Bsq_ijk = 0.0, Bsq_im1jk = 0.0, Bsq_ijm1k = 0.0, Bsq_ijkm1 = 0.0; 
+        // float Bsq_ijk = 0.0, Bsq_ijkm1 = 0.0;
+
+        if (i > 0 && i < Nx-1 && j > 0 && j < Ny-1 && k > 0 && k < Nz-1){ // Ignore boundaries
+            e = fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size];
+
+            rho_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz)];
+            rho_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz)];
+            rho_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz)];
+            rho_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz)];
+
+            rhovx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + cube_size];
+            rhovx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + cube_size];
+
+            rhovy_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 2 * cube_size];
+            rhovy_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 2 * cube_size];
+
+            rhovz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size];
+            rhovz_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 3 * cube_size];
+            rhovz_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 3 * cube_size];
+            rhovz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 3 * cube_size];
+
+            Bx_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size];
+            Bx_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 4 * cube_size];
+            Bx_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 4 * cube_size];
+            Bx_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 4 * cube_size];
+
+            By_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size];
+            By_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 5 * cube_size];
+            By_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 5 * cube_size];
+            By_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 5 * cube_size];
+
+            Bz_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size];
+            Bz_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 6 * cube_size];
+            Bz_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 6 * cube_size];
+            Bz_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 6 * cube_size];
+
+            e_int = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size];
+            e_int_im1 = intvar[IDX3D(i-1, j, k, Nx, Ny, Nz) + 7 * cube_size];
+            e_int_jm1 = intvar[IDX3D(i, j-1, k, Nx, Ny, Nz) + 7 * cube_size];
+            e_int_km1 = intvar[IDX3D(i, j, k-1, Nx, Ny, Nz) + 7 * cube_size];
+
+            Bsq_ijk = B_sq_local(Bx_int, By_int, Bz_int);
+            Bsq_im1jk = B_sq_local(Bx_int_im1, By_int_im1, Bz_int_im1);
+            Bsq_ijm1k = B_sq_local(Bx_int_jm1, By_int_jm1, Bz_int_jm1);
+            Bsq_ijkm1 = B_sq_local(Bx_int_km1, By_int_km1, Bz_int_km1);
+
+            Bdotu_ijk = B_dot_u_local(rho_int, rhovx_int, rhovy_int, rhovz_int, Bx_int, By_int, Bz_int);
+            Bdotu_im1jk = B_dot_u_local(rho_int_im1, rhovx_int_im1, rhovy_int_im1, rhovz_int_im1, Bx_int_im1, By_int_im1, Bz_int_im1);
+            Bdotu_ijm1k = B_dot_u_local(rho_int_jm1, rhovx_int_jm1, rhovy_int_jm1, rhovz_int_jm1, Bx_int_jm1, By_int_jm1, Bz_int_jm1);
+            Bdotu_ijkm1 = B_dot_u_local(rho_int_km1, rhovx_int_km1, rhovy_int_km1, rhovz_int_km1, Bx_int_km1, By_int_km1, Bz_int_km1);
+
+            KE_ijk = KE_local(rho_int, rhovx_int, rhovy_int, rhovz_int);
+            KE_im1jk = KE_local(rho_int_im1, rhovx_int_im1, rhovy_int_im1, rhovz_int_im1);
+            KE_ijm1k = KE_local(rho_int_jm1, rhovx_int_jm1, rhovy_int_jm1, rhovz_int_jm1);
+            KE_ijkm1 = KE_local(rho_int_km1, rhovx_int_km1, rhovy_int_km1, rhovz_int_km1);
+
+            p_ijk = p_local(e_int, Bsq_ijk, KE_ijk);
+            p_im1jk = p_local(e_int_im1, Bsq_im1jk, KE_im1jk);
+            p_ijm1k = p_local(e_int_jm1, Bsq_ijm1k, KE_ijm1k);
+            p_ijkm1 = p_local(e_int_km1, Bsq_ijkm1, KE_ijkm1);
+
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] =  LaxWendroffAdvELocal(rho_int, rho_int_im1, rho_int_jm1, rho_int_km1, 
+                                                                        rhovx_int, rhovx_int_im1, 
+                                                                        rhovy_int, rhovy_int_jm1, 
+                                                                        rhovz_int, rhovz_int_km1,
+                                                                        Bx_int, Bx_int_im1, 
+                                                                        By_int, By_int_jm1, 
+                                                                        Bz_int, Bz_int_km1, 
+                                                                        e, e_int, e_int_im1, e_int_jm1, e_int_km1,
+                                                                        p_ijk, p_im1jk, p_ijm1k, p_ijkm1, 
+                                                                        Bsq_ijk, Bsq_im1jk, Bsq_ijm1k, Bsq_ijkm1, 
+                                                                        Bdotu_ijk, Bdotu_im1jk, Bdotu_ijm1k, Bdotu_ijkm1,  
+                                                                        dt, dx, dy, dz);
+        }
+        return;
+    }
+
+// Device kernels
 // Use non-cache thrashing, and readable, over-loaded flux functions
 // Accept all local data, read nothing in from memory
 __device__ float LaxWendroffAdvRhoLocal(const float rho, const float rho_int, 
@@ -659,49 +1470,8 @@ __device__ float LaxWendroffAdvELocal(const float rho_int, const float rho_int_i
         - 0.5 * (dt / dz) * (ZFluxE(rho_int, rhovz_int, Bz_int, e_int, p_ijk, Bsq_ijk, Bdotu_ijk) - ZFluxE(rho_int_km1, rhovz_int_km1, Bz_int_km1, e_int_km1, p_ijkm1, Bsq_ijkm1, Bdotu_ijkm1));
     }
 
-// THESE KERNELS THRASH THE CACHE
-// 88 registers per thread
-__global__ void FluidAdvance(float* fluidvar, const float* intvar, 
-    const float D, const float dt, const float dx, const float dy, const float dz, 
-    const int Nx, const int Ny, const int Nz)
-    {
-        int tidx = threadIdx.x + blockDim.x * blockIdx.x; 
-        int tidy = threadIdx.y + blockDim.y * blockIdx.y;
-        int tidz = threadIdx.z + blockDim.z * blockIdx.z;
-
-        int xthreads = blockDim.x * gridDim.x;
-        int ythreads = blockDim.y * gridDim.y;
-        int zthreads = blockDim.z * gridDim.z;
-
-        int cube_size = Nx * Ny * Nz;
-
-        for (int k = tidz + 1; k < Nz - 1; k += zthreads){
-            for (int i = tidx + 1; i < Nx - 1; i += xthreads){
-                for (int j = tidy + 1; j < Ny - 1; j += ythreads){
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRho(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 0, Nx, Ny, Nz); // rho
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] =  LaxWendroffAdvRhoVX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 1, Nx, Ny, Nz); // rhov_x
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] =  LaxWendroffAdvRhoVY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 2, Nx, Ny, Nz); // rhov_y
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] =  LaxWendroffAdvRhoVZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 3, Nx, Ny, Nz); // rhov_z
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] =  LaxWendroffAdvBX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 4, Nx, Ny, Nz); // Bx
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] =  LaxWendroffAdvBY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 5, Nx, Ny, Nz); // By 
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] =  LaxWendroffAdvBZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 6, Nx, Ny, Nz); // Bz
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] =  LaxWendroffAdvE(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 7, Nx, Ny, Nz); // e
-                }
-            }
-        }
-        return;
-    }
-
-// Device kernels
 // Implement corrector step
+// THESE KERNELS THRASH THE CACHE
 __device__ float LaxWendroffAdvRho(const int i, const int j, const int k, 
     const float* fluidvar, const float* intvar, 
     const float dt, const float dx, const float dy, const float dz,

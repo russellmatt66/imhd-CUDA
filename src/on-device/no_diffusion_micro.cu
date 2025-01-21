@@ -76,7 +76,10 @@ int main(int argc, char* argv[]){
    dim3 exec_grid_dims_grid(SM_mult_x_grid * numberOfSMs, SM_mult_y_grid * numberOfSMs, SM_mult_z_grid * numberOfSMs);
    dim3 exec_grid_dims_intvar(SM_mult_x_intvar * numberOfSMs, SM_mult_y_intvar * numberOfSMs, SM_mult_z_intvar * numberOfSMs);
 
-   // Execution grid configurations for the Qint boundary microkernels
+   // Execution-grid configurations for the Fluid Advance Microkernels
+   dim3 exec_grid_dims_fluidadvance(numberOfSMs, numberOfSMs, numberOfSMs);
+
+   // Execution-grid configurations for the QintBoundary Microkernels
    dim3 exec_grid_dims_qintbdry_front(numberOfSMs, numberOfSMs, 1); // can also be used for PBCs
    dim3 exec_grid_dims_qintbdry_leftright(numberOfSMs, 1, numberOfSMs);
    dim3 exec_grid_dims_qintbdry_topbottom(1, numberOfSMs, numberOfSMs);
@@ -91,11 +94,17 @@ int main(int argc, char* argv[]){
    dim3 intvar_block_dims(intvarblockdims_xthreads, intvarblockdims_ythreads, intvarblockdims_zthreads);
    dim3 fluid_block_dims(fluidblockdims_xthreads, fluidblockdims_ythreads, fluidblockdims_zthreads);
 
-   // Threadblock execution configurations for the Qint boundary microkernels
-   /* Really doubt these need to ever be changed. Maybe 8 -> 10 */
-   dim3 qintbdry_front_blockdims(8, 8, 1); // can also be used for PBCs
-   dim3 qintbdry_leftright_blockdims(8, 1, 8);
-   dim3 qintbdry_topbottom_blockdims(1, 8, 8);
+   // Threadblock execution configurations for the Fluid Advance Microkernels
+   dim3 fluidadvance_blockdims(8, 8, 8); // power of two
+
+   // Threadblock execution configurations for the QintBoundary Microkernels
+   /* 
+   These should never need to be changed. 
+   Only reason would be if register pressure had to go through roof (LOL)  
+   */
+   dim3 qintbdry_front_blockdims(32, 32, 1); // can also be used for PBCs
+   dim3 qintbdry_leftright_blockdims(32, 1, 32);
+   dim3 qintbdry_topbottom_blockdims(1, 32, 32);
    dim3 qintbdry_frontright_blockdims(1024, 1, 1);
    dim3 qintbdry_frontbottom_blockdims(1, 1024, 1);
    dim3 qintbdry_bottomright_blockdims(1, 1, 1024);
@@ -225,8 +234,16 @@ int main(int argc, char* argv[]){
    for (int it = 1; it < Nt; it++){
       std::cout << "Starting timestep " << it << std::endl;
 
-      std::cout << "Launching kernel for computing fluid variables" << std::endl;
-      FluidAdvanceLocalNoDiff<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      std::cout << "Launching Microkernels for computing fluid variables" << std::endl;
+      // FluidAdvanceLocalNoDiff<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroRhoLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroRhoVXLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroRhoVYLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroRhoVZLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroBXLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroBYLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroBZLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroELocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       
       std::cout << "Launching kernel for computing fluid boundaries" << std::endl; 
