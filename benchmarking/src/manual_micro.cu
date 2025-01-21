@@ -106,6 +106,7 @@ int main(int argc, char* argv[]){
 	dim3 exec_grid_dims(numberOfSMs, numberOfSMs, numberOfSMs);
 	dim3 exec_grid_dims_grid(SM_mult_x_grid * numberOfSMs, SM_mult_y_grid * numberOfSMs, SM_mult_z_grid * numberOfSMs);
 	dim3 exec_grid_dims_intvar(SM_mult_x_intvar * numberOfSMs, SM_mult_y_intvar * numberOfSMs, SM_mult_z_intvar * numberOfSMs);
+   	dim3 exec_grid_dims_fluidadvance(numberOfSMs, numberOfSMs, numberOfSMs);
 
 	// Execution grid configurations for the Qint boundary microkernels
 	dim3 exec_grid_dims_qintbdry_front(numberOfSMs, numberOfSMs, 1); // can also be used for PBCs
@@ -121,6 +122,9 @@ int main(int argc, char* argv[]){
 	dim3 init_block_dims(initblockdims_xthreads, initblockdims_ythreads, initblockdims_zthreads);
 	dim3 intvar_block_dims(intvarblockdims_xthreads, intvarblockdims_ythreads, intvarblockdims_zthreads);
 	dim3 fluid_block_dims(fluidblockdims_xthreads, fluidblockdims_ythreads, fluidblockdims_zthreads);
+
+	// Threadblock execution configurations for the Fluid Advance Microkernels
+	dim3 fluidadvance_blockdims(8, 8, 8); // power of two
 
 	// Threadblock execution configurations for the Qint boundary microkernels
 	/* Really doubt these need to ever be changed. Maybe 8 -> 10 */
@@ -187,10 +191,17 @@ int main(int argc, char* argv[]){
 	for (size_t it = 0; it < Nt; it++){
 		std::cout << "Starting iteration " << it << std::endl;
 
-		std::cout << "Benchmarking fluid interior w/no diffusion" << std::endl; 
+		std::cout << "Benchmarking fluid microkernels w/no diffusion" << std::endl; 
         cudaEventRecord(start_nodiff);
 		for (size_t il = 0; il < num_bench_iters; il++){
-			FluidAdvanceLocalNoDiff<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+			FluidAdvanceMicroRhoLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+			FluidAdvanceMicroRhoVXLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+			FluidAdvanceMicroRhoVYLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+			FluidAdvanceMicroRhoVZLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+			FluidAdvanceMicroBXLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+			FluidAdvanceMicroBYLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+			FluidAdvanceMicroBZLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+			FluidAdvanceMicroELocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
 		}
 		cudaEventRecord(stop_nodiff);
         cudaEventSynchronize(stop_nodiff);

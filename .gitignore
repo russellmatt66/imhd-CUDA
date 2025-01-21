@@ -4,6 +4,7 @@
 /benchmarking/build/Makefile
 /benchmarking/build/*.a
 /benchmarking/build/imhd-cuda_bench
+/benchmarking/build/imhd-cuda_fullprofile
 /benchmarking/build/CMakeCache.txt
 
 # HIDING BUILD CMAKE FILES AND BINARY

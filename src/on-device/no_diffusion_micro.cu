@@ -102,9 +102,9 @@ int main(int argc, char* argv[]){
    These should never need to be changed. 
    Only reason would be if register pressure had to go through roof (LOL)  
    */
-   dim3 qintbdry_front_blockdims(32, 32, 1); // can also be used for PBCs
-   dim3 qintbdry_leftright_blockdims(32, 1, 32);
-   dim3 qintbdry_topbottom_blockdims(1, 32, 32);
+   dim3 qintbdry_front_blockdims(8, 8, 1); // can also be used for PBCs
+   dim3 qintbdry_leftright_blockdims(8, 1, 8);
+   dim3 qintbdry_topbottom_blockdims(1, 8, 8);
    dim3 qintbdry_frontright_blockdims(1024, 1, 1);
    dim3 qintbdry_frontbottom_blockdims(1, 1024, 1);
    dim3 qintbdry_bottomright_blockdims(1, 1, 1024);
