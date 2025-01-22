@@ -12,6 +12,10 @@
 /* THIS SHOULD BE DEFINED A SINGLE TIME IN A SINGLE PLACE */
 #define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx) * (Ny) + (i) * (Ny) + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
+/* 
+This is a  really ugly MVP
+It's still here because it works and serves as a reference
+*/ 
 // 74 registers per thread
 __global__ void BoundaryConditions(float* fluidvar, const float* intvar, 
     const float D, const float dt, const float dx, const float dy, const float dz,
@@ -213,13 +217,82 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
             fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
         }
     }
-    // if (i > 0 && i > Nx-1 && j > 0 && j < Ny-1){
-    //     for (int ivf = 0; ivf < 8; ivf++){
-    //         fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size] += fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size];
-    //         fluidvar[IDX3D(i, j, Nz - 1, Nx, Ny, Nz) + ivf * cube_size] = fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size];
-    //     }
-    // }
-    // printf("Made it past update - PBCs\n");
+
 
     return;
     }
+
+__global__ void rigidConductingWallBCsLeftRight(float* fluidvar, const int Nx, const int Ny, const int Nz){
+    int i = threadIdx.x + blockDim.x * blockIdx.x;
+    int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+    int cube_size = Nx * Ny * Nz;
+
+    if (i < Nx && k > 0 && k < Nz-1){
+        // Left
+        fluidvar[IDX3D(i, 0, k, Nx, Ny, Nz)] = 1.0; // Magic wall number for density
+        fluidvar[IDX3D(i, 0, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
+        fluidvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
+        fluidvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
+        fluidvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0; // Perfectly-conducting wall
+        fluidvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0; 
+        fluidvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
+        fluidvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 7 * cube_size] = p(i, 0, k, fluidvar, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
+        
+        // Right
+        fluidvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz)] = 1.0; // Magic wall number for density
+        fluidvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
+        fluidvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
+        fluidvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
+        fluidvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0; // Perfectly-conducting wall
+        fluidvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0; 
+        fluidvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
+        fluidvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 7 * cube_size] = p(i, Ny-1, k, fluidvar, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
+    } 
+    return;
+}
+
+__global__ void rigidConductingWallBCsTopBottom(float* fluidvar, const int Nx, const int Ny, const int Nz){
+    int j = threadIdx.x + blockDim.x * blockIdx.x;
+    int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+    int cube_size = Nx * Ny * Nz;
+
+    if (j > 0 && j < Ny && k > 0 && k < Nz-1){
+        // Top
+        fluidvar[IDX3D(0, j, k, Nx, Ny, Nz)] = 1.0; // Magic wall number for density
+        fluidvar[IDX3D(0, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
+        fluidvar[IDX3D(0, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
+        fluidvar[IDX3D(0, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
+        fluidvar[IDX3D(0, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0; // Perfectly-conducting wall
+        fluidvar[IDX3D(0, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0; 
+        fluidvar[IDX3D(0, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
+        fluidvar[IDX3D(0, j, k, Nx, Ny, Nz) + 7 * cube_size] = p(0, j, k, fluidvar, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
+        
+        // Bottom
+        fluidvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz)] = 1.0; // Magic wall number for density
+        fluidvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + cube_size] = 0.0; // Rigid wall
+        fluidvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
+        fluidvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
+        fluidvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0; // Perfectly-conducting wall
+        fluidvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0; 
+        fluidvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
+        fluidvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 7 * cube_size] = p(Nx-1, j, k, fluidvar, 0.0, 0.0, Nx, Ny, Nz) / (gamma - 1.0);
+    } 
+    return;
+}
+
+__global__ void PBCs(float* fluidvar, const int Nx, const int Ny, const int Nz)
+{
+    int i = threadIdx.x + blockDim.x * blockIdx.x;
+    int j = threadIdx.y + blockDim.y * blockIdx.y;
+
+    int cube_size = Nx * Ny * Nz;
+
+    if (i < Nx && j < Ny){
+        for (int ivf = 0; ivf < 8; ivf++){
+            fluidvar[IDX3D(i, j, 0, Nx, Ny, Nz) + ivf * cube_size] = fluidvar[IDX3D(i, j, Nz-1, Nx, Ny, Nz) + ivf * cube_size];
+        }
+    }
+    return;
+}
