@@ -21,15 +21,22 @@ arg_list = []
 
 mode = sys.argv[1]
 
+driver = ''
+input_file = ''
+
 if mode == "nodiff-mega": # launch w/out diffusion, using megakernels for qint bdry
     driver = './on-device/imhd-cuda_nodiff_qintmega'
+    input_file = './on-device/input_nodiff.inp'
 elif mode == "nodiff-micro": # launch w/out diffusion, using microkernels for qint bdry
     driver = './on-device/imhd-cuda_nodiff_qintmicro'
+    input_file = './on-device/input_nodiff.inp'
 else:
     driver = './on-device/imhd-cuda'
+    input_file = ''
+
 arg_list.append(driver)
 
-input_file = './on-device/input.inp'
+# input_file = './on-device/input.inp'
 with open(input_file, 'r') as input_file:
     for line in input_file:
         cmd_arg = line.split('=')[1].strip('\n')

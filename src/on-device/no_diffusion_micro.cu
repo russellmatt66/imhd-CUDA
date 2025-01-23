@@ -23,7 +23,7 @@ int main(int argc, char* argv[]){
    int Nz = atoi(argv[4]);
 
    float J0 = atof(argv[5]); // amplitude of the current
-	float D = atof(argv[6]); // coefficient of numerical diffusion
+	float r_max_coeff = atof(argv[6]); // r_pinch = r_max_coeff * r_max
 	
    float x_min = atof(argv[7]);
 	float x_max = atof(argv[8]);
@@ -40,29 +40,29 @@ int main(int argc, char* argv[]){
    std::string eigen_bin_name = argv[18];
    std::string num_proc = argv[19];
 
-   int meshblockdims_xthreads = atoi(argv[20]);
-   int meshblockdims_ythreads = atoi(argv[21]);
-   int meshblockdims_zthreads = atoi(argv[22]);
+   int xgrid_threads = atoi(argv[20]);
+   int ygrid_threads = atoi(argv[21]);
+   int zgrid_threads = atoi(argv[22]);
 
-   int initblockdims_xthreads = atoi(argv[23]);
-   int initblockdims_ythreads = atoi(argv[24]);
-   int initblockdims_zthreads = atoi(argv[25]);
+   int init_xthreads = atoi(argv[23]);
+   int init_ythreads = atoi(argv[24]);
+   int init_zthreads = atoi(argv[25]);
    
-   int intvarblockdims_xthreads = atoi(argv[26]);
-   int intvarblockdims_ythreads = atoi(argv[27]);
-   int intvarblockdims_zthreads = atoi(argv[28]);
+   int FA_xthreads = atoi(argv[26]);
+   int FA_ythreads = atoi(argv[27]);
+   int FA_zthreads = atoi(argv[28]);
 
-   int fluidblockdims_xthreads = atoi(argv[29]);
-   int fluidblockdims_ythreads = atoi(argv[30]);
-   int fluidblockdims_zthreads = atoi(argv[31]);
+   int SM_mult_grid_x = atoi(argv[29]);
+   int SM_mult_grid_y = atoi(argv[30]);
+   int SM_mult_grid_z = atoi(argv[31]);
 
-   int SM_mult_x_grid = atoi(argv[32]);
-   int SM_mult_y_grid = atoi(argv[33]);
-   int SM_mult_z_grid = atoi(argv[34]);
+	int SM_mult_init_x = atoi(argv[32]);
+	int SM_mult_init_y = atoi(argv[33]);
+	int SM_mult_init_z = atoi(argv[34]);
 
-	int SM_mult_x_intvar = atoi(argv[35]);
-	int SM_mult_y_intvar = atoi(argv[36]);
-	int SM_mult_z_intvar = atoi(argv[37]);
+   int SM_mult_FA_x = atoi(argv[35]);
+   int SM_mult_FA_y = atoi(argv[36]);
+   int SM_mult_FA_z = atoi(argv[37]);
 
    // CUDA BOILERPLATE 
    int deviceId;
@@ -70,44 +70,6 @@ int main(int argc, char* argv[]){
 
    cudaGetDevice(&deviceId); // number of blocks should be a multiple of the number of device SMs
    cudaDeviceGetAttribute(&numberOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
-
-   // Execution grid configurations
-   dim3 exec_grid_dims(numberOfSMs, numberOfSMs, numberOfSMs);
-   dim3 exec_grid_dims_grid(SM_mult_x_grid * numberOfSMs, SM_mult_y_grid * numberOfSMs, SM_mult_z_grid * numberOfSMs);
-   dim3 exec_grid_dims_intvar(SM_mult_x_intvar * numberOfSMs, SM_mult_y_intvar * numberOfSMs, SM_mult_z_intvar * numberOfSMs);
-
-   // Execution-grid configurations for the FluidAdvance microkernels
-   dim3 exec_grid_dims_fluidadvance(numberOfSMs, numberOfSMs, numberOfSMs);
-
-   // Execution-grid configurations for the Boundary Condition Microkernels
-   dim3 exec_grid_dims_bdry_frontback(numberOfSMs, numberOfSMs, 1); // can also be used for PBCs and 
-   dim3 exec_grid_dims_bdry_leftright(numberOfSMs, 1, numberOfSMs);
-   dim3 exec_grid_dims_bdry_topbottom(1, numberOfSMs, numberOfSMs);
-
-   // Qint BCs require specifying values along certain lines
-   dim3 exec_grid_dims_qintbdry_frontright(numberOfSMs, 1, 1);
-   dim3 exec_grid_dims_qintbdry_frontbottom(1, numberOfSMs, 1);
-   dim3 exec_grid_dims_qintbdry_bottomright(1, 1, numberOfSMs);
-
-   // Threadblock execution configurations for the megakernels
-   dim3 mesh_block_dims(meshblockdims_xthreads, meshblockdims_ythreads, meshblockdims_zthreads);
-   dim3 init_block_dims(initblockdims_xthreads, initblockdims_ythreads, initblockdims_zthreads);
-   dim3 intvar_block_dims(intvarblockdims_xthreads, intvarblockdims_ythreads, intvarblockdims_zthreads);
-   dim3 fluid_block_dims(fluidblockdims_xthreads, fluidblockdims_ythreads, fluidblockdims_zthreads);
-
-   // Threadblock execution configurations for the Fluid Advance Microkernels
-   dim3 fluidadvance_blockdims(8, 8, 8); // power of two
-
-   // Threadblock execution configurations for the BoundaryCondition Microkernels
-   /* 
-   Refactor these so they are input
-   */
-   dim3 bdry_frontback_blockdims(8, 8, 1); // can also be used for PBCs
-   dim3 bdry_leftright_blockdims(8, 1, 8);
-   dim3 bdry_topbottom_blockdims(1, 8, 8);
-   dim3 qintbdry_frontright_blockdims(1024, 1, 1);
-   dim3 qintbdry_frontbottom_blockdims(1, 1024, 1);
-   dim3 qintbdry_bottomright_blockdims(1, 1, 1024);
 
    size_t cube_size = Nx * Ny * Nz;
    size_t fluidvar_size = sizeof(float) * cube_size;
@@ -128,30 +90,77 @@ int main(int argc, char* argv[]){
 	float dy = (y_max - y_min) / (Ny - 1);
 	float dz = (z_max - z_min) / (Nz - 1);
 
-   InitializeGrid<<<exec_grid_dims_grid, mesh_block_dims>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   // Execution grid and threadblock configurations for the Grid Initialization microkernels
+   dim3 egd_xgrid(SM_mult_grid_x * numberOfSMs, 1, 1); // "egd" = "execution_grid_dimensions"
+   dim3 egd_ygrid(1, SM_mult_grid_y * numberOfSMs, 1);
+   dim3 egd_zgrid(1, 1, SM_mult_grid_z * numberOfSMs);
+
+   dim3 tbd_xgrid(xgrid_threads, 1, 1); // "tbd = thread_block_dimensions"
+   dim3 tbd_ygrid(1, ygrid_threads, 1);
+   dim3 tbd_zgrid(1, 1, zgrid_threads);
+   
+   // Execution grid and threadblock configurations for the 
+   dim3 egd_init(SM_mult_init_x * numberOfSMs, SM_mult_init_y * numberOfSMs, SM_mult_init_z * numberOfSMs);
+   dim3 tbd_init(init_xthreads, init_ythreads, init_zthreads); 
+
+   // TODO: Microkernels should be in a wrapper   
+   // InitializeGrid<<<exec_grid_dims_grid, mesh_block_dims>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   InitializeX<<<egd_xgrid, tbd_xgrid>>>(x_grid, x_min, dx, Nx);
+   InitializeY<<<egd_ygrid, tbd_ygrid>>>(y_grid, y_min, dy, Ny);
+   InitializeZ<<<egd_zgrid, tbd_zgrid>>>(z_grid, z_min, dz, Nz);
+   ZeroVars<<<egd_init, tbd_init>>>(fluidvars, Nx, Ny, Nz); 
    checkCuda(cudaDeviceSynchronize());
 
-   ScrewPinch<<<exec_grid_dims, init_block_dims>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   ScrewPinch<<<egd_init, tbd_init>>>(fluidvars, J0, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
-   rigidConductingWallBCsLeftRight<<<exec_grid_dims_bdry_leftright, bdry_leftright_blockdims>>>(fluidvars, Nx, Ny, Nz);
-   rigidConductingWallBCsTopBottom<<<exec_grid_dims_bdry_topbottom, bdry_topbottom_blockdims>>>(fluidvars, Nx, Ny, Nz);
-   PBCs<<<exec_grid_dims_bdry_frontback, bdry_frontback_blockdims>>>(fluidvars, Nx, Ny, Nz);
+   // Execution grid and threadblock configurations for the Boundary Condition microkernels
+   dim3 egd_bdry_leftright(numberOfSMs, 1, numberOfSMs);
+   dim3 egd_bdry_topbottom(1, numberOfSMs, numberOfSMs);
+   dim3 egd_bdry_frontback(numberOfSMs, numberOfSMs, 1);
+
+   dim3 tbd_bdry_leftright(8, 1, 8);
+   dim3 tbd_bdry_topbottom(1, 8, 8);
+   dim3 tbd_bdry_frontback(8, 8, 1); // can also be used for PBCs
+   dim3 tbd_qintbdry_frontright(1024, 1, 1);
+   dim3 tbd_qintbdry_frontbottom(1, 1024, 1);
+   dim3 tbd_qintbdry_bottomright(1, 1, 1024);
+
+   rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
+   rigidConductingWallBCsTopBottom<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, Nx, Ny, Nz);
+   PBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
-   ComputeIntermediateVariablesNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   // Execution grid and threadblock configurations for the Predictor and Corrector microkernels
+   dim3 egd_fluidadvance(SM_mult_FA_x * numberOfSMs, SM_mult_FA_y * numberOfSMs, SM_mult_FA_z * numberOfSMs);
+   
+   dim3 tbd_fluidadvance(FA_xthreads, FA_ythreads, FA_zthreads); 
+
+   // ComputeIntermediateVariablesNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntRhoMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntRhoVXMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntRhoVYMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntRhoVZMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntBXMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntBYMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntBZMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntEMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
    
-   // Maybe this should be in a wrapper
-   QintBdryFrontNoDiff<<<exec_grid_dims_bdry_frontback, bdry_frontback_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   QintBdryLeftRightNoDiff<<<exec_grid_dims_bdry_leftright, bdry_leftright_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   QintBdryTopBottomNoDiff<<<exec_grid_dims_bdry_topbottom, bdry_topbottom_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   QintBdryFrontBottomNoDiff<<<exec_grid_dims_qintbdry_frontbottom, qintbdry_frontbottom_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   QintBdryFrontRightNoDiff<<<exec_grid_dims_qintbdry_frontright, qintbdry_frontright_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   QintBdryBottomRightNoDiff<<<exec_grid_dims_qintbdry_bottomright, qintbdry_bottomright_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   // Execution grid specification for the Qint BCs - they require specifying values along certain lines
+   dim3 egd_qintbdry_frontright(numberOfSMs, 1, 1); 
+   dim3 egd_qintbdry_frontbottom(1, numberOfSMs, 1);
+   dim3 egd_qintbdry_bottomright(1, 1, numberOfSMs);
+
+   QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   QintBdryTopBottomNoDiff<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   QintBdryFrontBottomNoDiff<<<egd_qintbdry_frontbottom, tbd_qintbdry_frontbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   QintBdryFrontRightNoDiff<<<egd_qintbdry_frontright, tbd_qintbdry_frontright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   QintBdryBottomRightNoDiff<<<egd_qintbdry_bottomright, tbd_qintbdry_bottomright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
-   QintBdryPBCs<<<exec_grid_dims_bdry_frontback, bdry_frontback_blockdims>>>(fluidvars, intvars, Nx, Ny, Nz);
+   QintBdryPBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
    // Use IPC to write data out in order to avoid redundant work 
@@ -241,45 +250,45 @@ int main(int argc, char* argv[]){
 
       std::cout << "Launching microkernels for computing fluid variables" << std::endl;
       // FluidAdvanceLocalNoDiff<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroRhoLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroRhoVXLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroRhoVYLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroRhoVZLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroBXLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroBYLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroBZLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroELocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroRhoLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroRhoVXLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroRhoVYLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroRhoVZLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroBXLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroBYLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroBZLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceMicroELocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       
       std::cout << "Launching microkernels for computing the fluid boundaries" << std::endl; 
       // BoundaryConditions<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
-      PBCs<<<exec_grid_dims_bdry_frontback, bdry_frontback_blockdims>>>(fluidvars, Nx, Ny, Nz);
+      PBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       std::cout << "Kernels for computing fluid variables completed" << std::endl;
       
       std::cout << "Launching microkernels for computing intermediate variables" << std::endl; 
       // ComputeIntermediateVariablesNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntRhoMicroLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntRhoVXMicroLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntRhoVYMicroLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntRhoVZMicroLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntBXMicroLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntBYMicroLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntBZMicroLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntEMicroLocalNoDiff<<<exec_grid_dims_fluidadvance, fluidadvance_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntRhoMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntRhoVXMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntRhoVYMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntRhoVZMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntBXMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntBYMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntBZMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntEMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
 
       std::cout << "Launching microkernels for computing Qint boundaries" << std::endl; 
-      QintBdryFrontNoDiff<<<exec_grid_dims_bdry_frontback, bdry_frontback_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      QintBdryLeftRightNoDiff<<<exec_grid_dims_bdry_leftright, bdry_leftright_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      QintBdryTopBottomNoDiff<<<exec_grid_dims_bdry_topbottom, bdry_topbottom_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      QintBdryFrontBottomNoDiff<<<exec_grid_dims_qintbdry_frontbottom, qintbdry_frontbottom_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      QintBdryFrontRightNoDiff<<<exec_grid_dims_qintbdry_frontright, qintbdry_frontright_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      QintBdryBottomRightNoDiff<<<exec_grid_dims_qintbdry_bottomright, qintbdry_bottomright_blockdims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      QintBdryTopBottomNoDiff<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      QintBdryFrontBottomNoDiff<<<egd_qintbdry_frontbottom, tbd_qintbdry_frontbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      QintBdryFrontRightNoDiff<<<egd_qintbdry_frontright, tbd_qintbdry_frontright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      QintBdryBottomRightNoDiff<<<egd_qintbdry_bottomright, tbd_qintbdry_bottomright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());    
 
       std::cout << "Launching kernel for computing Qint PBCs" << std::endl; 
-      QintBdryPBCs<<<exec_grid_dims_bdry_frontback, bdry_frontback_blockdims>>>(fluidvars, intvars, Nx, Ny, Nz);
+      QintBdryPBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());    
 
       std::cout << "Transferring updated fluid data to host" << std::endl;
