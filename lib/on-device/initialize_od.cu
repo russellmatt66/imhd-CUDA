@@ -109,6 +109,8 @@ __global__ void ScrewPinch(float* fluidvar,
             r = sqrtf(pow(x, 2) + pow(y, 2));
         }
 
+        __syncthreads();
+
         if (r < r_pinch && i < Nx && j < Ny){ // thread divergence is not a big problem in a one-use kernel
             Btheta = 0.5 * J0 * r * (1.0 - 0.5 * pow(r, 2) / pow(r_pinch, 2)); 
 

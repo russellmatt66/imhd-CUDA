@@ -23,46 +23,46 @@ int main(int argc, char* argv[]){
    int Nz = atoi(argv[4]);
 
    float J0 = atof(argv[5]); // amplitude of the current
-	float D = atof(argv[6]); // coefficient of numerical diffusion
+	float r_max_coeff = atof(argv[7]); // r_pinch = r_max_coeff * r_max
 	
-   float x_min = atof(argv[7]);
-	float x_max = atof(argv[8]);
-	float y_min = atof(argv[9]);
-	float y_max = atof(argv[10]);
-	float z_min = atof(argv[11]);
-	float z_max = atof(argv[12]);
-	float dt = atof(argv[13]);
+   float x_min = atof(argv[8]);
+	float x_max = atof(argv[9]);
+	float y_min = atof(argv[10]);
+	float y_max = atof(argv[11]);
+	float z_min = atof(argv[12]);
+	float z_max = atof(argv[13]);
+	float dt = atof(argv[14]);
    
-   std::string path_to_data = argv[14];
-   std::string phdf5_bin_name = argv[15];
-   std::string attr_bin_name = argv[16];
-   std::string write_grid_bin_name = argv[17];
-   std::string eigen_bin_name = argv[18];
-   std::string num_proc = argv[19];
+   std::string path_to_data = argv[15];
+   std::string phdf5_bin_name = argv[16];
+   std::string attr_bin_name = argv[17];
+   std::string write_grid_bin_name = argv[18];
+   std::string eigen_bin_name = argv[19];
+   std::string num_proc = argv[20];
 
-   int meshblockdims_xthreads = atoi(argv[20]);
-   int meshblockdims_ythreads = atoi(argv[21]);
-   int meshblockdims_zthreads = atoi(argv[22]);
+   int xgrid_threads = atoi(argv[21]);
+   int ygrid_threads = atoi(argv[22]);
+   int zgrid_threads = atoi(argv[23]);
 
-   int initblockdims_xthreads = atoi(argv[23]);
-   int initblockdims_ythreads = atoi(argv[24]);
-   int initblockdims_zthreads = atoi(argv[25]);
+   int init_xthreads = atoi(argv[24]);
+   int init_ythreads = atoi(argv[25]);
+   int init_zthreads = atoi(argv[26]);
    
-   int intvarblockdims_xthreads = atoi(argv[26]);
-   int intvarblockdims_ythreads = atoi(argv[27]);
-   int intvarblockdims_zthreads = atoi(argv[28]);
+   int FA_xthreads = atoi(argv[27]);
+   int FA_ythreads = atoi(argv[28]);
+   int FA_zthreads = atoi(argv[29]);
 
-   int fluidblockdims_xthreads = atoi(argv[29]);
-   int fluidblockdims_ythreads = atoi(argv[30]);
-   int fluidblockdims_zthreads = atoi(argv[31]);
+   int SM_mult_grid_x = atoi(argv[30]);
+   int SM_mult_grid_y = atoi(argv[31]);
+   int SM_mult_grid_z = atoi(argv[32]);
 
-   int SM_mult_x_grid = atoi(argv[32]);
-   int SM_mult_y_grid = atoi(argv[33]);
-   int SM_mult_z_grid = atoi(argv[34]);
+	int SM_mult_init_x = atoi(argv[33]);
+	int SM_mult_init_y = atoi(argv[34]);
+	int SM_mult_init_z = atoi(argv[35]);
 
-	int SM_mult_x_intvar = atoi(argv[35]);
-	int SM_mult_y_intvar = atoi(argv[36]);
-	int SM_mult_z_intvar = atoi(argv[37]);
+   int SM_mult_FA_x = atoi(argv[36]);
+   int SM_mult_FA_y = atoi(argv[37]);
+   int SM_mult_FA_z = atoi(argv[38]);
 
    // CUDA BOILERPLATE 
    int deviceId;
@@ -70,15 +70,6 @@ int main(int argc, char* argv[]){
 
    cudaGetDevice(&deviceId); // number of blocks should be a multiple of the number of device SMs
    cudaDeviceGetAttribute(&numberOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
-
-   dim3 exec_grid_dims(numberOfSMs, numberOfSMs, numberOfSMs);
-   dim3 exec_grid_dims_grid(SM_mult_x_grid * numberOfSMs, SM_mult_y_grid * numberOfSMs, SM_mult_z_grid * numberOfSMs);
-   dim3 exec_grid_dims_intvar(SM_mult_x_intvar * numberOfSMs, SM_mult_y_intvar * numberOfSMs, SM_mult_z_intvar * numberOfSMs);
-
-   dim3 mesh_block_dims(meshblockdims_xthreads, meshblockdims_ythreads, meshblockdims_zthreads);
-   dim3 init_block_dims(initblockdims_xthreads, initblockdims_ythreads, initblockdims_zthreads);
-   dim3 intvar_block_dims(intvarblockdims_xthreads, intvarblockdims_ythreads, intvarblockdims_zthreads);
-   dim3 fluid_block_dims(fluidblockdims_xthreads, fluidblockdims_ythreads, fluidblockdims_zthreads);
 
    size_t cube_size = Nx * Ny * Nz;
    size_t fluidvar_size = sizeof(float) * cube_size;
@@ -99,16 +90,28 @@ int main(int argc, char* argv[]){
 	float dy = (y_max - y_min) / (Ny - 1);
 	float dz = (z_max - z_min) / (Nz - 1);
 
-   InitializeGrid<<<exec_grid_dims_grid, mesh_block_dims>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   checkCuda(cudaDeviceSynchronize());
+   dim3 egd_grid(SM_mult_grid_x * numberOfSMs, SM_mult_grid_y * numberOfSMs, SM_mult_grid_z * numberOfSMs);
+   dim3 tbd_grid(xgrid_threads, ygrid_threads, zgrid_threads);
 
-   ScrewPinch<<<exec_grid_dims, init_block_dims>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   checkCuda(cudaDeviceSynchronize());
-
-   ComputeIntermediateVariablesNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   checkCuda(cudaDeviceSynchronize());    
+   dim3 egd_init(SM_mult_init_x * numberOfSMs, SM_mult_init_y * numberOfSMs, SM_mult_init_z * numberOfSMs);
+   dim3 tbd_init(init_xthreads, init_ythreads, init_zthreads); 
    
-   ComputeIntermediateVariablesBoundaryNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   InitializeGrid<<<egd_grid, tbd_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   ZeroVars<<<egd_init, tbd_init>>>(fluidvars, Nx, Ny, Nz);
+   checkCuda(cudaDeviceSynchronize());
+
+   ScrewPinchLoop<<<egd_init, tbd_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz); 
+   // ScrewPinch<<<egd_init, tbd_init>>>(fluidvars, J0, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz); /* TODO: Specify optimized egd+tbd for this */ 
+   checkCuda(cudaDeviceSynchronize());
+
+   dim3 egd_fluidadvance(SM_mult_FA_x * numberOfSMs, SM_mult_FA_y * numberOfSMs, SM_mult_FA_z * numberOfSMs);
+   dim3 tbd_fluidadvance(FA_xthreads, FA_ythreads, FA_zthreads); 
+
+   ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   checkCuda(cudaDeviceSynchronize());    
+
+   /* NOTE: Hella slow b/c megakernels */
+   ComputeIntermediateVariablesBoundaryNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz); 
    checkCuda(cudaDeviceSynchronize());    
 
    // Use IPC to write data out in order to avoid redundant work 
@@ -197,20 +200,20 @@ int main(int argc, char* argv[]){
       std::cout << "Starting timestep " << it << std::endl;
 
       std::cout << "Launching kernel for computing fluid variables" << std::endl;
-      FluidAdvanceLocalNoDiff<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      FluidAdvanceLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       
       std::cout << "Launching kernel for computing fluid boundaries" << std::endl; 
-      BoundaryConditions<<<exec_grid_dims, fluid_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      BoundaryConditionsNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz); // Hella slow b/c megakernel
       checkCuda(cudaDeviceSynchronize());
       std::cout << "Kernels for computing fluid variables completed" << std::endl;
       
       std::cout << "Launching kernel for computing intermediate variables" << std::endl; 
-      ComputeIntermediateVariablesNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz); 
       checkCuda(cudaDeviceSynchronize());
 
       std::cout << "Launching kernels for computing intermediate boundaries" << std::endl; 
-      ComputeIntermediateVariablesBoundaryNoDiff<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntermediateVariablesBoundaryNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz); // Hella slow b/c megakernel
       
       std::cout << "Transferring updated fluid data to host" << std::endl;
       cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);

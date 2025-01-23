@@ -10,9 +10,9 @@
 #define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx) * (Ny) + (i) * (Ny) + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
 // MEGAKERNELS
-// Megakernel that uses large amounts of registers to avoid thrashing the cache
+/* TODO: Megakernel that uses large amounts of registers to avoid thrashing the cache */
 __global__ void ComputeIntVarsLocalNoDiff(const float* fluidvar, float* intvar,
-    const float dt, const float dx, const float dy, const float dz, const float D,
+    const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
         int tidx = threadIdx.x + blockDim.x * blockIdx.x;
@@ -30,9 +30,35 @@ __global__ void ComputeIntVarsLocalNoDiff(const float* fluidvar, float* intvar,
         return;
     }
 
+// Thrashes the cache
+__global__ void ComputeIntermediateVariablesNoDiff(const float* fluidvar, float* intvar,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        u_int32_t i = threadIdx.x + blockDim.x * blockIdx.x; 
+        u_int32_t j = threadIdx.y + blockDim.y * blockIdx.y;
+        u_int32_t k = threadIdx.z + blockDim.z * blockIdx.z;
+    
+        int cube_size = Nx * Ny * Nz;
+
+        if (i > 0 && i < Nx && j > 0 && j < Ny && k > 0 && k < Nz)
+        {
+            intvar[IDX3D(i, j, k, Nx, Ny, Nz)] = intRho(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
+            intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = intRhoVX(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
+            intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = intRhoVY(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
+            intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZ(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
+            intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = intBX(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
+            intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = intBY(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);// By
+            intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = intBZ(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
+            intvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = intE(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e   
+        }
+
+        return;
+    }
+
 // Thrashes the cache and uses loops
 // Uses loops
-__global__ void ComputeIntermediateVariablesNoDiff(const float* fluidvar, float* intvar,
+__global__ void ComputeIntermediateVariablesLoopNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {

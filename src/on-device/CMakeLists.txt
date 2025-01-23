@@ -64,6 +64,14 @@ target_compile_options(kernels_od_lib PRIVATE
     $<$<COMPILE_LANGUAGE:CUDA>:--ptxas-options=-v>
 )
 
+target_compile_options(fluidbcs_lib PRIVATE 
+    $<$<COMPILE_LANGUAGE:CUDA>:--ptxas-options=-v>
+)
+
 target_compile_options(intvar_od_lib PRIVATE 
+    $<$<COMPILE_LANGUAGE:CUDA>:--ptxas-options=-v>
+)
+
+target_compile_options(intvarbcs_lib PRIVATE 
     $<$<COMPILE_LANGUAGE:CUDA>:--ptxas-options=-v>
 )

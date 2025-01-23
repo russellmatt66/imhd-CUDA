@@ -58,6 +58,7 @@ def getD(sim_input_file: str) -> str:
             if input_param == 'D':
                 D = line.split('=')[1].strip('\n')
     return D
+
 '''
 WILL NEED TO REFACTOR THIS IN THE FUTURE SO THAT IT WORKS FOR MULTIPLE ARCHITECTURES
 EASY SOLUTION IS JUST TO ACCEPT AS AN INPUT, OR YOU CAN SPECIFY DIRECTLY SINCE IT'S PYTHON
