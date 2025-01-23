@@ -8,7 +8,7 @@ __global__ void ComputeIntVarsLocalNoDiff(const float* fluidvar, float* intvar,
     const int Nx, const int Ny, const int Nz);
 
 // Cache-thrashing megakernels 
-__global__ void ComputeIntermediateVariables(const float* fluidvar, float* intvar,
+__global__ void ComputeIntermediateVariablesLoop(const float* fluidvar, float* intvar,
     const float D, const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
