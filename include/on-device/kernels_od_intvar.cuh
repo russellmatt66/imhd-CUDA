@@ -1,6 +1,7 @@
 #ifndef KERNELS_OD_INTVAR_CUH
 #define KERNELS_OD_INTVAR_CUH
 
+// MEGAKERNELS
 // Non-thrashing megakernels
 __global__ void ComputeIntVarsLocal(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz, const float D,
@@ -15,6 +16,40 @@ __global__ void ComputeIntermediateVariablesNoDiff(const float* fluidvar, float*
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
+// MICROKERNELS
+__global__ void ComputeIntRhoMicroLocalNoDiff(const float* fluidvar, float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void ComputeIntRhoVXMicroLocalNoDiff(const float* fluidvar, float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void ComputeIntRhoVYMicroLocalNoDiff(const float* fluidvar, float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void ComputeIntRhoVZMicroLocalNoDiff(const float* fluidvar, float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void ComputeIntBXMicroLocalNoDiff(const float* fluidvar, float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void ComputeIntBYMicroLocalNoDiff(const float* fluidvar, float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void ComputeIntBZMicroLocalNoDiff(const float* fluidvar, float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+    
+__global__ void ComputeIntEMicroLocalNoDiff(const float* fluidvar, float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+// DEVICE KERNELS
 // Standard, cache-thrashing functions for calculating the intermediate variables
 __device__ float intRho(const int i, const int j, const int k, 
     const float* fluidvar, 
@@ -53,6 +88,93 @@ __device__ float intBZ(const int i, const int j, const int k,
 
 __device__ float intE(const int i, const int j, const int k, 
     const float* fluidvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+// High register pressure predictor steps
+__device__ float intRhoLocal(const float rho, 
+    const float rhovx, const float rhovy, const float rhovz,
+    const float rhovx_ip1, const float rhovy_jp1, const float rhovz_kp1,
+    const float dt, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz);
+
+__device__ float intRhoVXLocal(const float rho, const float rho_ip1, const float rho_jp1, const float rho_kp1,
+    const float rhovx, const float rhovx_ip1, const float rhovx_jp1, const float rhovx_kp1, 
+    const float rhovy, const float rhovy_jp1, 
+    const float rhovz, const float rhovz_kp1,
+    const float Bx, const float Bx_ip1, const float Bx_jp1, const float Bx_kp1,
+    const float By, const float By_jp1, 
+    const float Bz, const float Bz_kp1,
+    const float p_ip1jk, const float p_ijk,
+    const float Bsq_ip1jk, const float Bsq_ijk,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__device__ float intRhoVYLocal(const float rho, const float rho_ip1, const float rho_jp1, const float rho_kp1,
+    const float rhovx, const float rhovx_ip1, 
+    const float rhovy, const float rhovy_ip1, const float rhovy_jp1, const float rhovy_kp1,
+    const float rhovz, const float rhovz_kp1,
+    const float Bx, const float Bx_ip1,
+    const float By, const float By_ip1, const float By_jp1, const float By_kp1,
+    const float Bz, const float Bz_kp1,
+    const float p_ijk, const float p_ijp1k,
+    const float Bsq_ijk, const float Bsq_ijp1k,  
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__device__ float intRhoVZLocal(const float rho, const float rho_ip1, const float rho_jp1, const float rho_kp1,
+    const float rhovx, const float rhovx_ip1, 
+    const float rhovy, const float rhovy_jp1, 
+    const float rhovz, const float rhovz_ip1, const float rhovz_jp1, const float rhovz_kp1,
+    const float Bx, const float Bx_ip1, 
+    const float By, const float By_jp1,
+    const float Bz, const float Bz_ip1, const float Bz_jp1, const float Bz_kp1,
+    const float p_ijk, const float p_ijkp1, 
+    const float Bsq_ijk, const float Bsq_ijkp1,
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__device__ float intBXLocal(const float rho, const float rho_jp1, const float rho_kp1,
+    const float rhovx, const float rhovx_jp1, const float rhovx_kp1, 
+    const float rhovy, const float rhovy_jp1,
+    const float rhovz, const float rhovz_kp1, 
+    const float Bx, const float Bx_jp1, const float Bx_kp1,
+    const float By, const float By_jp1, 
+    const float Bz, const float Bz_kp1,
+    const float dt, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz);
+
+__device__ float intBYLocal(const float rho, const float rho_ip1, const float rho_kp1,
+    const float rhovx, const float rhovx_ip1, 
+    const float rhovy, const float rhovy_ip1, const float rhovy_kp1, 
+    const float rhovz, const float rhovz_kp1, 
+    const float Bx, const float Bx_ip1, 
+    const float By, const float By_ip1, const float By_kp1,
+    const float Bz, const float Bz_kp1,  
+    const float dt, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz);
+
+__device__ float intBZLocal(const float rho, const float rho_ip1, const float rho_jp1, 
+    const float rhovx, const float rhovx_ip1, 
+    const float rhovy, const float rhovy_jp1,
+    const float rhovz, const float rhovz_ip1, const float rhovz_jp1, 
+    const float Bx, const float Bx_ip1, 
+    const float By, const float By_jp1,
+    const float Bz, const float Bz_ip1, const float Bz_jp1, 
+    const float dt, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz);
+
+__device__ float intELocal(const float rho, const float rho_ip1, const float rho_jp1, const float rho_kp1,
+    const float rhovx, const float rhovx_ip1, 
+    const float rhovy, const float rhovy_jp1, 
+    const float rhovz, const float rhovz_kp1,
+    const float Bx, const float Bx_ip1, 
+    const float By, const float By_jp1, 
+    const float Bz, const float Bz_kp1, 
+    const float e, const float e_ip1, const float e_jp1, const float e_kp1,
+    const float p_ijk, const float p_ip1jk, const float p_ijp1k, const float p_ijkp1,
+    const float Bsq_ijk, const float Bsq_ip1jk, const float Bsq_ijp1k, const float Bsq_ijkp1, 
+    const float Bdotu_ijk, const float Bdotu_ip1jk, const float Bdotu_ijp1k, const float Bdotu_ijkp1, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
