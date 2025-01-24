@@ -13,12 +13,14 @@ Basically, you can throw the binary here into `compute-sanitizer`
 
 `data/`
 - Where the data goes to debug 
+- This is DEPRECATED
 
 `infs/`
 - Using RAPIDs to analyze data for infinities / anomalously large numbers
+- This is DEPRECATED
 
 `nulls/`
 - Using RAPIDs to analyze data for nulls / nans
+- This is DEPRECATED
 
 # Current Tasks
-(1) Debug all the nulls / nans + infinities / ALNs out of application

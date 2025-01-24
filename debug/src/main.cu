@@ -103,10 +103,10 @@ int main(int argc, char* argv[]){
 															x_grid, y_grid, z_grid, Nx, Ny, Nz);
 	checkCuda(cudaDeviceSynchronize());
 
-	ScrewPinch<<<exec_grid_dim, block_dims_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz); // Screw-pinch
+	ScrewPinchLoop<<<exec_grid_dim, block_dims_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz); // Screw-pinch
 	checkCuda(cudaDeviceSynchronize());
 	
-	ComputeIntermediateVariables<<<exec_grid_dim_intvar, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+	ComputeIntermediateVariablesLoop<<<exec_grid_dim_intvar, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
     checkCuda(cudaDeviceSynchronize());
 
 	ComputeIntermediateVariablesBoundary<<<exec_grid_dim_intvar, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]){
 		BoundaryConditions<<<exec_grid_dim, block_dims_fluid>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
 		checkCuda(cudaDeviceSynchronize());
 		
-		ComputeIntermediateVariables<<<exec_grid_dim_intvar, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+		ComputeIntermediateVariablesLoop<<<exec_grid_dim_intvar, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
 		checkCuda(cudaDeviceSynchronize());
 
 		ComputeIntermediateVariablesBoundary<<<exec_grid_dim_intvar, block_dims_intvar>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);

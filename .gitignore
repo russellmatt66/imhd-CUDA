@@ -35,6 +35,9 @@
 /debug/infs/data/*
 !/debug/infs/data/README.md
 
+/debug/build/imhd-cuda_debug
+/debug/build/imhd-cuda_debug-nodiffmicro
+
 /debug/data/rho/*
 /debug/data/rhovx/*
 /debug/data/rhovy/*
