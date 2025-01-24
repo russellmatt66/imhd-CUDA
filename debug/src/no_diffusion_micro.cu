@@ -134,9 +134,9 @@ int main(int argc, char* argv[]){
    dim3 tbd_bdry_leftright(8, 1, 8);
    dim3 tbd_bdry_topbottom(1, 8, 8);
    dim3 tbd_bdry_frontback(8, 8, 1); // can also be used for PBCs
-   dim3 tbd_qintbdry_frontright(1024, 1, 1);
-   dim3 tbd_qintbdry_frontbottom(1, 1024, 1);
-   dim3 tbd_qintbdry_bottomright(1, 1, 1024);
+   dim3 tbd_qintbdry_frontright(16, 1, 1);
+   dim3 tbd_qintbdry_frontbottom(1, 16, 1);
+   dim3 tbd_qintbdry_bottomright(1, 1, 16);
 
    // Execution grid and threadblock configurations for the Predictor and Corrector microkernels
    dim3 egd_fluidadvance(SM_mult_FA_x * numberOfSMs, SM_mult_FA_y * numberOfSMs, SM_mult_FA_z * numberOfSMs);
