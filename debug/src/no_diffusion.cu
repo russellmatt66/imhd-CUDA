@@ -17,7 +17,7 @@
 #include "utils.hpp"
 
 int main(int argc, char* argv[]){
-   std::vector<float> inputs (32, 0.0);
+   std::vector<float> inputs (41, 0.0);
    parseInputFileDebug(inputs, "./debug.inp"); 
 	
 	for (int i = 0; i < inputs.size(); i++){
@@ -54,23 +54,36 @@ int main(int argc, char* argv[]){
 
    int init_xthreads = int(inputs[17]);
    int init_ythreads = int(inputs[18]);
-   int init_zthreads = int(inputs[19]);
+   int init_zthreads = int(inputs[26]);
    
    int FA_xthreads = int(inputs[20]);
    int FA_ythreads = int(inputs[21]);
    int FA_zthreads = int(inputs[22]);
 
-   int SM_mult_grid_x = int(inputs[23]);
-   int SM_mult_grid_y = int(inputs[24]);
-   int SM_mult_grid_z = int(inputs[25]);
+   int BCLeftRight_xthreads = int(inputs[23]);
+   int BCLeftRight_zthreads = int(inputs[24]);
 
-   int SM_mult_init_x = int(inputs[26]);
-   int SM_mult_init_y = int(inputs[27]);
-   int SM_mult_init_z = int(inputs[28]);
+   int BCTopBottom_ythreads = int(inputs[25]);
+   int BCTopBottom_zthreads = int(inputs[26]);
 
-   int SM_mult_FA_x = int(inputs[29]);
-   int SM_mult_FA_y = int(inputs[30]);
-   int SM_mult_FA_z = int(inputs[31]);
+   int PBC_xthreads = int(inputs[27]);
+   int PBC_ythreads = int(inputs[28]);
+
+   int QintBC_FrontRight_xthreads = int(inputs[29]);
+   int QintBC_FrontBottom_ythreads = int(inputs[30]);
+   int QintBC_BottomRight_zthreads = int(inputs[31]);
+
+   int SM_mult_grid_x = int(inputs[32]);
+   int SM_mult_grid_y = int(inputs[33]);
+   int SM_mult_grid_z = int(inputs[34]);
+
+   int SM_mult_init_x = int(inputs[35]);
+   int SM_mult_init_y = int(inputs[36]);
+   int SM_mult_init_z = int(inputs[37]);
+
+   int SM_mult_FA_x = int(inputs[38]);
+   int SM_mult_FA_y = int(inputs[39]);
+   int SM_mult_FA_z = int(inputs[40]);
 
    // CUDA BOILERPLATE 
    int deviceId;
@@ -131,12 +144,12 @@ int main(int argc, char* argv[]){
    dim3 egd_qintbdry_frontbottom(1, numberOfSMs, 1);
    dim3 egd_qintbdry_bottomright(1, 1, numberOfSMs);
    
-   dim3 tbd_bdry_leftright(8, 1, 8);
-   dim3 tbd_bdry_topbottom(1, 8, 8);
-   dim3 tbd_bdry_frontback(8, 8, 1); // can also be used for PBCs
-   dim3 tbd_qintbdry_frontright(16, 1, 1);
-   dim3 tbd_qintbdry_frontbottom(1, 16, 1);
-   dim3 tbd_qintbdry_bottomright(1, 1, 16);
+   dim3 tbd_bdry_leftright(BCLeftRight_xthreads, 1, BCLeftRight_zthreads);
+   dim3 tbd_bdry_topbottom(1, BCTopBottom_ythreads, BCTopBottom_zthreads);
+   dim3 tbd_bdry_frontback(PBC_xthreads, PBC_ythreads, 1); // can also be used for PBCs
+   dim3 tbd_qintbdry_frontright(QintBC_FrontRight_xthreads, 1, 1);
+   dim3 tbd_qintbdry_frontbottom(1, QintBC_FrontBottom_ythreads, 1);
+   dim3 tbd_qintbdry_bottomright(1, 1, QintBC_BottomRight_zthreads);
 
    // Execution grid and threadblock configurations for the Predictor and Corrector microkernels
    dim3 egd_fluidadvance(SM_mult_FA_x * numberOfSMs, SM_mult_FA_y * numberOfSMs, SM_mult_FA_z * numberOfSMs);
@@ -152,8 +165,8 @@ int main(int argc, char* argv[]){
    // InitializeX<<<egd_xgrid, tbd_xgrid>>>(x_grid, x_min, dx, Nx);
    // InitializeY<<<egd_ygrid, tbd_ygrid>>>(y_grid, y_min, dy, Ny);
    // InitializeZ<<<egd_zgrid, tbd_zgrid>>>(z_grid, z_min, dz, Nz);
-   ZeroVars<<<egd_init, tbd_init>>>(fluidvars, Nx, Ny, Nz); 
-   ZeroVars<<<egd_init, tbd_init>>>(intvars, Nx, Ny, Nz); 
+   // ZeroVars<<<egd_init, tbd_init>>>(fluidvars, Nx, Ny, Nz); 
+   // ZeroVars<<<egd_init, tbd_init>>>(intvars, Nx, Ny, Nz); 
    checkCuda(cudaDeviceSynchronize());
 
    /*
@@ -169,19 +182,16 @@ int main(int argc, char* argv[]){
    checkCuda(cudaDeviceSynchronize());
 
    /*
-   NOTE: For some reason the microkernels don't work here, have to use megakernel
-   */ 
+   NOTE: 
+   If you want to use microkernels here, you have to come up with an execution configuration set, and addtl. synchronization 
+   */
    ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntRhoMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntRhoVXMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntRhoVYMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntRhoVZMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntBXMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntBYMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntBZMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntEMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
+   /*
+   NOTE:
+   You DEFINITELY want to use microkernels here
+   */
    // ComputeIntermediateVariablesBoundaryNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz); 
    QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
@@ -194,42 +204,106 @@ int main(int argc, char* argv[]){
    QintBdryPBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
+   // // Use IPC to write data out in order to avoid redundant work 
+   // std::string shm_name_fluidvar = "/shared_h_fluidvar";
+   // int shm_fd = shm_open(shm_name_fluidvar.data(), O_CREAT | O_RDWR, 0666);
+   // if (shm_fd == -1) {
+   //    std::cerr << "Failed to create shared memory!" << std::endl;
+   //    return EXIT_FAILURE;
+   // }
+   
+   // ftruncate(shm_fd, fluid_data_size);
+   // float* shm_h_fluidvar = (float*)mmap(0, fluid_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+   // if (shm_h_fluidvar == MAP_FAILED) {
+   //    std::cerr << "mmap failed!" << std::endl;
+   //    return EXIT_FAILURE;
+   // }
+
+   // std::cout << "Transferring device data to host" << std::endl;
+   // cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);
+   // checkCuda(cudaDeviceSynchronize());
+
+   // std::string filename_fluidvar = path_to_data + "fluidvars_0.h5";
+
+   // std::cout << "Writing Screw-Pinch ICs out with PHDF5" << std::endl;
+   // int ret = callBinary_PHDF5Write(filename_fluidvar, Nx, Ny, Nz, shm_name_fluidvar, fluid_data_size, num_proc, phdf5_bin_name); 
+   // if (ret != 0) {
+   //      std::cerr << "Error executing PHDF5 command" << std::endl;
+   // }
+
+   // std::cout << "Writing attributes to the dataset with HDF5" << std::endl;
+   // ret = callBinary_AttrWrite(filename_fluidvar, Nx, Ny, Nz, attr_bin_name); // inadvisable to write attributes in a PHDF5 context
+   // if (ret != 0) {
+   //      std::cerr << "Error executing attribute command" << std::endl;
+   // }
+
+   // // COMPUTE STABILITY CRITERION
+   // // First, transfer grid data
+   // std::string shm_name_gridx = "/shared_h_gridx";
+   // shm_fd = shm_open(shm_name_gridx.data(), O_CREAT | O_RDWR, 0666);
+   // ftruncate(shm_fd, sizeof(float) * Nx);
+   // float* shm_h_gridx = (float*)mmap(0, sizeof(float) * Nx, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+   // if (shm_h_gridx == MAP_FAILED) {
+   //    std::cerr << "mmap failed for grid_x!" << std::endl;
+   //    return EXIT_FAILURE;
+   // }
+   // cudaMemcpy(shm_h_gridx, x_grid, sizeof(float) * Nx, cudaMemcpyDeviceToHost);
+
+   // std::string shm_name_gridy = "/shared_h_gridy";
+   // shm_fd = shm_open(shm_name_gridy.data(), O_CREAT | O_RDWR, 0666);
+   // ftruncate(shm_fd, sizeof(float) * Ny);
+   // float* shm_h_gridy = (float*)mmap(0, sizeof(float) * Ny, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+   // if (shm_h_gridy == MAP_FAILED) {
+   //    std::cerr << "mmap failed for grid_y!" << std::endl;
+   //    return EXIT_FAILURE;
+   // }
+   // cudaMemcpy(shm_h_gridy, y_grid, sizeof(float) * Ny, cudaMemcpyDeviceToHost);
+
+   // std::string shm_name_gridz = "/shared_h_gridz";
+   // shm_fd = shm_open(shm_name_gridz.data(), O_CREAT | O_RDWR, 0666);
+   // ftruncate(shm_fd, sizeof(float) * Nz);
+   // float* shm_h_gridz = (float*)mmap(0, sizeof(float) * Nz, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+   // if (shm_h_gridz == MAP_FAILED) {
+   //    std::cerr << "mmap failed for grid_z!" << std::endl;
+   //    return EXIT_FAILURE;
+   // }
+   // cudaMemcpy(shm_h_gridz, z_grid, sizeof(float) * Nz, cudaMemcpyDeviceToHost);
+   // checkCuda(cudaDeviceSynchronize());
+
+   // std::cout << "Forking to process for writing grid to storage" << std::endl;
+   // ret = callBinary_WriteGrid(write_grid_bin_name, path_to_data, shm_name_gridx, shm_name_gridy, shm_name_gridz, Nx, Ny, Nz);
+   // if (ret != 0) {
+   //       std::cerr << "Error executing writegrid binary: " << eigen_bin_name << std::endl;
+   // }
+
+   // if (!(eigen_bin_name == "none")){ // Don't always want to check stability - expensive raster scan
+   //    std::cout << "Forking to process for computing CFL number (checking stability)" << std::endl;
+   //    ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
+   //    if (ret != 0) {
+   //       std::cerr << "Error executing Eigen binary: " << eigen_bin_name << std::endl;
+   //       std::cerr << "Error code: " << ret << std::endl;
+   //    }
+   // }
+
    // SIMULATION LOOP
    for (int it = 1; it < Nt; it++){
       std::cout << "Starting timestep " << it << std::endl;
 
-      std::cout << "Launching microkernels for computing fluid variables" << std::endl;
-      // FluidAdvanceLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroRhoLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroRhoVXLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroRhoVYLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroRhoVZLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroBXLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroBYLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroBZLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      FluidAdvanceMicroELocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      std::cout << "Launching megakernel for computing fluid variables" << std::endl;
+      FluidAdvanceLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       
-      std::cout << "Launching microkernels for computing the fluid boundaries" << std::endl; 
-      // BoundaryConditionsNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      std::cout << "Launching microkernel for PBCs" << std::endl; 
       PBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       std::cout << "Kernels for computing fluid variables completed" << std::endl;
       
-      std::cout << "Launching microkernels for computing intermediate variables" << std::endl; 
-      // ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntRhoMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntRhoVXMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntRhoVYMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntRhoVZMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntBXMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntBYMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntBZMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ComputeIntEMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      std::cout << "Launching megakernel for computing intermediate variables" << std::endl; 
+      /* NOTE: Thrashes the cache */
+      ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
 
       std::cout << "Launching microkernels for computing Qint boundaries" << std::endl; 
-      // ComputeIntermediateVariablesBoundaryNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz); // Hella slow b/c megakernel
       QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       QintBdryTopBottomNoDiff<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
@@ -242,6 +316,29 @@ int main(int argc, char* argv[]){
       QintBdryPBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());    
 
+      // std::cout << "Transferring updated fluid data to host" << std::endl;
+      // cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);
+      // checkCuda(cudaDeviceSynchronize());
+      // std::cout << "Kernels for computing intermediate variables completed" << std::endl;
+      // std::cout << "Fluid D2H data migration completed" << std::endl;
+
+      // std::cout << "Writing updated fluid data out" << std::endl;
+      // filename_fluidvar = path_to_data + "fluidvars_" + std::to_string(it) + ".h5";
+      // ret = callBinary_PHDF5Write(filename_fluidvar, Nx, Ny, Nz, shm_name_fluidvar, fluid_data_size, num_proc, phdf5_bin_name);
+      // if (ret != 0) {
+      //    std::cerr << "Error forking PHDF5Write binary on timestep " << std::to_string(it) << std::endl;
+      // }  
+
+      // std::cout << "Timestep " << it << " complete" << std::endl;
+
+      // if (!(eigen_bin_name == "none")){ // Don't always want to check stability - expensive raster scan
+      //    std::cout << "Forking to process for computing CFL number (checking stability)" << std::endl;
+      //    ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
+      //    if (ret != 0) {
+      //       std::cerr << "Error executing Eigen binary: " << eigen_bin_name << std::endl;
+      //       std::cerr << "Error code: " << ret << std::endl;
+      //    }
+      // }  
    } 
 
    // FREE EVERYTHING
@@ -251,5 +348,15 @@ int main(int argc, char* argv[]){
    checkCuda(cudaFree(x_grid));
    checkCuda(cudaFree(y_grid));
    checkCuda(cudaFree(z_grid));
+   
+   // Host
+   // munmap(shm_h_fluidvar, 8 * fluid_data_size);
+   // munmap(shm_h_gridx, sizeof(float) * Nx);
+   // munmap(shm_h_gridy, sizeof(float) * Ny);
+   // munmap(shm_h_gridz, sizeof(float) * Nz);
+   // shm_unlink(shm_name_fluidvar.data());
+   // shm_unlink(shm_name_gridx.data());
+   // shm_unlink(shm_name_gridy.data());
+   // shm_unlink(shm_name_gridz.data());
    return 0;
 }

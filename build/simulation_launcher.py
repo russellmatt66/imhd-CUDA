@@ -24,7 +24,9 @@ mode = sys.argv[1]
 driver = ''
 input_file = './on-device/input.inp'
 
-if mode == "nodiff-mega": # launch w/out diffusion, using megakernels for qint bdry
+if mode == 'nodiff':
+    driver = './on-device/imhd-cuda_nodiff'
+elif mode == "nodiff-mega": # launch w/out diffusion, using megakernels for qint bdry
     driver = './on-device/imhd-cuda_nodiff_qintmega'
     # input_file = './on-device/input_nodiff.inp'
 elif mode == "nodiff-micro": # launch w/out diffusion, using microkernels for qint bdry

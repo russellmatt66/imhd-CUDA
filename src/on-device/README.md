@@ -10,6 +10,7 @@ This is where the source code for the on-device runtime goes.
 `no_diffusion.cu` 
 - Runtime for the simulation that uses megakernels for Fluid/Qint advance, and microkernels for Fluid/Qint BCs.
 - This is the optimal form for the runtime. See below for explanation. 
+- Recommended to use this runtime.
 
 `no_diffusion_mega`
 - Runtime for the simulation that uses megakernels for everything.

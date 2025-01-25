@@ -53,17 +53,17 @@ int main(int argc, char* argv[]){
    int FA_ythreads = atoi(argv[28]);
    int FA_zthreads = atoi(argv[29]);
 
-   int SM_mult_grid_x = atoi(argv[30]);
-   int SM_mult_grid_y = atoi(argv[31]);
-   int SM_mult_grid_z = atoi(argv[32]);
+   int SM_mult_grid_x = atoi(argv[39]);
+   int SM_mult_grid_y = atoi(argv[40]);
+   int SM_mult_grid_z = atoi(argv[41]);
 
-   int SM_mult_init_x = atoi(argv[33]);
-   int SM_mult_init_y = atoi(argv[34]);
-   int SM_mult_init_z = atoi(argv[35]);
+   int SM_mult_init_x = atoi(argv[42]);
+   int SM_mult_init_y = atoi(argv[43]);
+   int SM_mult_init_z = atoi(argv[44]);
 
-   int SM_mult_FA_x = atoi(argv[36]);
-   int SM_mult_FA_y = atoi(argv[37]);
-   int SM_mult_FA_z = atoi(argv[38]);
+   int SM_mult_FA_x = atoi(argv[45]);
+   int SM_mult_FA_y = atoi(argv[46]);
+   int SM_mult_FA_z = atoi(argv[47]);
 
    // CUDA BOILERPLATE 
    int deviceId;
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]){
    TODO: "ScrewPinch" doesn't work
    */ 
    // ScrewPinch<<<egd_init, tbd_init>>>(fluidvars, J0, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   ScrewPinchLoop<<<egd_init, tbd_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   ScrewPinchStride<<<egd_init, tbd_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
    rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);

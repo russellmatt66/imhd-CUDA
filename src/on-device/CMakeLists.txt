@@ -33,6 +33,7 @@ add_library(intvarbcs_lib ${PROJECT_ROOT}/lib/on-device/kernels_intvarbcs.cu)
 add_library(utils_lib ${PROJECT_ROOT}/lib/on-device/utils/utils.cpp)
 
 add_executable(imhd-cuda main.cu)
+add_executable(imhd-cuda_nodiff no_diffusion.cu)
 add_executable(imhd-cuda_nodiff_qintmega no_diffusion_mega.cu)
 add_executable(imhd-cuda_nodiff_qintmicro no_diffusion_micro.cu)
 
@@ -44,6 +45,7 @@ target_link_libraries(kernels_od_lib PRIVATE fluxes_lib diffusion_lib helper_lib
 target_link_libraries(fluidbcs_lib PRIVATE kernels_od_lib)
 target_link_libraries(intvarbcs_lib PRIVATE intvar_od_lib)
 target_link_libraries(imhd-cuda PRIVATE kernels_od_lib fluidbcs_lib initialize_od_lib intvar_od_lib intvarbcs_lib utils_lib)
+target_link_libraries(imhd-cuda_nodiff PRIVATE kernels_od_lib fluidbcs_lib initialize_od_lib intvar_od_lib intvarbcs_lib utils_lib)
 target_link_libraries(imhd-cuda_nodiff_qintmega PRIVATE kernels_od_lib fluidbcs_lib initialize_od_lib intvar_od_lib intvarbcs_lib utils_lib)
 target_link_libraries(imhd-cuda_nodiff_qintmicro PRIVATE kernels_od_lib fluidbcs_lib initialize_od_lib intvar_od_lib intvarbcs_lib utils_lib)
 
@@ -56,10 +58,15 @@ set_target_properties(initialize_od_lib PROPERTIES CUDA_ARCHITECTURES 75)
 set_target_properties(intvar_od_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(intvarbcs_lib PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(imhd-cuda PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
+set_target_properties(imhd-cuda_nodiff PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(imhd-cuda_nodiff_qintmega PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(imhd-cuda_nodiff_qintmicro PROPERTIES CUDA_ARCHITECTURES 75 CUDA_SEPARABLE_COMPILATION ON)
 
 # Observe register pressure
+target_compile_options(initialize_od_lib PRIVATE
+    $<$<COMPILE_LANGUAGE:CUDA>:--ptxas-options=-v>
+)   
+
 target_compile_options(kernels_od_lib PRIVATE 
     $<$<COMPILE_LANGUAGE:CUDA>:--ptxas-options=-v>
 )

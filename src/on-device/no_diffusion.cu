@@ -53,17 +53,30 @@ int main(int argc, char* argv[]){
    int FA_ythreads = atoi(argv[28]);
    int FA_zthreads = atoi(argv[29]);
 
-   int SM_mult_grid_x = atoi(argv[30]);
-   int SM_mult_grid_y = atoi(argv[31]);
-   int SM_mult_grid_z = atoi(argv[32]);
+   int BCLeftRight_xthreads = atoi(argv[30]);
+   int BCLeftRight_zthreads = atoi(argv[31]);
 
-   int SM_mult_init_x = atoi(argv[33]);
-   int SM_mult_init_y = atoi(argv[34]);
-   int SM_mult_init_z = atoi(argv[35]);
+   int BCTopBottom_ythreads = atoi(argv[32]);
+   int BCTopBottom_zthreads = atoi(argv[33]);
 
-   int SM_mult_FA_x = atoi(argv[36]);
-   int SM_mult_FA_y = atoi(argv[37]);
-   int SM_mult_FA_z = atoi(argv[38]);
+   int PBC_xthreads = atoi(argv[34]);
+   int PBC_ythreads = atoi(argv[35]);
+
+   int QintBC_FrontRight_xthreads = atoi(argv[36]);
+   int QintBC_FrontBottom_ythreads = atoi(argv[37]);
+   int QintBC_BottomRight_zthreads = atoi(argv[38]);
+
+   int SM_mult_grid_x = atoi(argv[39]);
+   int SM_mult_grid_y = atoi(argv[40]);
+   int SM_mult_grid_z = atoi(argv[41]);
+
+   int SM_mult_init_x = atoi(argv[42]);
+   int SM_mult_init_y = atoi(argv[43]);
+   int SM_mult_init_z = atoi(argv[44]);
+
+   int SM_mult_FA_x = atoi(argv[45]);
+   int SM_mult_FA_y = atoi(argv[46]);
+   int SM_mult_FA_z = atoi(argv[47]);
 
    // CUDA BOILERPLATE 
    int deviceId;
@@ -124,12 +137,12 @@ int main(int argc, char* argv[]){
    dim3 egd_qintbdry_frontbottom(1, numberOfSMs, 1);
    dim3 egd_qintbdry_bottomright(1, 1, numberOfSMs);
    
-   dim3 tbd_bdry_leftright(8, 1, 8);
-   dim3 tbd_bdry_topbottom(1, 8, 8);
-   dim3 tbd_bdry_frontback(8, 8, 1); // can also be used for PBCs
-   dim3 tbd_qintbdry_frontright(1024, 1, 1);
-   dim3 tbd_qintbdry_frontbottom(1, 1024, 1);
-   dim3 tbd_qintbdry_bottomright(1, 1, 1024);
+   dim3 tbd_bdry_leftright(BCLeftRight_xthreads, 1, BCLeftRight_zthreads);
+   dim3 tbd_bdry_topbottom(1, BCTopBottom_ythreads, BCTopBottom_zthreads);
+   dim3 tbd_bdry_frontback(PBC_xthreads, PBC_ythreads, 1); // can also be used for PBCs
+   dim3 tbd_qintbdry_frontright(QintBC_FrontRight_xthreads, 1, 1);
+   dim3 tbd_qintbdry_frontbottom(1, QintBC_FrontBottom_ythreads, 1);
+   dim3 tbd_qintbdry_bottomright(1, 1, QintBC_BottomRight_zthreads);
 
    // Execution grid and threadblock configurations for the Predictor and Corrector microkernels
    dim3 egd_fluidadvance(SM_mult_FA_x * numberOfSMs, SM_mult_FA_y * numberOfSMs, SM_mult_FA_z * numberOfSMs);
@@ -145,15 +158,15 @@ int main(int argc, char* argv[]){
    // InitializeX<<<egd_xgrid, tbd_xgrid>>>(x_grid, x_min, dx, Nx);
    // InitializeY<<<egd_ygrid, tbd_ygrid>>>(y_grid, y_min, dy, Ny);
    // InitializeZ<<<egd_zgrid, tbd_zgrid>>>(z_grid, z_min, dz, Nz);
-   ZeroVars<<<egd_init, tbd_init>>>(fluidvars, Nx, Ny, Nz); 
-   ZeroVars<<<egd_init, tbd_init>>>(intvars, Nx, Ny, Nz); 
+   // ZeroVars<<<egd_init, tbd_init>>>(fluidvars, Nx, Ny, Nz); 
+   // ZeroVars<<<egd_init, tbd_init>>>(intvars, Nx, Ny, Nz); 
    checkCuda(cudaDeviceSynchronize());
 
    /*
    TODO: "ScrewPinch" doesn't work
    */ 
-   ScrewPinch<<<egd_init, tbd_init>>>(fluidvars, J0, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   // ScrewPinchStride<<<egd_init, tbd_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   // ScrewPinch<<<egd_init, tbd_init>>>(fluidvars, J0, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   ScrewPinchStride<<<egd_init, tbd_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
    rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
@@ -166,14 +179,6 @@ int main(int argc, char* argv[]){
    If you want to use microkernels here, you have to come up with an execution configuration set, and addtl. synchronization 
    */
    ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntRhoMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntRhoVXMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntRhoVYMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntRhoVZMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntBXMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntBYMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntBZMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   // ComputeIntEMicroLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
    /*
@@ -287,6 +292,7 @@ int main(int argc, char* argv[]){
       std::cout << "Kernels for computing fluid variables completed" << std::endl;
       
       std::cout << "Launching megakernel for computing intermediate variables" << std::endl; 
+      /* NOTE: Thrashes the cache */
       ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
 
