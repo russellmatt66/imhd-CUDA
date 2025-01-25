@@ -60,17 +60,17 @@ int main(int argc, char* argv[]){
    int FA_ythreads = int(inputs[21]);
    int FA_zthreads = int(inputs[22]);
 
-   int SM_mult_grid_x = int(inputs[23]);
-   int SM_mult_grid_y = int(inputs[24]);
-   int SM_mult_grid_z = int(inputs[25]);
+   int SM_mult_grid_x = int(inputs[32]);
+   int SM_mult_grid_y = int(inputs[33]);
+   int SM_mult_grid_z = int(inputs[34]);
 
-   int SM_mult_init_x = int(inputs[26]);
-   int SM_mult_init_y = int(inputs[27]);
-   int SM_mult_init_z = int(inputs[28]);
+   int SM_mult_init_x = int(inputs[35]);
+   int SM_mult_init_y = int(inputs[36]);
+   int SM_mult_init_z = int(inputs[37]);
 
-   int SM_mult_FA_x = int(inputs[29]);
-   int SM_mult_FA_y = int(inputs[30]);
-   int SM_mult_FA_z = int(inputs[31]);
+   int SM_mult_FA_x = int(inputs[38]);
+   int SM_mult_FA_y = int(inputs[39]);
+   int SM_mult_FA_z = int(inputs[40]);
 
    // CUDA BOILERPLATE 
    int deviceId;

@@ -40,13 +40,6 @@ int main(int argc, char* argv[]){
    float z_min = inputs[11];
    float z_max = inputs[12];
    float dt = inputs[13];
-   
-   // std::string path_to_data = argv[15];
-   // std::string phdf5_bin_name = argv[16];
-   // std::string attr_bin_name = argv[17];
-   // std::string write_grid_bin_name = argv[18];
-   // std::string eigen_bin_name = argv[19];
-   // std::string num_proc = argv[20];
 
    int xgrid_threads = int(inputs[14]);
    int ygrid_threads = int(inputs[15]);
@@ -54,7 +47,7 @@ int main(int argc, char* argv[]){
 
    int init_xthreads = int(inputs[17]);
    int init_ythreads = int(inputs[18]);
-   int init_zthreads = int(inputs[26]);
+   int init_zthreads = int(inputs[19]);
    
    int FA_xthreads = int(inputs[20]);
    int FA_ythreads = int(inputs[21]);
