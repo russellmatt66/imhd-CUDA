@@ -6,7 +6,21 @@
 /* THIS NEEDS TO BE DEFINED A SINGLE TIME IN A SINGLE PLACE */
 #define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx) * (Ny) + (i) * (Ny) + j)
 
+/* 
+REGISTER PRESSURES: (registers per thread)
+QintBdryBottomRightNoDiff=48
+QintBdryFrontBottomNoDiff=34
+QintBdryFrontRightNoDiff=34
+QintBdryTopBottomNoDiff=40
+QintBdryLeftRightNoDiff=40
+QintBdryPBCs=28
+QintBdryFrontNoDiff=26
+ComputeIntermediateVariablesBoundary=50
+ComputeIntermediateVariablesBoundaryNoDiff=50
+*/
+
 // Megakernels that suffer from thread divergence
+// 50 registers per thread
 __global__ void ComputeIntermediateVariablesBoundaryNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -159,6 +173,7 @@ __global__ void ComputeIntermediateVariablesBoundaryNoDiff(const float* fluidvar
     }
 
 /* ADD DIFFUSION */
+// 50 registers per thread
 __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, float* intvar,
     const float D, const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -341,6 +356,7 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
     }
 
 // Microkernels to eliminate the problem of thread divergence in the megakernels that make them a bottleneck
+// 26 registers per thread
 __global__ void QintBdryFrontNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -363,6 +379,7 @@ __global__ void QintBdryFrontNoDiff(const float* fluidvar, float* intvar,
         return;
     }
 
+// 28 registers per thread
 __global__ void QintBdryPBCs(const float* fluidvar, float* intvar,
     const int Nx, const int Ny, const int Nz)
     {
@@ -381,6 +398,7 @@ __global__ void QintBdryPBCs(const float* fluidvar, float* intvar,
     }
 
 // Can deal with Left and Right faces at the same time
+// 40 registers per thread
 __global__ void QintBdryLeftRightNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -422,6 +440,7 @@ __global__ void QintBdryLeftRightNoDiff(const float* fluidvar, float* intvar,
 }
 
 // Can deal with Top and Bottom Faces at the same time
+// 40 registers per thread
 __global__ void QintBdryTopBottomNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -462,6 +481,7 @@ __global__ void QintBdryTopBottomNoDiff(const float* fluidvar, float* intvar,
     return;
 }
 
+// 34 registers per thread
 __global__ void QintBdryFrontRightNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -485,6 +505,7 @@ __global__ void QintBdryFrontRightNoDiff(const float* fluidvar, float* intvar,
     return;
 } 
 
+// 34 registers per thread
 __global__ void QintBdryFrontBottomNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz) 
@@ -508,6 +529,7 @@ __global__ void QintBdryFrontBottomNoDiff(const float* fluidvar, float* intvar,
     return;
 }
 
+// 48 registers per thread
 __global__ void QintBdryBottomRightNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)

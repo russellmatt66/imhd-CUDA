@@ -11,14 +11,73 @@
 #define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx) * (Ny) + (i) * (Ny) + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
 /* 
-Here is what the storage pattern looks like:
+NOTE:
+Based on the above macro, this is what the storage pattern looks like:
 fluidvar -> [rho_{000}, rho_{010}, rho_{020}, ..., rho_{0,Ny-1,0}, rho_{100}, ..., rho_{Nx-1,Ny-1,Nz-1}, rhov_x_{000}, rhov_x_{010}, ... , e_{Nx-1,Ny-1,Nz-1}]
+*/
+
+/* 
+REGISTER PRESSURES: (registers per thread)
+FluidAdvance=88
+FluidAdvanceLocal=255
+FluidAdvanceLocalNoDiff=160
+FluidAdvanceMicroRhoLocalNoDiff=32
+FluidAdvanceMicroRhoVXLocalNoDiff=66
+FluidAdvanceMicroRhoVYLocalNoDiff=72
+FluidAdvanceMicroRhoVZLocalNoDiff=72
+FluidAdvanceMicroBXLocalNoDiff=56
+FluidAdvanceMicroBYLocalNoDiff=50
+FluidAdvanceMicroBZLocalNoDiff=50
+FluidAdvanceMicroELocalNoDiff=90
+
+
 */
 
 // Megakernels
 // FluidAdvance uses kernels that thrash the cache, very badly
-// FluidAdvance2 uses kernels that thrash the cache, less badly
 // FluidAdvanceLocal uses kernels that do not thrash the cache, but it puts a lot of pressure on the registers
+// FluidAdvance2 uses kernels that thrash the cache, less badly
+
+// 88 registers per thread
+__global__ void FluidAdvance(float* fluidvar, const float* intvar, 
+    const float D, const float dt, const float dx, const float dy, const float dz, 
+    const int Nx, const int Ny, const int Nz)
+    {
+        int tidx = threadIdx.x + blockDim.x * blockIdx.x; 
+        int tidy = threadIdx.y + blockDim.y * blockIdx.y;
+        int tidz = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int xthreads = blockDim.x * gridDim.x;
+        int ythreads = blockDim.y * gridDim.y;
+        int zthreads = blockDim.z * gridDim.z;
+
+        int cube_size = Nx * Ny * Nz;
+
+        for (int k = tidz + 1; k < Nz - 1; k += zthreads){
+            for (int i = tidx + 1; i < Nx - 1; i += xthreads){
+                for (int j = tidy + 1; j < Ny - 1; j += ythreads){
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRho(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 0, Nx, Ny, Nz); // rho
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] =  LaxWendroffAdvRhoVX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 1, Nx, Ny, Nz); // rhov_x
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] =  LaxWendroffAdvRhoVY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 2, Nx, Ny, Nz); // rhov_y
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] =  LaxWendroffAdvRhoVZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 3, Nx, Ny, Nz); // rhov_z
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] =  LaxWendroffAdvBX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 4, Nx, Ny, Nz); // Bx
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] =  LaxWendroffAdvBY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 5, Nx, Ny, Nz); // By 
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] =  LaxWendroffAdvBZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 6, Nx, Ny, Nz); // Bz
+                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] =  LaxWendroffAdvE(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
+                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 7, Nx, Ny, Nz); // e
+                }
+            }
+        }
+        return;
+    }
+
 // 255 registers per thread 
 __global__ void FluidAdvanceLocal(float* fluidvar, const float* intvar, 
     const float D, const float dt, const float dx, const float dy, const float dz,
@@ -290,6 +349,7 @@ __global__ void FluidAdvanceLocal(float* fluidvar, const float* intvar,
         return;
     }
 
+// 160 registers per thread
 __global__ void FluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -464,47 +524,8 @@ __global__ void FluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar,
         return;
     }
 
-// 88 registers per thread
-__global__ void FluidAdvance(float* fluidvar, const float* intvar, 
-    const float D, const float dt, const float dx, const float dy, const float dz, 
-    const int Nx, const int Ny, const int Nz)
-    {
-        int tidx = threadIdx.x + blockDim.x * blockIdx.x; 
-        int tidy = threadIdx.y + blockDim.y * blockIdx.y;
-        int tidz = threadIdx.z + blockDim.z * blockIdx.z;
-
-        int xthreads = blockDim.x * gridDim.x;
-        int ythreads = blockDim.y * gridDim.y;
-        int zthreads = blockDim.z * gridDim.z;
-
-        int cube_size = Nx * Ny * Nz;
-
-        for (int k = tidz + 1; k < Nz - 1; k += zthreads){
-            for (int i = tidx + 1; i < Nx - 1; i += xthreads){
-                for (int j = tidy + 1; j < Ny - 1; j += ythreads){
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = LaxWendroffAdvRho(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 0, Nx, Ny, Nz); // rho
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] =  LaxWendroffAdvRhoVX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 1, Nx, Ny, Nz); // rhov_x
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] =  LaxWendroffAdvRhoVY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 2, Nx, Ny, Nz); // rhov_y
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] =  LaxWendroffAdvRhoVZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 3, Nx, Ny, Nz); // rhov_z
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] =  LaxWendroffAdvBX(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 4, Nx, Ny, Nz); // Bx
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] =  LaxWendroffAdvBY(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 5, Nx, Ny, Nz); // By 
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] =  LaxWendroffAdvBZ(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 6, Nx, Ny, Nz); // Bz
-                    fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] =  LaxWendroffAdvE(i, j, k, fluidvar, intvar, dt, dx, dy, dz, Nx, Ny, Nz) 
-                                                                + dt * numericalDiffusion(i, j, k, intvar, D, dx, dy, dz, 7, Nx, Ny, Nz); // e
-                }
-            }
-        }
-        return;
-    }
-
 // Microkernels 
+// 32 registers per thread
 __global__ void FluidAdvanceMicroRhoLocalNoDiff(float* fluidvar, const float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -548,6 +569,7 @@ __global__ void FluidAdvanceMicroRhoLocalNoDiff(float* fluidvar, const float* in
         return;
     }
 
+// 66 registers per thread
 __global__ void FluidAdvanceMicroRhoVXLocalNoDiff(float* fluidvar, const float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -628,6 +650,7 @@ __global__ void FluidAdvanceMicroRhoVXLocalNoDiff(float* fluidvar, const float* 
         return;
     }
 
+// 72 registers per thread
 __global__ void FluidAdvanceMicroRhoVYLocalNoDiff(float* fluidvar, const float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -711,6 +734,7 @@ __global__ void FluidAdvanceMicroRhoVYLocalNoDiff(float* fluidvar, const float* 
         return;
     }
 
+// 72 registers per thread
 __global__ void FluidAdvanceMicroRhoVZLocalNoDiff(float* fluidvar, const float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -810,6 +834,7 @@ __global__ void FluidAdvanceMicroRhoVZLocalNoDiff(float* fluidvar, const float* 
         return;
     }
 
+// 56 registers per thread
 __global__ void FluidAdvanceMicroBXLocalNoDiff(float* fluidvar, const float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -890,6 +915,7 @@ __global__ void FluidAdvanceMicroBXLocalNoDiff(float* fluidvar, const float* int
         return;
     }
 
+// 50 registers per thread
 __global__ void FluidAdvanceMicroBYLocalNoDiff(float* fluidvar, const float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -970,6 +996,7 @@ __global__ void FluidAdvanceMicroBYLocalNoDiff(float* fluidvar, const float* int
         return;
     }
 
+// 50 registers per thread
 __global__ void FluidAdvanceMicroBZLocalNoDiff(float* fluidvar, const float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -1050,6 +1077,7 @@ __global__ void FluidAdvanceMicroBZLocalNoDiff(float* fluidvar, const float* int
         return;
     }
 
+// 90 registers per thread
 __global__ void FluidAdvanceMicroELocalNoDiff(float* fluidvar, const float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)

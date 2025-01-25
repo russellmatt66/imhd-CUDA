@@ -13,6 +13,15 @@
 #define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx) * (Ny) + (i) * (Ny) + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
 /* 
+REGISTER PRESSURES: (registers per thread)
+BoundaryConditions=74
+BoundaryConditionsNoDiff=40
+rigidConductingWallBCsLeftRight=30
+rigidConductingWallBCsTopBottom=30
+PBCs=28
+*/
+
+/* 
 NOTE:
 This is a  really ugly MVP
 It's still here because it works and serves as a reference
@@ -225,6 +234,7 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
     return;
 }
 
+// 40 registers per thread
 __global__ void BoundaryConditionsNoDiff(float* fluidvar, const float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -422,6 +432,7 @@ __global__ void BoundaryConditionsNoDiff(float* fluidvar, const float* intvar,
     return;
 }
 
+// 30 registers per thread 
 __global__ void rigidConductingWallBCsLeftRight(float* fluidvar, const int Nx, const int Ny, const int Nz){
     int i = threadIdx.x + blockDim.x * blockIdx.x;
     int k = threadIdx.z + blockDim.z * blockIdx.z;
@@ -452,6 +463,7 @@ __global__ void rigidConductingWallBCsLeftRight(float* fluidvar, const int Nx, c
     return;
 }
 
+// 30 registers per thread
 __global__ void rigidConductingWallBCsTopBottom(float* fluidvar, const int Nx, const int Ny, const int Nz){
     int j = threadIdx.x + blockDim.x * blockIdx.x;
     int k = threadIdx.z + blockDim.z * blockIdx.z;
@@ -482,6 +494,7 @@ __global__ void rigidConductingWallBCsTopBottom(float* fluidvar, const int Nx, c
     return;
 }
 
+// 28 registers per thread
 __global__ void PBCs(float* fluidvar, const int Nx, const int Ny, const int Nz)
 {
     int i = threadIdx.x + blockDim.x * blockIdx.x;

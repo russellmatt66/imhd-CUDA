@@ -105,7 +105,7 @@ int main(int argc, char* argv[]){
    ScrewPinchLoop<<<exec_grid_dims, init_block_dims>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
-   ComputeIntermediateVariablesLoop<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+   ComputeIntermediateVariablesStride<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
    
    ComputeIntermediateVariablesBoundary<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
@@ -206,7 +206,7 @@ int main(int argc, char* argv[]){
       std::cout << "Kernels for computing fluid variables completed" << std::endl;
       
       std::cout << "Launching kernel for computing intermediate variables" << std::endl; 
-      ComputeIntermediateVariablesLoop<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
+      ComputeIntermediateVariablesStride<<<exec_grid_dims_intvar, intvar_block_dims>>>(fluidvars, intvars, D, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
 
       std::cout << "Launching kernels for computing intermediate boundaries" << std::endl; 

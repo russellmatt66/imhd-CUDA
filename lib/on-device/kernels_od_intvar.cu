@@ -9,6 +9,22 @@
 /* THIS SHOULD BE DEFINED A SINGLE TIME IN A SINGLE PLACE */
 #define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx) * (Ny) + (i) * (Ny) + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
+/* 
+REGISTER PRESSURES: (registers per thread)
+ComputeIntVarsLocalNoDiff=4 (incomplete)
+ComputeIntermediateVariablesNoDiff=42
+ComputeIntermediateVariablesStrideNoDiff=80
+ComputeIntermediateVariablesStride=74
+ComputeIntRhoMicroLocalNoDiff=28
+ComputeIntRhoVXMicroLocalNoDiff=64
+ComputeIntRhoVYMicroLocalNoDiff=64
+ComputeIntRhoVZMicroLocalNoDiff=64
+ComputeIntBXMicroLocalNoDiff=48
+ComputeIntBYMicroLocalNoDiff=36
+ComputeIntBZMicroLocalNoDiff=38
+ComputeIntEMicroLocalNoDiff=90
+
+*/
 // MEGAKERNELS
 /* TODO: Megakernel that uses large amounts of registers to avoid thrashing the cache */
 __global__ void ComputeIntVarsLocalNoDiff(const float* fluidvar, float* intvar,
@@ -31,6 +47,7 @@ __global__ void ComputeIntVarsLocalNoDiff(const float* fluidvar, float* intvar,
     }
 
 // Thrashes the cache
+// 42 registers per thread
 __global__ void ComputeIntermediateVariablesNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -56,9 +73,9 @@ __global__ void ComputeIntermediateVariablesNoDiff(const float* fluidvar, float*
         return;
     }
 
-// Thrashes the cache and uses loops
-// Uses loops
-__global__ void ComputeIntermediateVariablesLoopNoDiff(const float* fluidvar, float* intvar,
+// Thrashes the cache
+// 80 registers per thread
+__global__ void ComputeIntermediateVariablesStrideNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
@@ -92,10 +109,8 @@ __global__ void ComputeIntermediateVariablesLoopNoDiff(const float* fluidvar, fl
     }
 
 // 74 registers per thread
-// Uses loops
-// Adds diffusion
 /* DIFFUSION NOT VERIFIED */
-__global__ void ComputeIntermediateVariablesLoop(const float* fluidvar, float* intvar,
+__global__ void ComputeIntermediateVariablesStride(const float* fluidvar, float* intvar,
     const float D, const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
@@ -143,6 +158,7 @@ NOTE:
 These DO NOT work for initializing solver. 
 I DO NOT know why.
 */
+// 28 registers per thread
 __global__ void ComputeIntRhoMicroLocalNoDiff(const float* fluidvar, float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -226,6 +242,7 @@ __global__ void ComputeIntRhoMicroLocalNoDiff(const float* fluidvar, float* intv
         return;
     }
 
+// 64 registers per thread
 __global__ void ComputeIntRhoVXMicroLocalNoDiff(const float* fluidvar, float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -340,6 +357,7 @@ __global__ void ComputeIntRhoVXMicroLocalNoDiff(const float* fluidvar, float* in
         return;
     }
 
+// 64 registers per thread
 __global__ void ComputeIntRhoVYMicroLocalNoDiff(const float* fluidvar, float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -452,6 +470,7 @@ __global__ void ComputeIntRhoVYMicroLocalNoDiff(const float* fluidvar, float* in
         return;
     }
 
+// 64 registers per thread
 __global__ void ComputeIntRhoVZMicroLocalNoDiff(const float* fluidvar, float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -564,6 +583,7 @@ __global__ void ComputeIntRhoVZMicroLocalNoDiff(const float* fluidvar, float* in
         return;
     }
 
+// 48 registers per thread
 __global__ void ComputeIntBXMicroLocalNoDiff(const float* fluidvar, float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -671,6 +691,7 @@ __global__ void ComputeIntBXMicroLocalNoDiff(const float* fluidvar, float* intva
         return;
     }
 
+// 36 registers per thread
 __global__ void ComputeIntBYMicroLocalNoDiff(const float* fluidvar, float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -778,6 +799,7 @@ __global__ void ComputeIntBYMicroLocalNoDiff(const float* fluidvar, float* intva
         return;
     }
 
+// 38 registers per thread
 __global__ void ComputeIntBZMicroLocalNoDiff(const float* fluidvar, float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -885,6 +907,7 @@ __global__ void ComputeIntBZMicroLocalNoDiff(const float* fluidvar, float* intva
         return;
     }
 
+// 90 registers per thread
 __global__ void ComputeIntEMicroLocalNoDiff(const float* fluidvar, float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)

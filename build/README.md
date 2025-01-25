@@ -80,3 +80,8 @@ See the **input file specification** for the appropriate solver to understand th
 
 `par/`
 - Parallel host build files go in here
+
+# Useful Commands
+` make 2>&1 | tee make.log`
+- Pipe stderr and stdout produced by `make` into `make.log`
+- Point is to be able to study register pressure of library kernels 
