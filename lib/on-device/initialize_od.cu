@@ -56,6 +56,7 @@ __global__ void InitializeZ(float* grid_z, const float z_min, const float dz, co
     return;
 }
 
+/* NOTE: Does this even need to be here? */
 __global__ void ZeroVars(float* vars, const int Nx, const int Ny, const int Nz)
 {
     u_int32_t i = threadIdx.x + blockDim.x * blockIdx.x;
@@ -73,6 +74,35 @@ __global__ void ZeroVars(float* vars, const int Nx, const int Ny, const int Nz)
         vars[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0;
         vars[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
         vars[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.0;
+    }
+    return;
+}
+
+__global__ void ZeroVarsStride(float* vars, const int Nx, const int Ny, const int Nz)
+{
+    int tidx = threadIdx.x + blockDim.x * blockIdx.x;
+    int tidy = threadIdx.y + blockDim.y * blockIdx.y;
+    int tidz = threadIdx.z + blockDim.z * blockIdx.z;
+
+    int xthreads = blockDim.x * gridDim.x;
+    int ythreads = blockDim.y * gridDim.y;
+    int zthreads = blockDim.z * gridDim.z;
+
+    int cube_size = Nx * Ny * Nz;
+
+    for (int k = tidz; k < Nz; k += zthreads){
+            for (int i = tidx; i < Nx; i += xthreads){
+                for (int j = tidy; j < Ny; j += ythreads){
+                    vars[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
+                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0;
+                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
+                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
+                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0;
+                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0;
+                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
+                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.0; 
+            }
+        }
     }
     return;
 }
@@ -103,15 +133,16 @@ __global__ void ScrewPinch(float* fluidvar,
         float x = 0.0; // More readable
         float y = 0.0;
 
-        if (i < Nx && j < Ny){
+        if (i < Nx && j < Ny && k < Nz){
             x = grid_x[i];
             y = grid_y[j];
             r = sqrtf(pow(x, 2) + pow(y, 2));
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.1;
         }
 
         __syncthreads();
 
-        if (r < r_pinch && i < Nx && j < Ny){ // thread divergence is not a big problem in a one-use kernel
+        if (r < r_pinch && i < Nx && j < Ny && k < Nz){ // thread divergence is not a big problem in a one-use kernel
             Btheta = 0.5 * J0 * r * (1.0 - 0.5 * pow(r, 2) / pow(r_pinch, 2)); 
 
             // Calculated from equilibrium force balance
@@ -137,54 +168,8 @@ __global__ void ScrewPinch(float* fluidvar,
         return;
     }
 
-__global__ void ZPinch(float* fluidvar, const float Btheta_a, const float* grid_x, const float* grid_y, const float* grid_z, 
-    const int Nx, const int Ny, const int Nz)
-    {
-        int tidx = threadIdx.x + blockDim.x * blockIdx.x;
-        int tidy = threadIdx.y + blockDim.y * blockIdx.y;
-        int tidz = threadIdx.z + blockDim.z * blockIdx.z;
-
-        int xthreads = blockDim.x * gridDim.x;
-        int ythreads = blockDim.y * gridDim.y;
-        int zthreads = blockDim.z * gridDim.z;
-    
-        /* 
-        SPECIFY A Z-PINCH EQUILIBRIUM
-        */
-        return;
-    }
-
-__global__ void ZeroVarsLoop(float* vars, const int Nx, const int Ny, const int Nz)
-{
-    int tidx = threadIdx.x + blockDim.x * blockIdx.x;
-    int tidy = threadIdx.y + blockDim.y * blockIdx.y;
-    int tidz = threadIdx.z + blockDim.z * blockIdx.z;
-
-    int xthreads = blockDim.x * gridDim.x;
-    int ythreads = blockDim.y * gridDim.y;
-    int zthreads = blockDim.z * gridDim.z;
-
-    int cube_size = Nx * Ny * Nz;
-
-    for (int k = tidz; k < Nz; k += zthreads){
-            for (int i = tidx; i < Nx; i += xthreads){
-                for (int j = tidy; j < Ny; j += ythreads){
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0;
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0;
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0;
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.0; 
-            }
-        }
-    }
-    return;
-}
-
 // 56 registers / thread
-__global__ void ScrewPinchLoop(float* fluidvar, const float J0, const float* grid_x, const float* grid_y, const float* grid_z, 
+__global__ void ScrewPinchStride(float* fluidvar, const float J0, const float* grid_x, const float* grid_y, const float* grid_z, 
     const int Nx, const int Ny, const int Nz)
     {
         int tidx = threadIdx.x + blockDim.x * blockIdx.x;
@@ -261,3 +246,21 @@ __global__ void ScrewPinchLoop(float* fluidvar, const float J0, const float* gri
         }
         return;
     }
+
+__global__ void ZPinch(float* fluidvar, const float Btheta_a, const float* grid_x, const float* grid_y, const float* grid_z, 
+    const int Nx, const int Ny, const int Nz)
+    {
+        int tidx = threadIdx.x + blockDim.x * blockIdx.x;
+        int tidy = threadIdx.y + blockDim.y * blockIdx.y;
+        int tidz = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int xthreads = blockDim.x * gridDim.x;
+        int ythreads = blockDim.y * gridDim.y;
+        int zthreads = blockDim.z * gridDim.z;
+    
+        /* 
+        SPECIFY A Z-PINCH EQUILIBRIUM
+        */
+        return;
+    }
+
