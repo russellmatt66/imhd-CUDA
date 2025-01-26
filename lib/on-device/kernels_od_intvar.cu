@@ -58,7 +58,7 @@ __global__ void ComputeIntermediateVariablesNoDiff(const float* fluidvar, float*
     
         int cube_size = Nx * Ny * Nz;
 
-        if (i > 0 && i < Nx && j > 0 && j < Ny && k > 0 && k < Nz)
+        if (i < Nx-1 && j < Ny-1 && k < Nz-1) // Predictor is forward-differenced so leave back alone
         {
             intvar[IDX3D(i, j, k, Nx, Ny, Nz)] = intRho(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
             intvar[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = intRhoVX(i, j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x

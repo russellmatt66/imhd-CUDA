@@ -105,20 +105,20 @@ int main(int argc, char* argv[]){
 	float dz = (z_max - z_min) / (Nz - 1);
 
    // Execution grid and threadblock configurations for the Grid Initialization microkernels
-   // dim3 egd_xgrid(SM_mult_grid_x * numberOfSMs, 1, 1); // "egd" = "execution_grid_dimensions"
-   // dim3 egd_ygrid(1, SM_mult_grid_y * numberOfSMs, 1);
-   // dim3 egd_zgrid(1, 1, SM_mult_grid_z * numberOfSMs);
+   dim3 egd_xgrid(SM_mult_grid_x * numberOfSMs, 1, 1); // "egd" = "execution_grid_dimensions"
+   dim3 egd_ygrid(1, SM_mult_grid_y * numberOfSMs, 1);
+   dim3 egd_zgrid(1, 1, SM_mult_grid_z * numberOfSMs);
 
-   // dim3 tbd_xgrid(xgrid_threads, 1, 1); // "tbd = thread_block_dimensions"
-   // dim3 tbd_ygrid(1, ygrid_threads, 1);
-   // dim3 tbd_zgrid(1, 1, zgrid_threads);
+   dim3 tbd_xgrid(xgrid_threads, 1, 1); // "tbd = thread_block_dimensions"
+   dim3 tbd_ygrid(1, ygrid_threads, 1);
+   dim3 tbd_zgrid(1, 1, zgrid_threads);
    
    // Execution grid and threadblock configurations for the Grid Initialization kernels
-   dim3 egd_grid(SM_mult_grid_x * numberOfSMs, SM_mult_grid_y * numberOfSMs, SM_mult_grid_z * numberOfSMs);
-   std::cout << "egd_grid is: (" << egd_grid.x << "," << egd_grid.y << "," << egd_grid.z << ")" << std::endl;
+   // dim3 egd_grid(SM_mult_grid_x * numberOfSMs, SM_mult_grid_y * numberOfSMs, SM_mult_grid_z * numberOfSMs);
+   // std::cout << "egd_grid is: (" << egd_grid.x << "," << egd_grid.y << "," << egd_grid.z << ")" << std::endl;
 
-   dim3 tbd_grid(xgrid_threads, ygrid_threads, zgrid_threads);
-   std::cout << "tbd_grid is: (" << tbd_grid.x << "," << tbd_grid.y << "," << tbd_grid.z << ")" << std::endl;
+   // dim3 tbd_grid(xgrid_threads, ygrid_threads, zgrid_threads);
+   // std::cout << "tbd_grid is: (" << tbd_grid.x << "," << tbd_grid.y << "," << tbd_grid.z << ")" << std::endl;
 
    // Execution grid and threadblock configurations for the initialization kernels
    dim3 egd_init(SM_mult_init_x * numberOfSMs, SM_mult_init_y * numberOfSMs, SM_mult_init_z * numberOfSMs);
@@ -154,10 +154,10 @@ int main(int argc, char* argv[]){
    // dim3 tbd_fluidadvance(6, 6, 6); 
 
    // TODO: Microkernels should be in a wrapper   
-   InitializeGrid<<<egd_grid, tbd_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   // InitializeX<<<egd_xgrid, tbd_xgrid>>>(x_grid, x_min, dx, Nx);
-   // InitializeY<<<egd_ygrid, tbd_ygrid>>>(y_grid, y_min, dy, Ny);
-   // InitializeZ<<<egd_zgrid, tbd_zgrid>>>(z_grid, z_min, dz, Nz);
+   // InitializeGrid<<<egd_grid, tbd_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   InitializeX<<<egd_xgrid, tbd_xgrid>>>(x_grid, x_min, dx, Nx);
+   InitializeY<<<egd_ygrid, tbd_ygrid>>>(y_grid, y_min, dy, Ny);
+   InitializeZ<<<egd_zgrid, tbd_zgrid>>>(z_grid, z_min, dz, Nz);
    // ZeroVars<<<egd_init, tbd_init>>>(fluidvars, Nx, Ny, Nz); 
    // ZeroVars<<<egd_init, tbd_init>>>(intvars, Nx, Ny, Nz); 
    checkCuda(cudaDeviceSynchronize());
