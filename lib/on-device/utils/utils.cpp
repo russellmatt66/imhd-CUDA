@@ -60,7 +60,7 @@ int callBinary_WriteGrid(const std::string bin_name, const std::string file_name
     return ret;
 }
 
-// Determines CFL number at every point in the domain
+// Determines CFL number at every point in the domain using eigenvalue solve
 int callBinary_EigenSC(const std::string shm_name, const int Nx, const int Ny, const int Nz, const std::string bin_name, 
     const float dt, const float dx, const float dy, const float dz, 
     const std::string shm_name_gridx, const std::string shm_name_gridy, const std::string shm_name_gridz){
@@ -81,6 +81,19 @@ int callBinary_EigenSC(const std::string shm_name, const int Nx, const int Ny, c
     int ret = std::system(eigen_command.data()); 
     return ret;
 }
+
+/* 
+WRITE
+Determines CFL number at every point in the domain using analytic expressions for the eigenvalues
+Adaptive method that returns value of new timestep necessary to maintain stability
+Choice is made based on safety factor  
+*/
+float adaptiveTimeStep(const float dt){
+    float new_dt = dt;
+    /* WRITE */
+    return new_dt;
+}
+
 
 // This is used in benchmarking, and debug versions of code
 // Python launcher does parsing of input file normally

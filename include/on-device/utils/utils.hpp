@@ -14,5 +14,7 @@ int callBinary_EigenSC(const std::string shm_name, const int Nx, const int Ny, c
     const float dt, const float dx, const float dy, const float dz, 
     const std::string shm_name_gridx, const std::string shm_name_gridy, const std::string shm_name_gridz);
 
+float adaptiveTimeStep(const float dt);
+
 void parseInputFileDebug(std::vector<float>& inputs, const std::string input_file);
 // void parseInputFileBench(std::vector<float>& inputs, const std::string input_file);

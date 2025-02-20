@@ -1,8 +1,44 @@
 #include <stdio.h>
 
 #include "initialize_od.cuh"
+#include "utils.cuh"
+
+#include <string>
+#include <map>
+#include <functional>
+#include <stdexcept>
+#include <iostream>
 
 #define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx) * (Ny) + (i) * (Ny) + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
+
+// I don't want to have a separate file for each equilibrium
+class SimulationInitializer {
+    private:
+        using KernelLauncher = std::function<void(float*, const InitConfig&, const dim3, const dim3)>;
+        std::map<std::string, KernelLauncher> initFunctions;
+        InitConfig config;
+        dim3 egd_init, tbd_init;
+    
+    public: 
+        SimulationInitializer(const InitConfig& config, const dim3 egd_init, const dim3 tbd_init) : config(config), egd_init(egd_init), tbd_init(tbd_init) {
+            initFunctions["screwpinch"] = [this](float* data, const InitConfig& cfg, const dim3 egd_init, const dim3 tbd_init) {
+                // ScrewPinch<<<cfg.gridDim, cfg.blockDim>>>(data);
+                LaunchScrewPinch(data, cfg, egd_init, tbd_init); // Do not want to pass cfg to GPU or make this code less readable by passing long list of cfg parameters
+            };
+            initFunctions["screwpinch-stride"]=[this](float* data, const InitConfig& cfg, const dim3 egd_init, const dim3 tbd_init) {
+                LaunchScrewPinchStride(data, cfg, egd_init, tbd_init);
+            };
+            /* ADD OTHER INITIALIZERS */
+        }
+
+        void initialize(const std::string& simType, float* data){
+            auto it = initFunctions.find(simType);
+            if (it == initFunctions.end()) {
+                throw std::runtime_error("Unknown simulation type: " + simType);
+            }
+            it->second(data, config, egd_init, tbd_init);
+        }
+};
 
 // 16 registers / thread
 /* NOTE: Better way to do this is split into microkernels */ 
@@ -137,7 +173,7 @@ __global__ void ScrewPinch(float* fluidvar,
             x = grid_x[i];
             y = grid_y[j];
             r = sqrtf(pow(x, 2) + pow(y, 2));
-            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.1;
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.01;
         }
 
         __syncthreads();
@@ -167,6 +203,11 @@ __global__ void ScrewPinch(float* fluidvar,
 
         return;
     }
+
+void LaunchScrewPinch(float *fluidvar, const InitConfig& cfg, const dim3 gridDim, const dim3 blockDim){
+    ScrewPinch<<<gridDim, blockDim>>>(fluidvar, cfg.J0, cfg.r_max_coeff, cfg.x_grid, cfg.y_grid, cfg.z_grid, cfg.Nx, cfg.Ny, cfg.Nz);
+    return;
+}
 
 // 56 registers / thread
 __global__ void ScrewPinchStride(float* fluidvar, const float J0, const float* grid_x, const float* grid_y, const float* grid_z, 
@@ -246,6 +287,14 @@ __global__ void ScrewPinchStride(float* fluidvar, const float J0, const float* g
         }
         return;
     }
+
+void LaunchScrewPinchStride(float *fluidvar, const InitConfig& cfg, const dim3 gridDim, const dim3 blockDim){
+    std::cout << "Inside LSPS" << std::endl;
+    ScrewPinchStride<<<gridDim, blockDim>>>(fluidvar, cfg.J0, cfg.x_grid, cfg.y_grid, cfg.z_grid, cfg.Nx, cfg.Ny, cfg.Nz);
+    // checkCuda(cudaDeviceSynchronize());
+    std::cout << "After launching" << std::endl;
+    return;
+}
 
 __global__ void ZPinch(float* fluidvar, const float Btheta_a, const float* grid_x, const float* grid_y, const float* grid_z, 
     const int Nx, const int Ny, const int Nz)

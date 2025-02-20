@@ -104,28 +104,13 @@ int main(int argc, char* argv[]){
 	float dy = (y_max - y_min) / (Ny - 1);
 	float dz = (z_max - z_min) / (Nz - 1);
 
-   // Execution grid and threadblock configurations for the Grid Initialization microkernels
-   dim3 egd_xgrid(SM_mult_grid_x * numberOfSMs, 1, 1); // "egd" = "execution_grid_dimensions"
-   dim3 egd_ygrid(1, SM_mult_grid_y * numberOfSMs, 1);
-   dim3 egd_zgrid(1, 1, SM_mult_grid_z * numberOfSMs);
-
-   dim3 tbd_xgrid(xgrid_threads, 1, 1); // "tbd = thread_block_dimensions"
-   dim3 tbd_ygrid(1, ygrid_threads, 1);
-   dim3 tbd_zgrid(1, 1, zgrid_threads);
-   
-   // Execution grid and threadblock configurations for the Grid Initialization kegakernel
-   // dim3 egd_grid(SM_mult_grid_x * numberOfSMs, SM_mult_grid_y * numberOfSMs, SM_mult_grid_z * numberOfSMs);
-   // std::cout << "egd_grid is: (" << egd_grid.x << "," << egd_grid.y << "," << egd_grid.z << ")" << std::endl;
-
-   // dim3 tbd_grid(xgrid_threads, ygrid_threads, zgrid_threads);
-   // std::cout << "tbd_grid is: (" << tbd_grid.x << "," << tbd_grid.y << "," << tbd_grid.z << ")" << std::endl;
+   // Execution grid and threadblock configurations for the Grid Initialization kernels
+   dim3 egd_grid(SM_mult_grid_x * numberOfSMs, SM_mult_grid_y * numberOfSMs, SM_mult_grid_z * numberOfSMs);
+   dim3 tbd_grid(xgrid_threads, ygrid_threads, zgrid_threads);
 
    // Execution grid and threadblock configurations for the initialization kernels
    dim3 egd_init(SM_mult_init_x * numberOfSMs, SM_mult_init_y * numberOfSMs, SM_mult_init_z * numberOfSMs);
-   std::cout << "egd_init is: (" << egd_init.x << "," << egd_init.y << "," << egd_init.z << ")" << std::endl;
-
    dim3 tbd_init(init_xthreads, init_ythreads, init_zthreads); 
-   std::cout << "tbd_init is: (" << tbd_init.x << "," << tbd_init.y << "," << tbd_init.z << ")" << std::endl;
 
    // Execution grid and threadblock configurations for the Boundary Condition microkernels
    dim3 egd_bdry_leftright(numberOfSMs, 1, numberOfSMs);
@@ -137,36 +122,52 @@ int main(int argc, char* argv[]){
    dim3 egd_qintbdry_frontbottom(1, numberOfSMs, 1);
    dim3 egd_qintbdry_bottomright(1, 1, numberOfSMs);
    
-   dim3 tbd_bdry_leftright(BCLeftRight_xthreads, 1, BCLeftRight_zthreads);
-   dim3 tbd_bdry_topbottom(1, BCTopBottom_ythreads, BCTopBottom_zthreads);
-   dim3 tbd_bdry_frontback(PBC_xthreads, PBC_ythreads, 1); // can also be used for PBCs
-   dim3 tbd_qintbdry_frontright(QintBC_FrontRight_xthreads, 1, 1);
-   dim3 tbd_qintbdry_frontbottom(1, QintBC_FrontBottom_ythreads, 1);
-   dim3 tbd_qintbdry_bottomright(1, 1, QintBC_BottomRight_zthreads);
+   dim3 tbd_bdry_leftright(8, 1, 8);
+   dim3 tbd_bdry_topbottom(1, 8, 8);
+   dim3 tbd_bdry_frontback(8, 8, 1); // can also be used for PBCs
+   dim3 tbd_qintbdry_frontright(1024, 1, 1);
+   dim3 tbd_qintbdry_frontbottom(1, 1024, 1);
+   dim3 tbd_qintbdry_bottomright(1, 1, 1024);
 
-   // Execution grid and threadblock configurations for the Predictor and Corrector microkernels
+   // Execution grid and threadblock configurations for the Predictor and Corrector kernels
    dim3 egd_fluidadvance(SM_mult_FA_x * numberOfSMs, SM_mult_FA_y * numberOfSMs, SM_mult_FA_z * numberOfSMs);
-   std::cout << "egd_fluidadvance is: (" << egd_fluidadvance.x << "," << egd_fluidadvance.y << "," << egd_fluidadvance.z << ")" << std::endl;
-
    dim3 tbd_fluidadvance(FA_xthreads, FA_ythreads, FA_zthreads); 
-   std::cout << "tbd_fluidadvance is: (" << tbd_fluidadvance.x << "," << tbd_fluidadvance.y << "," << tbd_fluidadvance.z << ")" << std::endl;
-
-   // dim3 tbd_fluidadvance(6, 6, 6); 
-
-   // TODO: Microkernels should be in a wrapper   
-   // InitializeGrid<<<egd_grid, tbd_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   InitializeX<<<egd_xgrid, tbd_xgrid>>>(x_grid, x_min, dx, Nx);
-   InitializeY<<<egd_ygrid, tbd_ygrid>>>(y_grid, y_min, dy, Ny);
-   InitializeZ<<<egd_zgrid, tbd_zgrid>>>(z_grid, z_min, dz, Nz);
-   // ZeroVars<<<egd_init, tbd_init>>>(fluidvars, Nx, Ny, Nz); 
-   // ZeroVars<<<egd_init, tbd_init>>>(intvars, Nx, Ny, Nz); 
+  
+   InitializeGrid<<<egd_grid, tbd_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   // cudaMemset(fluidvars, 0, sizeof(float) * Nx * Ny * Nz); /* Not sure if these are necessary */
+   // cudaMemset(intvars, 0, sizeof(float) * Nx * Ny * Nz);
+   ZeroVars<<<egd_init, tbd_init>>>(fluidvars, Nx, Ny, Nz); 
+   ZeroVars<<<egd_init, tbd_init>>>(intvars, Nx, Ny, Nz); 
    checkCuda(cudaDeviceSynchronize());
+
+   InitConfig h_initParameters;
+   /* POPULATE h_initParameters*/
+   // h_initParameters.gridDim = egd_init;
+   // h_initParameters.blockDim = tbd_init;
+
+   // h_initParameters.J0 = J0;
+   // h_initParameters.r_max_coeff = r_max_coeff;
+
+   // h_initParameters.x_grid = x_grid;
+   // h_initParameters.y_grid = y_grid;
+   // h_initParameters.z_grid = z_grid;
+
+   // h_initParameters.Nx = Nx;
+   // h_initParameters.Ny = Ny;
+   // h_initParameters.Nz = Nz;
+
+   // InitConfig* d_initParameters;
+   // checkCuda(cudaMalloc(&d_initParameters, sizeof(InitConfig)));
+   
+   // cudaMemcpy(d_initParameters, &h_initParameters, sizeof(InitConfig), cudaMemcpyHostToDevice);
+   // checkCuda(cudaDeviceSynchronize());
 
    /*
    TODO: "ScrewPinch" doesn't work
    */ 
    // ScrewPinch<<<egd_init, tbd_init>>>(fluidvars, J0, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    ScrewPinchStride<<<egd_init, tbd_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   // LaunchScrewPinchStride(fluidvars, h_initParameters, egd_init, tbd_init);
    checkCuda(cudaDeviceSynchronize());
 
    rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
@@ -341,6 +342,7 @@ int main(int argc, char* argv[]){
    checkCuda(cudaFree(x_grid));
    checkCuda(cudaFree(y_grid));
    checkCuda(cudaFree(z_grid));
+   // checkCuda(cudaFree(d_initParameters));
    
    // Host
    munmap(shm_h_fluidvar, 8 * fluid_data_size);
