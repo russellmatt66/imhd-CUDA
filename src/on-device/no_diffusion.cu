@@ -104,9 +104,20 @@ int main(int argc, char* argv[]){
 	float dy = (y_max - y_min) / (Ny - 1);
 	float dz = (z_max - z_min) / (Nz - 1);
 
-   // Execution grid and threadblock configurations for the Grid Initialization kernels
-   dim3 egd_grid(SM_mult_grid_x * numberOfSMs, SM_mult_grid_y * numberOfSMs, SM_mult_grid_z * numberOfSMs);
-   dim3 tbd_grid(xgrid_threads, ygrid_threads, zgrid_threads);
+
+
+   // Execution grid and threadblock configurations for the Grid Initialization megakernel
+   // dim3 egd_grid(SM_mult_grid_x * numberOfSMs, SM_mult_grid_y * numberOfSMs, SM_mult_grid_z * numberOfSMs);
+   // dim3 tbd_grid(xgrid_threads, ygrid_threads, zgrid_threads);
+
+   // Execution grid and threadblock configurations for the Grid Initialization microkernels
+   dim3 egd_xgrid(SM_mult_grid_x * numberOfSMs, 1, 1); // "egd" = "execution_grid_dimensions"
+   dim3 egd_ygrid(1, SM_mult_grid_y * numberOfSMs, 1);
+   dim3 egd_zgrid(1, 1, SM_mult_grid_z * numberOfSMs);
+
+   dim3 tbd_xgrid(xgrid_threads, 1, 1); // "tbd = thread_block_dimensions"
+   dim3 tbd_ygrid(1, ygrid_threads, 1);
+   dim3 tbd_zgrid(1, 1, zgrid_threads);
 
    // Execution grid and threadblock configurations for the initialization kernels
    dim3 egd_init(SM_mult_init_x * numberOfSMs, SM_mult_init_y * numberOfSMs, SM_mult_init_z * numberOfSMs);
@@ -133,11 +144,14 @@ int main(int argc, char* argv[]){
    dim3 egd_fluidadvance(SM_mult_FA_x * numberOfSMs, SM_mult_FA_y * numberOfSMs, SM_mult_FA_z * numberOfSMs);
    dim3 tbd_fluidadvance(FA_xthreads, FA_ythreads, FA_zthreads); 
   
-   InitializeGrid<<<egd_grid, tbd_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   // InitializeGrid<<<egd_grid, tbd_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   InitializeX<<<egd_xgrid, tbd_xgrid>>>(x_grid, x_min, dx, Nx);
+   InitializeY<<<egd_ygrid, tbd_ygrid>>>(y_grid, y_min, dy, Ny);
+   InitializeZ<<<egd_zgrid, tbd_zgrid>>>(z_grid, z_min, dz, Nz);
    // cudaMemset(fluidvars, 0, sizeof(float) * Nx * Ny * Nz); /* Not sure if these are necessary */
    // cudaMemset(intvars, 0, sizeof(float) * Nx * Ny * Nz);
-   ZeroVars<<<egd_init, tbd_init>>>(fluidvars, Nx, Ny, Nz); 
-   ZeroVars<<<egd_init, tbd_init>>>(intvars, Nx, Ny, Nz); 
+   // ZeroVars<<<egd_init, tbd_init>>>(fluidvars, Nx, Ny, Nz); 
+   // ZeroVars<<<egd_init, tbd_init>>>(intvars, Nx, Ny, Nz); 
    checkCuda(cudaDeviceSynchronize());
 
    InitConfig h_initParameters;
@@ -145,16 +159,16 @@ int main(int argc, char* argv[]){
    // h_initParameters.gridDim = egd_init;
    // h_initParameters.blockDim = tbd_init;
 
-   // h_initParameters.J0 = J0;
-   // h_initParameters.r_max_coeff = r_max_coeff;
+   h_initParameters.J0 = J0;
+   h_initParameters.r_max_coeff = r_max_coeff;
 
-   // h_initParameters.x_grid = x_grid;
-   // h_initParameters.y_grid = y_grid;
-   // h_initParameters.z_grid = z_grid;
+   h_initParameters.x_grid = x_grid;
+   h_initParameters.y_grid = y_grid;
+   h_initParameters.z_grid = z_grid;
 
-   // h_initParameters.Nx = Nx;
-   // h_initParameters.Ny = Ny;
-   // h_initParameters.Nz = Nz;
+   h_initParameters.Nx = Nx;
+   h_initParameters.Ny = Ny;
+   h_initParameters.Nz = Nz;
 
    // InitConfig* d_initParameters;
    // checkCuda(cudaMalloc(&d_initParameters, sizeof(InitConfig)));
@@ -166,8 +180,8 @@ int main(int argc, char* argv[]){
    TODO: "ScrewPinch" doesn't work
    */ 
    // ScrewPinch<<<egd_init, tbd_init>>>(fluidvars, J0, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   ScrewPinchStride<<<egd_init, tbd_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   // LaunchScrewPinchStride(fluidvars, h_initParameters, egd_init, tbd_init);
+   // ScrewPinchStride<<<egd_init, tbd_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   LaunchScrewPinchStride(fluidvars, h_initParameters, egd_init, tbd_init);
    checkCuda(cudaDeviceSynchronize());
 
    rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
