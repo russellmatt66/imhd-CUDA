@@ -1,3 +1,4 @@
+sim_type=screwpinch-stride
 Nt=5
 Nx=64
 Ny=64

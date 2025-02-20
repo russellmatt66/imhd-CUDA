@@ -6,6 +6,11 @@
 
 #include "utils.cuh" // Contains `InitConfig` class
 
+// #include <string>
+// #include <map>
+// #include <functional>
+// #include <stdexcept>
+
 __global__ void InitializeGrid(const float x_min, const float x_max, const float y_min, const float y_max, const float z_min, const float z_max, 
     const float dx, const float dy, const float dz, float* grid_x, float* grid_y, float* grid_z, 
     const int Nx, const int Ny, const int Nz);
@@ -24,24 +29,24 @@ __global__ void ScrewPinch(float* fluidvar,
 
 // Data structure for holding the initialization parameters
 struct InitConfig {
-    // dim3 gridDim;
-    // dim3 blockDim;
+    dim3 gridDim;
+    dim3 blockDim;
     float J0; // amplitude of current
     float r_max_coeff; // r_pinch = r_max * r_max_coeff
     float *x_grid, *y_grid, *z_grid; // pointers to grid data 
     int Nx, Ny, Nz; // dimensions of grid
  };
 
-void LaunchScrewPinch(float *fluidvar, const InitConfig& cfg, const dim3 gridDim, const dim3 blockDim); // Wrapper for launching ScrewPinch kernel
+// void LaunchScrewPinch(float *fluidvar, const InitConfig& cfg, const dim3 gridDim, const dim3 blockDim); // Wrapper for launching ScrewPinch kernel
+void LaunchScrewPinch(float *fluidvar, const InitConfig& cfg); // Wrapper for launching ScrewPinch kernel
 
 __global__ void ScrewPinchStride(float* fluidvar, const float J0, const float* grid_x, const float* grid_y, const float* grid_z, 
     const int Nx, const int Ny, const int Nz);
 
-void LaunchScrewPinchStride(float *fluidvar, const InitConfig& cfg, const dim3 gridDim, const dim3 blockDim); // Wrapper for launching ScrewPinchStride kernel
+// void LaunchScrewPinchStride(float *fluidvar, const InitConfig& cfg, const dim3 gridDim, const dim3 blockDim); // Wrapper for launching ScrewPinchStride kernel
+void LaunchScrewPinchStride(float *fluidvar, const InitConfig& cfg); // Wrapper for launching ScrewPinchStride kernel
 
 __global__ void ZPinch(float* fluidvar, const float Btheta_a, const float* grid_x, const float* grid_y, const float* grid_z,
     const int Nx, const int Ny, const int Nz); 
-
-// __global__ void InitializeIntAndSwap(float* fluidvar_np1, float* intvar, const int Nx, const int Ny, const int Nz);
 
 #endif

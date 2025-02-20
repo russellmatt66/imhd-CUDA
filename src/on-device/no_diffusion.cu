@@ -6,6 +6,10 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string>
+#include <map>
+#include <functional>
+#include <stdexcept>
 
 #include "initialize_od.cuh"
 #include "kernels_od.cuh"
@@ -16,67 +20,108 @@
 #include "utils.cuh"
 #include "utils.hpp"
 
+// I don't want to have a separate runtime file for each problem
+class SimulationInitializer {
+   private:
+       using KernelLauncher = std::function<void(float*, const InitConfig&)>;
+       std::map<std::string, KernelLauncher> initFunctions;
+       InitConfig config;
+       dim3 egd_init, tbd_init;
+   
+   public:
+       SimulationInitializer(const InitConfig& config) : config(config) {
+           initFunctions["screwpinch"] = [this](float* data, const InitConfig& cfg) {
+               // ScrewPinch<<<cfg.gridDim, cfg.blockDim>>>(data);
+               LaunchScrewPinch(data, cfg); // Do not want to pass cfg to GPU or make this code less readable by passing long list of cfg parameters
+           };
+           initFunctions["screwpinch-stride"] = [this](float* data, const InitConfig& cfg) {
+               LaunchScrewPinchStride(data, cfg);
+           };
+           /* ADD OTHER INITIALIZERS */
+       } 
+       // SimulationInitializer(const InitConfig& config, const dim3 egd_init, const dim3 tbd_init) : config(config), egd_init(egd_init), tbd_init(tbd_init) {
+       //     initFunctions["screwpinch"] = [this](float* data, const InitConfig& cfg, const dim3 egd_init, const dim3 tbd_init) {
+       //         // ScrewPinch<<<cfg.gridDim, cfg.blockDim>>>(data);
+       //         LaunchScrewPinch(data, cfg, egd_init, tbd_init); // Do not want to pass cfg to GPU or make this code less readable by passing long list of cfg parameters
+       //     };
+       //     initFunctions["screwpinch-stride"]=[this](float* data, const InitConfig& cfg, const dim3 egd_init, const dim3 tbd_init) {
+       //         LaunchScrewPinchStride(data, cfg, egd_init, tbd_init);
+       //     };
+       //     /* ADD OTHER INITIALIZERS */
+       // }
+
+       void initialize(const std::string& simType, float* data){
+           auto it = initFunctions.find(simType);
+           if (it == initFunctions.end()) {
+               throw std::runtime_error("Unknown simulation type: " + simType);
+           }
+           it->second(data, config);
+       }
+};
+
 int main(int argc, char* argv[]){
-   int Nt = atoi(argv[1]);
-   int Nx = atoi(argv[2]);
-   int Ny = atoi(argv[3]);
-   int Nz = atoi(argv[4]);
+   std::string sim_type = argv[1];
 
-   float J0 = atof(argv[5]); // amplitude of the current
-   float D = atof(argv[6]); // diffusion
-   float r_max_coeff = atof(argv[7]); // r_pinch = r_max_coeff * r_max
+   int Nt = atoi(argv[2]);
+   int Nx = atoi(argv[3]);
+   int Ny = atoi(argv[4]);
+   int Nz = atoi(argv[5]);
+
+   float J0 = atof(argv[6]); // amplitude of the current
+   float D = atof(argv[7]); // diffusion
+   float r_max_coeff = atof(argv[8]); // r_pinch = r_max_coeff * r_max
    
-   float x_min = atof(argv[8]);
-   float x_max = atof(argv[9]);
-   float y_min = atof(argv[10]);
-   float y_max = atof(argv[11]);
-   float z_min = atof(argv[12]);
-   float z_max = atof(argv[13]);
-   float dt = atof(argv[14]);
+   float x_min = atof(argv[9]);
+   float x_max = atof(argv[10]);
+   float y_min = atof(argv[11]);
+   float y_max = atof(argv[12]);
+   float z_min = atof(argv[13]);
+   float z_max = atof(argv[14]);
+   float dt = atof(argv[15]);
    
-   std::string path_to_data = argv[15];
-   std::string phdf5_bin_name = argv[16];
-   std::string attr_bin_name = argv[17];
-   std::string write_grid_bin_name = argv[18];
-   std::string eigen_bin_name = argv[19];
-   std::string num_proc = argv[20];
+   std::string path_to_data = argv[16];
+   std::string phdf5_bin_name = argv[17];
+   std::string attr_bin_name = argv[18];
+   std::string write_grid_bin_name = argv[19];
+   std::string eigen_bin_name = argv[20];
+   std::string num_proc = argv[21];
 
-   int xgrid_threads = atoi(argv[21]);
-   int ygrid_threads = atoi(argv[22]);
-   int zgrid_threads = atoi(argv[23]);
+   int xgrid_threads = atoi(argv[22]);
+   int ygrid_threads = atoi(argv[23]);
+   int zgrid_threads = atoi(argv[24]);
 
-   int init_xthreads = atoi(argv[24]);
-   int init_ythreads = atoi(argv[25]);
-   int init_zthreads = atoi(argv[26]);
+   int init_xthreads = atoi(argv[25]);
+   int init_ythreads = atoi(argv[26]);
+   int init_zthreads = atoi(argv[27]);
    
-   int FA_xthreads = atoi(argv[27]);
-   int FA_ythreads = atoi(argv[28]);
-   int FA_zthreads = atoi(argv[29]);
+   int FA_xthreads = atoi(argv[28]);
+   int FA_ythreads = atoi(argv[29]);
+   int FA_zthreads = atoi(argv[30]);
 
-   int BCLeftRight_xthreads = atoi(argv[30]);
-   int BCLeftRight_zthreads = atoi(argv[31]);
+   int BCLeftRight_xthreads = atoi(argv[31]);
+   int BCLeftRight_zthreads = atoi(argv[32]);
 
-   int BCTopBottom_ythreads = atoi(argv[32]);
-   int BCTopBottom_zthreads = atoi(argv[33]);
+   int BCTopBottom_ythreads = atoi(argv[33]);
+   int BCTopBottom_zthreads = atoi(argv[34]);
 
-   int PBC_xthreads = atoi(argv[34]);
-   int PBC_ythreads = atoi(argv[35]);
+   int PBC_xthreads = atoi(argv[35]);
+   int PBC_ythreads = atoi(argv[36]);
 
-   int QintBC_FrontRight_xthreads = atoi(argv[36]);
-   int QintBC_FrontBottom_ythreads = atoi(argv[37]);
-   int QintBC_BottomRight_zthreads = atoi(argv[38]);
+   int QintBC_FrontRight_xthreads = atoi(argv[37]);
+   int QintBC_FrontBottom_ythreads = atoi(argv[38]);
+   int QintBC_BottomRight_zthreads = atoi(argv[39]);
 
-   int SM_mult_grid_x = atoi(argv[39]);
-   int SM_mult_grid_y = atoi(argv[40]);
-   int SM_mult_grid_z = atoi(argv[41]);
+   int SM_mult_grid_x = atoi(argv[40]);
+   int SM_mult_grid_y = atoi(argv[41]);
+   int SM_mult_grid_z = atoi(argv[42]);
 
-   int SM_mult_init_x = atoi(argv[42]);
-   int SM_mult_init_y = atoi(argv[43]);
-   int SM_mult_init_z = atoi(argv[44]);
+   int SM_mult_init_x = atoi(argv[43]);
+   int SM_mult_init_y = atoi(argv[44]);
+   int SM_mult_init_z = atoi(argv[45]);
 
-   int SM_mult_FA_x = atoi(argv[45]);
-   int SM_mult_FA_y = atoi(argv[46]);
-   int SM_mult_FA_z = atoi(argv[47]);
+   int SM_mult_FA_x = atoi(argv[46]);
+   int SM_mult_FA_y = atoi(argv[47]);
+   int SM_mult_FA_z = atoi(argv[48]);
 
    // CUDA BOILERPLATE 
    int deviceId;
@@ -103,8 +148,6 @@ int main(int argc, char* argv[]){
    float dx = (x_max - x_min) / (Nx - 1);
 	float dy = (y_max - y_min) / (Ny - 1);
 	float dz = (z_max - z_min) / (Nz - 1);
-
-
 
    // Execution grid and threadblock configurations for the Grid Initialization megakernel
    // dim3 egd_grid(SM_mult_grid_x * numberOfSMs, SM_mult_grid_y * numberOfSMs, SM_mult_grid_z * numberOfSMs);
@@ -154,34 +197,34 @@ int main(int argc, char* argv[]){
    // ZeroVars<<<egd_init, tbd_init>>>(intvars, Nx, Ny, Nz); 
    checkCuda(cudaDeviceSynchronize());
 
-   InitConfig h_initParameters;
+   InitConfig initParameters;
    /* POPULATE h_initParameters*/
-   // h_initParameters.gridDim = egd_init;
-   // h_initParameters.blockDim = tbd_init;
+   initParameters.gridDim = egd_init;
+   initParameters.blockDim = tbd_init;
 
-   h_initParameters.J0 = J0;
-   h_initParameters.r_max_coeff = r_max_coeff;
+   initParameters.J0 = J0;
+   initParameters.r_max_coeff = r_max_coeff;
 
-   h_initParameters.x_grid = x_grid;
-   h_initParameters.y_grid = y_grid;
-   h_initParameters.z_grid = z_grid;
+   initParameters.x_grid = x_grid;
+   initParameters.y_grid = y_grid;
+   initParameters.z_grid = z_grid;
 
-   h_initParameters.Nx = Nx;
-   h_initParameters.Ny = Ny;
-   h_initParameters.Nz = Nz;
+   initParameters.Nx = Nx;
+   initParameters.Ny = Ny;
+   initParameters.Nz = Nz;
 
-   // InitConfig* d_initParameters;
-   // checkCuda(cudaMalloc(&d_initParameters, sizeof(InitConfig)));
-   
-   // cudaMemcpy(d_initParameters, &h_initParameters, sizeof(InitConfig), cudaMemcpyHostToDevice);
-   // checkCuda(cudaDeviceSynchronize());
+   SimulationInitializer simInit(initParameters);
+
+   simInit.initialize(sim_type, fluidvars);
+   checkCuda(cudaDeviceSynchronize());
 
    /*
    TODO: "ScrewPinch" doesn't work
    */ 
    // ScrewPinch<<<egd_init, tbd_init>>>(fluidvars, J0, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    // ScrewPinchStride<<<egd_init, tbd_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   LaunchScrewPinchStride(fluidvars, h_initParameters, egd_init, tbd_init);
+   // LaunchScrewPinchStride(fluidvars, h_initParameters, egd_init, tbd_init);
+   LaunchScrewPinchStride(fluidvars, initParameters);
    checkCuda(cudaDeviceSynchronize());
 
    rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
