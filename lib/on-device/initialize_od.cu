@@ -1,6 +1,10 @@
 #include <stdio.h>
 
 #include "initialize_od.cuh"
+#include "utils.cuh"
+
+
+#include <iostream>
 
 #define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx) * (Ny) + (i) * (Ny) + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
@@ -56,57 +60,6 @@ __global__ void InitializeZ(float* grid_z, const float z_min, const float dz, co
     return;
 }
 
-/* NOTE: Does this even need to be here? */
-__global__ void ZeroVars(float* vars, const int Nx, const int Ny, const int Nz)
-{
-    u_int32_t i = threadIdx.x + blockDim.x * blockIdx.x;
-    u_int32_t j = threadIdx.y + blockDim.y * blockIdx.y;
-    u_int32_t k = threadIdx.z + blockDim.z * blockIdx.z;
-
-    u_int32_t cube_size = Nx * Ny * Nz;
-
-    if (i < Nx && j < Ny && k < Nz){
-        vars[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
-        vars[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0;
-        vars[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
-        vars[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
-        vars[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0;
-        vars[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0;
-        vars[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
-        vars[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.0;
-    }
-    return;
-}
-
-__global__ void ZeroVarsStride(float* vars, const int Nx, const int Ny, const int Nz)
-{
-    int tidx = threadIdx.x + blockDim.x * blockIdx.x;
-    int tidy = threadIdx.y + blockDim.y * blockIdx.y;
-    int tidz = threadIdx.z + blockDim.z * blockIdx.z;
-
-    int xthreads = blockDim.x * gridDim.x;
-    int ythreads = blockDim.y * gridDim.y;
-    int zthreads = blockDim.z * gridDim.z;
-
-    int cube_size = Nx * Ny * Nz;
-
-    for (int k = tidz; k < Nz; k += zthreads){
-            for (int i = tidx; i < Nx; i += xthreads){
-                for (int j = tidy; j < Ny; j += ythreads){
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.0;
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + cube_size] = 0.0;
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 2 * cube_size] = 0.0;
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = 0.0;
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = 0.0;
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = 0.0;
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 6 * cube_size] = 0.0;
-                    vars[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.0; 
-            }
-        }
-    }
-    return;
-}
-
 __global__ void ScrewPinch(float* fluidvar, 
     const float J0, const float r_max_coeff, 
     const float* grid_x, const float* grid_y, const float* grid_z,
@@ -137,7 +90,7 @@ __global__ void ScrewPinch(float* fluidvar,
             x = grid_x[i];
             y = grid_y[j];
             r = sqrtf(pow(x, 2) + pow(y, 2));
-            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.1;
+            fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 0.01;
         }
 
         __syncthreads();
@@ -167,6 +120,16 @@ __global__ void ScrewPinch(float* fluidvar,
 
         return;
     }
+
+// void LaunchScrewPinch(float *fluidvar, const InitConfig& cfg, const dim3 gridDim, const dim3 blockDim){
+//     ScrewPinch<<<gridDim, blockDim>>>(fluidvar, cfg.J0, cfg.r_max_coeff, cfg.x_grid, cfg.y_grid, cfg.z_grid, cfg.Nx, cfg.Ny, cfg.Nz);
+//     return;
+// }
+
+void LaunchScrewPinch(float *fluidvar, const InitConfig& cfg){
+    ScrewPinch<<<cfg.gridDim, cfg.blockDim>>>(fluidvar, cfg.J0, cfg.r_max_coeff, cfg.x_grid, cfg.y_grid, cfg.z_grid, cfg.Nx, cfg.Ny, cfg.Nz);
+    return;
+}
 
 // 56 registers / thread
 __global__ void ScrewPinchStride(float* fluidvar, const float J0, const float* grid_x, const float* grid_y, const float* grid_z, 
@@ -247,6 +210,22 @@ __global__ void ScrewPinchStride(float* fluidvar, const float J0, const float* g
         return;
     }
 
+void LaunchScrewPinchStride(float *fluidvar, const InitConfig& cfg){
+    std::cout << "Inside LSPS" << std::endl;
+    ScrewPinchStride<<<cfg.gridDim, cfg.blockDim>>>(fluidvar, cfg.J0, cfg.x_grid, cfg.y_grid, cfg.z_grid, cfg.Nx, cfg.Ny, cfg.Nz);
+    // checkCuda(cudaDeviceSynchronize());
+    std::cout << "After launching" << std::endl;
+    return;
+}
+
+// void LaunchScrewPinchStride(float *fluidvar, const InitConfig& cfg, const dim3 gridDim, const dim3 blockDim){
+//     std::cout << "Inside LSPS" << std::endl;
+//     ScrewPinchStride<<<gridDim, blockDim>>>(fluidvar, cfg.J0, cfg.x_grid, cfg.y_grid, cfg.z_grid, cfg.Nx, cfg.Ny, cfg.Nz);
+//     // checkCuda(cudaDeviceSynchronize());
+//     std::cout << "After launching" << std::endl;
+//     return;
+// }
+
 __global__ void ZPinch(float* fluidvar, const float Btheta_a, const float* grid_x, const float* grid_y, const float* grid_z, 
     const int Nx, const int Ny, const int Nz)
     {
@@ -263,4 +242,3 @@ __global__ void ZPinch(float* fluidvar, const float Btheta_a, const float* grid_
         */
         return;
     }
-

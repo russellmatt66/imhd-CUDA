@@ -6,6 +6,10 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string>
+#include <map>
+#include <functional>
+#include <stdexcept>
 
 #include "initialize_od.cuh"
 #include "kernels_od.cuh"
@@ -16,67 +20,114 @@
 #include "utils.cuh"
 #include "utils.hpp"
 
+// I don't want to have a separate runtime file for each problem
+class SimulationInitializer {
+   private:
+       using KernelLauncher = std::function<void(float*, const InitConfig&)>;
+       std::map<std::string, KernelLauncher> initFunctions;
+       InitConfig config;
+   
+   public:
+       SimulationInitializer(const InitConfig& config) : config(config) {
+           initFunctions["screwpinch"] = [this](float* data, const InitConfig& cfg) {
+               LaunchScrewPinch(data, cfg); // Do not want to pass cfg to GPU or make this code less readable by passing long list of cfg parameters
+           };
+           initFunctions["screwpinch-stride"] = [this](float* data, const InitConfig& cfg) {
+               LaunchScrewPinchStride(data, cfg);
+           };
+           /* ADD OTHER INITIALIZERS */
+       } 
+
+       void initialize(const std::string& simType, float* data){
+           auto it = initFunctions.find(simType);
+           if (it == initFunctions.end()) {
+               throw std::runtime_error("Unknown simulation type: " + simType);
+           }
+           it->second(data, config);
+       }
+};
+
+// I don't want to have a separate runtime file for each possible choice of megakernels / microkernels
+// Due to structure, it looks like I will need to separate instances of this class
+class KernelConfigurer {
+   private:
+      /* PRIVATE DATA GOES HERE */
+      using KernelLauncher = std::function<void(float*, const float*, const KernelConfig& kcfg)>;
+      std::map<std::string, KernelLauncher> kernelFunctions;
+      KernelConfig config;
+
+   public:
+      /* PUBLIC DATA GOES HERE */
+      KernelConfigurer(const KernelConfig& kcfg) : config(config) {
+         kernelFunctions["fluidadvancelocal-nodiff"] = [this](float* fluidvars, const float *intvars, const KernelConfig& kcfg) {
+            LaunchFluidAdvanceLocalNoDiff(fluidvars, intvars, kcfg); // Do not want to pass kcfg to GPU or make this code less readable by passing long list of params
+         };
+      }
+};
+
 int main(int argc, char* argv[]){
-   int Nt = atoi(argv[1]);
-   int Nx = atoi(argv[2]);
-   int Ny = atoi(argv[3]);
-   int Nz = atoi(argv[4]);
+   std::string sim_type = argv[1];
 
-   float J0 = atof(argv[5]); // amplitude of the current
-   float D = atof(argv[6]); // diffusion
-   float r_max_coeff = atof(argv[7]); // r_pinch = r_max_coeff * r_max
+   int Nt = atoi(argv[2]);
+   int Nx = atoi(argv[3]);
+   int Ny = atoi(argv[4]);
+   int Nz = atoi(argv[5]);
+
+   float J0 = atof(argv[6]); // amplitude of the current
+   float D = atof(argv[7]); // diffusion
+   float r_max_coeff = atof(argv[8]); // r_pinch = r_max_coeff * r_max
    
-   float x_min = atof(argv[8]);
-   float x_max = atof(argv[9]);
-   float y_min = atof(argv[10]);
-   float y_max = atof(argv[11]);
-   float z_min = atof(argv[12]);
-   float z_max = atof(argv[13]);
-   float dt = atof(argv[14]);
+   float x_min = atof(argv[9]);
+   float x_max = atof(argv[10]);
+   float y_min = atof(argv[11]);
+   float y_max = atof(argv[12]);
+   float z_min = atof(argv[13]);
+   float z_max = atof(argv[14]);
+   float dt = atof(argv[15]);
    
-   std::string path_to_data = argv[15];
-   std::string phdf5_bin_name = argv[16];
-   std::string attr_bin_name = argv[17];
-   std::string write_grid_bin_name = argv[18];
-   std::string eigen_bin_name = argv[19];
-   std::string num_proc = argv[20];
+   std::string path_to_data = argv[16];
+   std::string phdf5_bin_name = argv[17];
+   std::string attr_bin_name = argv[18];
+   std::string write_grid_bin_name = argv[19];
+   std::string eigen_bin_name = argv[20];
+   std::string num_proc = argv[21];
 
-   int xgrid_threads = atoi(argv[21]);
-   int ygrid_threads = atoi(argv[22]);
-   int zgrid_threads = atoi(argv[23]);
+   int xgrid_threads = atoi(argv[22]);
+   int ygrid_threads = atoi(argv[23]);
+   int zgrid_threads = atoi(argv[24]);
 
-   int init_xthreads = atoi(argv[24]);
-   int init_ythreads = atoi(argv[25]);
-   int init_zthreads = atoi(argv[26]);
+   int init_xthreads = atoi(argv[25]);
+   int init_ythreads = atoi(argv[26]);
+   int init_zthreads = atoi(argv[27]);
    
-   int FA_xthreads = atoi(argv[27]);
-   int FA_ythreads = atoi(argv[28]);
-   int FA_zthreads = atoi(argv[29]);
+   int FA_xthreads = atoi(argv[28]);
+   int FA_ythreads = atoi(argv[29]);
+   int FA_zthreads = atoi(argv[30]);
 
-   int BCLeftRight_xthreads = atoi(argv[30]);
-   int BCLeftRight_zthreads = atoi(argv[31]);
+   int BCLeftRight_xthreads = atoi(argv[31]);
+   int BCLeftRight_zthreads = atoi(argv[32]);
 
-   int BCTopBottom_ythreads = atoi(argv[32]);
-   int BCTopBottom_zthreads = atoi(argv[33]);
+   int BCTopBottom_ythreads = atoi(argv[33]);
+   int BCTopBottom_zthreads = atoi(argv[34]);
 
-   int PBC_xthreads = atoi(argv[34]);
-   int PBC_ythreads = atoi(argv[35]);
+   int PBC_xthreads = atoi(argv[35]);
+   int PBC_ythreads = atoi(argv[36]);
 
-   int QintBC_FrontRight_xthreads = atoi(argv[36]);
-   int QintBC_FrontBottom_ythreads = atoi(argv[37]);
-   int QintBC_BottomRight_zthreads = atoi(argv[38]);
+   int QintBC_FrontRight_xthreads = atoi(argv[37]);
+   int QintBC_FrontBottom_ythreads = atoi(argv[38]);
+   int QintBC_BottomRight_zthreads = atoi(argv[39]);
 
-   int SM_mult_grid_x = atoi(argv[39]);
-   int SM_mult_grid_y = atoi(argv[40]);
-   int SM_mult_grid_z = atoi(argv[41]);
+   int SM_mult_grid_x = atoi(argv[40]);
+   int SM_mult_grid_y = atoi(argv[41]);
+   int SM_mult_grid_z = atoi(argv[42]);
 
-   int SM_mult_init_x = atoi(argv[42]);
-   int SM_mult_init_y = atoi(argv[43]);
-   int SM_mult_init_z = atoi(argv[44]);
+   int SM_mult_init_x = atoi(argv[43]);
+   int SM_mult_init_y = atoi(argv[44]);
+   int SM_mult_init_z = atoi(argv[45]);
 
-   int SM_mult_FA_x = atoi(argv[45]);
-   int SM_mult_FA_y = atoi(argv[46]);
-   int SM_mult_FA_z = atoi(argv[47]);
+   int SM_mult_FA_x = atoi(argv[46]);
+   int SM_mult_FA_y = atoi(argv[47]);
+   int SM_mult_FA_z = atoi(argv[48]);
 
    // CUDA BOILERPLATE 
    int deviceId;
@@ -104,6 +155,10 @@ int main(int argc, char* argv[]){
 	float dy = (y_max - y_min) / (Ny - 1);
 	float dz = (z_max - z_min) / (Nz - 1);
 
+   // Execution grid and threadblock configurations for the Grid Initialization megakernel
+   // dim3 egd_grid(SM_mult_grid_x * numberOfSMs, SM_mult_grid_y * numberOfSMs, SM_mult_grid_z * numberOfSMs);
+   // dim3 tbd_grid(xgrid_threads, ygrid_threads, zgrid_threads);
+
    // Execution grid and threadblock configurations for the Grid Initialization microkernels
    dim3 egd_xgrid(SM_mult_grid_x * numberOfSMs, 1, 1); // "egd" = "execution_grid_dimensions"
    dim3 egd_ygrid(1, SM_mult_grid_y * numberOfSMs, 1);
@@ -112,20 +167,10 @@ int main(int argc, char* argv[]){
    dim3 tbd_xgrid(xgrid_threads, 1, 1); // "tbd = thread_block_dimensions"
    dim3 tbd_ygrid(1, ygrid_threads, 1);
    dim3 tbd_zgrid(1, 1, zgrid_threads);
-   
-   // Execution grid and threadblock configurations for the Grid Initialization kegakernel
-   // dim3 egd_grid(SM_mult_grid_x * numberOfSMs, SM_mult_grid_y * numberOfSMs, SM_mult_grid_z * numberOfSMs);
-   // std::cout << "egd_grid is: (" << egd_grid.x << "," << egd_grid.y << "," << egd_grid.z << ")" << std::endl;
-
-   // dim3 tbd_grid(xgrid_threads, ygrid_threads, zgrid_threads);
-   // std::cout << "tbd_grid is: (" << tbd_grid.x << "," << tbd_grid.y << "," << tbd_grid.z << ")" << std::endl;
 
    // Execution grid and threadblock configurations for the initialization kernels
    dim3 egd_init(SM_mult_init_x * numberOfSMs, SM_mult_init_y * numberOfSMs, SM_mult_init_z * numberOfSMs);
-   std::cout << "egd_init is: (" << egd_init.x << "," << egd_init.y << "," << egd_init.z << ")" << std::endl;
-
    dim3 tbd_init(init_xthreads, init_ythreads, init_zthreads); 
-   std::cout << "tbd_init is: (" << tbd_init.x << "," << tbd_init.y << "," << tbd_init.z << ")" << std::endl;
 
    // Execution grid and threadblock configurations for the Boundary Condition microkernels
    dim3 egd_bdry_leftright(numberOfSMs, 1, numberOfSMs);
@@ -137,36 +182,46 @@ int main(int argc, char* argv[]){
    dim3 egd_qintbdry_frontbottom(1, numberOfSMs, 1);
    dim3 egd_qintbdry_bottomright(1, 1, numberOfSMs);
    
-   dim3 tbd_bdry_leftright(BCLeftRight_xthreads, 1, BCLeftRight_zthreads);
-   dim3 tbd_bdry_topbottom(1, BCTopBottom_ythreads, BCTopBottom_zthreads);
-   dim3 tbd_bdry_frontback(PBC_xthreads, PBC_ythreads, 1); // can also be used for PBCs
-   dim3 tbd_qintbdry_frontright(QintBC_FrontRight_xthreads, 1, 1);
-   dim3 tbd_qintbdry_frontbottom(1, QintBC_FrontBottom_ythreads, 1);
-   dim3 tbd_qintbdry_bottomright(1, 1, QintBC_BottomRight_zthreads);
+   dim3 tbd_bdry_leftright(8, 1, 8);
+   dim3 tbd_bdry_topbottom(1, 8, 8);
+   dim3 tbd_bdry_frontback(8, 8, 1); // can also be used for PBCs
+   dim3 tbd_qintbdry_frontright(1024, 1, 1);
+   dim3 tbd_qintbdry_frontbottom(1, 1024, 1);
+   dim3 tbd_qintbdry_bottomright(1, 1, 1024);
 
-   // Execution grid and threadblock configurations for the Predictor and Corrector microkernels
+   // Execution grid and threadblock configurations for the Predictor and Corrector kernels
    dim3 egd_fluidadvance(SM_mult_FA_x * numberOfSMs, SM_mult_FA_y * numberOfSMs, SM_mult_FA_z * numberOfSMs);
-   std::cout << "egd_fluidadvance is: (" << egd_fluidadvance.x << "," << egd_fluidadvance.y << "," << egd_fluidadvance.z << ")" << std::endl;
-
    dim3 tbd_fluidadvance(FA_xthreads, FA_ythreads, FA_zthreads); 
-   std::cout << "tbd_fluidadvance is: (" << tbd_fluidadvance.x << "," << tbd_fluidadvance.y << "," << tbd_fluidadvance.z << ")" << std::endl;
-
-   // dim3 tbd_fluidadvance(6, 6, 6); 
-
-   // TODO: Microkernels should be in a wrapper   
+  
    // InitializeGrid<<<egd_grid, tbd_grid>>>(x_min, x_max, y_min, y_max, z_min, z_max, dx, dy, dz, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    InitializeX<<<egd_xgrid, tbd_xgrid>>>(x_grid, x_min, dx, Nx);
    InitializeY<<<egd_ygrid, tbd_ygrid>>>(y_grid, y_min, dy, Ny);
    InitializeZ<<<egd_zgrid, tbd_zgrid>>>(z_grid, z_min, dz, Nz);
+   // cudaMemset(fluidvars, 0, sizeof(float) * Nx * Ny * Nz); /* Not sure if these are necessary */
+   // cudaMemset(intvars, 0, sizeof(float) * Nx * Ny * Nz);
    // ZeroVars<<<egd_init, tbd_init>>>(fluidvars, Nx, Ny, Nz); 
    // ZeroVars<<<egd_init, tbd_init>>>(intvars, Nx, Ny, Nz); 
    checkCuda(cudaDeviceSynchronize());
 
-   /*
-   TODO: "ScrewPinch" doesn't work
-   */ 
-   // ScrewPinch<<<egd_init, tbd_init>>>(fluidvars, J0, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   ScrewPinchStride<<<egd_init, tbd_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   InitConfig initParameters;
+   /* POPULATE h_initParameters*/
+   initParameters.gridDim = egd_init;
+   initParameters.blockDim = tbd_init;
+
+   initParameters.J0 = J0;
+   initParameters.r_max_coeff = r_max_coeff;
+
+   initParameters.x_grid = x_grid;
+   initParameters.y_grid = y_grid;
+   initParameters.z_grid = z_grid;
+
+   initParameters.Nx = Nx;
+   initParameters.Ny = Ny;
+   initParameters.Nz = Nz;
+
+   SimulationInitializer simInit(initParameters);
+
+   simInit.initialize(sim_type, fluidvars);
    checkCuda(cudaDeviceSynchronize());
 
    rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
@@ -178,6 +233,7 @@ int main(int argc, char* argv[]){
    NOTE: 
    If you want to use microkernels here, you have to come up with an execution configuration set, and addtl. synchronization 
    */
+   /* REFACTOR TO HAVE A RUNTIME CLASS THAT DECIDES WHAT SET OF KERNELS TO USE */
    ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
@@ -185,7 +241,7 @@ int main(int argc, char* argv[]){
    NOTE:
    You DEFINITELY want to use microkernels here
    */
-   // ComputeIntermediateVariablesBoundaryNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz); 
+   /* REFACTOR TO HAVE A RUNTIME CLASS THAT DECIDES WHAT SET OF KERNELS TO USE */
    QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    QintBdryTopBottomNoDiff<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
@@ -197,6 +253,7 @@ int main(int argc, char* argv[]){
    QintBdryPBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
+   /* REFACTOR TO HAVE A WRAPPER */
    // Use IPC to write data out in order to avoid redundant work 
    std::string shm_name_fluidvar = "/shared_h_fluidvar";
    int shm_fd = shm_open(shm_name_fluidvar.data(), O_CREAT | O_RDWR, 0666);
@@ -231,6 +288,7 @@ int main(int argc, char* argv[]){
    }
 
    // COMPUTE STABILITY CRITERION
+   /* REFACTOR TO BASE ON ANALYTIC EXPRESSIONS FOR EIGNEVALUES */
    // First, transfer grid data
    std::string shm_name_gridx = "/shared_h_gridx";
    shm_fd = shm_open(shm_name_gridx.data(), O_CREAT | O_RDWR, 0666);
@@ -341,6 +399,7 @@ int main(int argc, char* argv[]){
    checkCuda(cudaFree(x_grid));
    checkCuda(cudaFree(y_grid));
    checkCuda(cudaFree(z_grid));
+   // checkCuda(cudaFree(d_initParameters));
    
    // Host
    munmap(shm_h_fluidvar, 8 * fluid_data_size);
