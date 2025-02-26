@@ -19,13 +19,9 @@ __global__ void InitializeX(float* grid_x, const float x_min, const float dx, co
 __global__ void InitializeY(float* grid_y, const float y_min, const float dy, const int Ny);
 __global__ void InitializeZ(float* grid_z, const float z_min, const float dz, const int Nz);
 
+/* I don't need these */
 __global__ void ZeroVars(float* vars, const int Nx, const int Ny, const int Nz);
 __global__ void ZeroVarsStride(float* vars, const int Nx, const int Ny, const int Nz);
-
-__global__ void ScrewPinch(float* fluidvar, 
-    const float J0, const float r_max_coeff, 
-    const float* grid_x, const float* grid_y, const float* grid_z,
-    const int Nx, const int Ny, const int Nz);
 
 // Data structure for holding the initialization parameters
 struct InitConfig {
@@ -36,6 +32,11 @@ struct InitConfig {
     float *x_grid, *y_grid, *z_grid; // pointers to grid data 
     int Nx, Ny, Nz; // dimensions of grid
  };
+
+__global__ void ScrewPinch(float* fluidvar, 
+    const float J0, const float r_max_coeff, 
+    const float* grid_x, const float* grid_y, const float* grid_z,
+    const int Nx, const int Ny, const int Nz);
 
 // void LaunchScrewPinch(float *fluidvar, const InitConfig& cfg, const dim3 gridDim, const dim3 blockDim); // Wrapper for launching ScrewPinch kernel
 void LaunchScrewPinch(float *fluidvar, const InitConfig& cfg); // Wrapper for launching ScrewPinch kernel

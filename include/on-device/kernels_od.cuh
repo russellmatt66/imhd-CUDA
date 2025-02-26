@@ -15,7 +15,14 @@ partitioned into two sets:
 // physical constants
 #define gamma (5.0 / 3.0)
 
-// Global kernels
+struct KernelConfig { // variables needed to launch kernrels
+    dim3 gridDim, blockDim;
+    float D; // numerical diffusivity
+    float dt, dx, dy, dz; 
+    int Nx, Ny, Nz;
+};
+
+// Global kernels and launchers
 // Megakernels
 __global__ void FluidAdvance(float* fluidvar, const float* intvar, 
      const float D, const float dt, const float dx, const float dy, const float dz, 
@@ -28,6 +35,8 @@ __global__ void FluidAdvanceLocal(float* fluidvar, const float* intvar,
 __global__ void FluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
+
+void LaunchFluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar, const KernelConfig& kcfg);
 
 __global__ void BoundaryConditions(float* fluidvar, const float* intvar, 
      const float D, const float dt, const float dx, const float dy, const float dz,
@@ -71,6 +80,7 @@ __device__ float LaxWendroffAdvRho(const int i, const int j, const int k,
      const float* fluidvar, const float* intvar, 
      const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);
+
 __device__ float LaxWendroffAdvRhoLocal(const float rho, const float rho_int, 
     const float rhovx_int, const float rhovx_int_im1,
     const float rhovy_int, const float rhovy_int_jm1,
@@ -81,6 +91,7 @@ __device__ float LaxWendroffAdvRhoVX(const int i, const int j, const int k,
     const float* fluidvar, const float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
+
 __device__ float LaxWendroffAdvRhoVXLocal(const float rho_int, const float rho_int_im1, const float rho_int_jm1, const float rho_int_km1,
     const float rhovx, const float rhovx_int, const float rhovx_int_im1, const float rhovx_int_jm1, const float rhovx_int_km1,
     const float rhovy_int, const float rhovy_int_jm1, 
@@ -96,6 +107,7 @@ __device__ float LaxWendroffAdvRhoVY(const int i, const int j, const int k,
      const float* fluidvar, const float* intvar,  
      const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);
+
 __device__ float LaxWendroffAdvRhoVYLocal(const float rho_int, const float rho_int_im1, const float rho_int_jm1, const float rho_int_km1,
     const float rhovx_int, const float rhovx_int_im1,
     const float rhovy, const float rhovy_int, const float rhovy_int_im1, const float rhovy_int_jm1, const float rhovy_int_km1,
@@ -111,6 +123,7 @@ __device__ float LaxWendroffAdvRhoVZ(const int i, const int j, const int k,
      const float* fluidvar, const float* intvar, 
      const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);
+
 __device__ float LaxWendroffAdvRhoVZLocal(const float rho_int, const float rho_int_im1, const float rho_int_jm1, const float rho_int_km1,
     const float rhovx_int, const float rhovx_int_im1,  
     const float rhovy_int, const float rhovy_int_jm1, 
@@ -126,6 +139,7 @@ __device__ float LaxWendroffAdvBX(const int i, const int j, const int k,
      const float* fluidvar, const float* intvar, 
      const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);
+
 __device__ float LaxWendroffAdvBXLocal(const float rho_int, const float rho_int_jm1, const float rho_int_km1, 
     const float rhovx_int, const float rhovx_int_jm1, const float rhovx_int_km1,  
     const float rhovy_int, const float rhovy_int_jm1, 
@@ -139,6 +153,7 @@ __device__ float LaxWendroffAdvBY(const int i, const int j, const int k,
      const float* fluidvar, const float* intvar, 
      const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);
+
 __device__ float LaxWendroffAdvBYLocal(const float rho_int, const float rho_int_im1, const float rho_int_km1,  
     const float rhovx_int, const float rhovx_int_im1,  
     const float rhovy_int, const float rhovy_int_im1, const float rhovy_int_km1, 
@@ -152,6 +167,7 @@ __device__ float LaxWendroffAdvBZ(const int i, const int j, const int k,
      const float* fluidvar, const float* intvar, 
      const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);
+
 __device__ float LaxWendroffAdvBZLocal(const float rho_int, const float rho_int_im1, const float rho_int_jm1, 
     const float rhovx_int, const float rhovx_int_im1,
     const float rhovy_int, const float rhovy_int_jm1,    
@@ -165,6 +181,7 @@ __device__ float LaxWendroffAdvE(const int i, const int j, const int k,
      const float* fluidvar, const float* intvar, 
      const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);
+
 __device__ float LaxWendroffAdvELocal(const float rho_int, const float rho_int_im1, const float rho_int_jm1, const float rho_int_km1, 
     const float rhovx_int, const float rhovx_int_im1,
     const float rhovy_int, const float rhovy_int_jm1, 

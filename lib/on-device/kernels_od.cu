@@ -524,6 +524,12 @@ __global__ void FluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar,
         return;
     }
 
+void LaunchFluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar, const KernelConfig& kcfg)
+{
+    FluidAdvanceLocalNoDiff<<<kcfg.gridDim, kcfg.blockDim>>>(fluidvar, intvar, kcfg.dt, kcfg.dx, kcfg.dy, kcfg.dz, kcfg.Nx, kcfg.Ny, kcfg.Nz);
+    return;
+}
+
 // Microkernels 
 // 32 registers per thread
 __global__ void FluidAdvanceMicroRhoLocalNoDiff(float* fluidvar, const float* intvar, 

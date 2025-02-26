@@ -26,12 +26,10 @@ class SimulationInitializer {
        using KernelLauncher = std::function<void(float*, const InitConfig&)>;
        std::map<std::string, KernelLauncher> initFunctions;
        InitConfig config;
-       dim3 egd_init, tbd_init;
    
    public:
        SimulationInitializer(const InitConfig& config) : config(config) {
            initFunctions["screwpinch"] = [this](float* data, const InitConfig& cfg) {
-               // ScrewPinch<<<cfg.gridDim, cfg.blockDim>>>(data);
                LaunchScrewPinch(data, cfg); // Do not want to pass cfg to GPU or make this code less readable by passing long list of cfg parameters
            };
            initFunctions["screwpinch-stride"] = [this](float* data, const InitConfig& cfg) {
@@ -39,16 +37,6 @@ class SimulationInitializer {
            };
            /* ADD OTHER INITIALIZERS */
        } 
-       // SimulationInitializer(const InitConfig& config, const dim3 egd_init, const dim3 tbd_init) : config(config), egd_init(egd_init), tbd_init(tbd_init) {
-       //     initFunctions["screwpinch"] = [this](float* data, const InitConfig& cfg, const dim3 egd_init, const dim3 tbd_init) {
-       //         // ScrewPinch<<<cfg.gridDim, cfg.blockDim>>>(data);
-       //         LaunchScrewPinch(data, cfg, egd_init, tbd_init); // Do not want to pass cfg to GPU or make this code less readable by passing long list of cfg parameters
-       //     };
-       //     initFunctions["screwpinch-stride"]=[this](float* data, const InitConfig& cfg, const dim3 egd_init, const dim3 tbd_init) {
-       //         LaunchScrewPinchStride(data, cfg, egd_init, tbd_init);
-       //     };
-       //     /* ADD OTHER INITIALIZERS */
-       // }
 
        void initialize(const std::string& simType, float* data){
            auto it = initFunctions.find(simType);
@@ -57,6 +45,24 @@ class SimulationInitializer {
            }
            it->second(data, config);
        }
+};
+
+// I don't want to have a separate runtime file for each possible choice of megakernels / microkernels
+// Due to structure, it looks like I will need to separate instances of this class
+class KernelConfigurer {
+   private:
+      /* PRIVATE DATA GOES HERE */
+      using KernelLauncher = std::function<void(float*, const float*, const KernelConfig& kcfg)>;
+      std::map<std::string, KernelLauncher> kernelFunctions;
+      KernelConfig config;
+
+   public:
+      /* PUBLIC DATA GOES HERE */
+      KernelConfigurer(const KernelConfig& kcfg) : config(config) {
+         kernelFunctions["fluidadvancelocal-nodiff"] = [this](float* fluidvars, const float *intvars, const KernelConfig& kcfg) {
+            LaunchFluidAdvanceLocalNoDiff(fluidvars, intvars, kcfg); // Do not want to pass kcfg to GPU or make this code less readable by passing long list of params
+         };
+      }
 };
 
 int main(int argc, char* argv[]){
@@ -218,15 +224,6 @@ int main(int argc, char* argv[]){
    simInit.initialize(sim_type, fluidvars);
    checkCuda(cudaDeviceSynchronize());
 
-   /*
-   TODO: "ScrewPinch" doesn't work
-   */ 
-   // ScrewPinch<<<egd_init, tbd_init>>>(fluidvars, J0, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   // ScrewPinchStride<<<egd_init, tbd_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   // LaunchScrewPinchStride(fluidvars, h_initParameters, egd_init, tbd_init);
-   LaunchScrewPinchStride(fluidvars, initParameters);
-   checkCuda(cudaDeviceSynchronize());
-
    rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
    rigidConductingWallBCsTopBottom<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, Nx, Ny, Nz);
    PBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
@@ -236,6 +233,7 @@ int main(int argc, char* argv[]){
    NOTE: 
    If you want to use microkernels here, you have to come up with an execution configuration set, and addtl. synchronization 
    */
+   /* REFACTOR TO HAVE A RUNTIME CLASS THAT DECIDES WHAT SET OF KERNELS TO USE */
    ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
@@ -243,7 +241,7 @@ int main(int argc, char* argv[]){
    NOTE:
    You DEFINITELY want to use microkernels here
    */
-   // ComputeIntermediateVariablesBoundaryNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz); 
+   /* REFACTOR TO HAVE A RUNTIME CLASS THAT DECIDES WHAT SET OF KERNELS TO USE */
    QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    QintBdryTopBottomNoDiff<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
@@ -255,6 +253,7 @@ int main(int argc, char* argv[]){
    QintBdryPBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
+   /* REFACTOR TO HAVE A WRAPPER */
    // Use IPC to write data out in order to avoid redundant work 
    std::string shm_name_fluidvar = "/shared_h_fluidvar";
    int shm_fd = shm_open(shm_name_fluidvar.data(), O_CREAT | O_RDWR, 0666);
@@ -289,6 +288,7 @@ int main(int argc, char* argv[]){
    }
 
    // COMPUTE STABILITY CRITERION
+   /* REFACTOR TO BASE ON ANALYTIC EXPRESSIONS FOR EIGNEVALUES */
    // First, transfer grid data
    std::string shm_name_gridx = "/shared_h_gridx";
    shm_fd = shm_open(shm_name_gridx.data(), O_CREAT | O_RDWR, 0666);
