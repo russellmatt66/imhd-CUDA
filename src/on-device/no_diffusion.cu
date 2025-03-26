@@ -20,6 +20,9 @@
 #include "utils.cuh"
 #include "utils.hpp"
 
+/* 
+THIS CAN BE MOVED TO LIBRARIES 
+*/
 // I don't want to have a separate runtime file for each problem
 class SimulationInitializer {
    private:
@@ -47,21 +50,31 @@ class SimulationInitializer {
        }
 };
 
+/* 
+THIS CAN BE MOVED TO LIBRARIES
+*/
 // I don't want to have a separate runtime file for each possible choice of megakernels / microkernels
 // Due to structure, it looks like I will need to separate instances of this class
 class KernelConfigurer {
    private:
-      /* PRIVATE DATA GOES HERE */
       using KernelLauncher = std::function<void(float*, const float*, const KernelConfig& kcfg)>;
       std::map<std::string, KernelLauncher> kernelFunctions;
       KernelConfig config;
 
    public:
-      /* PUBLIC DATA GOES HERE */
       KernelConfigurer(const KernelConfig& kcfg) : config(config) {
          kernelFunctions["fluidadvancelocal-nodiff"] = [this](float* fluidvars, const float *intvars, const KernelConfig& kcfg) {
             LaunchFluidAdvanceLocalNoDiff(fluidvars, intvars, kcfg); // Do not want to pass kcfg to GPU or make this code less readable by passing long list of params
          };
+         /* ADD MORE BUNDLES OF KERNELS TO RUN */
+      }
+
+      void LaunchKernels(const std::string& kBundle, float* fvars_or_intvars, const float* intvars_or_fvars){
+         auto it = kernelFunctions.find(kBundle);
+         if (it == kernelFunctions.end()) {
+            throw std::runtime_error("Unknown kernel bundle selected: " + kBundle);
+         }
+         it->second(fvars_or_intvars, intvars_or_fvars, config);
       }
 };
 
@@ -204,7 +217,6 @@ int main(int argc, char* argv[]){
    checkCuda(cudaDeviceSynchronize());
 
    InitConfig initParameters;
-   /* POPULATE h_initParameters*/
    initParameters.gridDim = egd_init;
    initParameters.blockDim = tbd_init;
 
@@ -223,6 +235,24 @@ int main(int argc, char* argv[]){
 
    simInit.initialize(sim_type, fluidvars);
    checkCuda(cudaDeviceSynchronize());
+
+   KernelConfig fluidKernelParameters; // For selecting different bundles of kernels to use, i.e., megakernel or ordered microkernels (for profiling) 
+
+   fluidKernelParameters.gridDim = egd_fluidadvance;
+   fluidKernelParameters.blockDim = tbd_fluidadvance;
+
+   fluidKernelParameters.D = D;
+   
+   fluidKernelParameters.dt = dt;
+   fluidKernelParameters.dx = dx;
+   fluidKernelParameters.dy = dy;
+   fluidKernelParameters.dz = dz;
+
+   fluidKernelParameters.Nx = Nx;
+   fluidKernelParameters.Ny = Ny;
+   fluidKernelParameters.Nz = Nz;
+
+   KernelConfigurer fluidKcfg(fluidKernelParameters);
 
    rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
    rigidConductingWallBCsTopBottom<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, Nx, Ny, Nz);
@@ -253,7 +283,10 @@ int main(int argc, char* argv[]){
    QintBdryPBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
-   /* REFACTOR TO HAVE A WRAPPER */
+   /* 
+   REFACTOR TO HAVE A WRAPPER 
+   Argument is `std::string shm_name_var`
+   */
    // Use IPC to write data out in order to avoid redundant work 
    std::string shm_name_fluidvar = "/shared_h_fluidvar";
    int shm_fd = shm_open(shm_name_fluidvar.data(), O_CREAT | O_RDWR, 0666);
