@@ -62,7 +62,7 @@ class KernelConfigurer {
       KernelConfig config;
 
    public:
-      KernelConfigurer(const KernelConfig& kcfg) : config(config) {
+      KernelConfigurer(const KernelConfig& kcfg) : config(kcfg) {
          kernelFunctions["fluidadvancelocal-nodiff"] = [this](float* fluidvars, const float *intvars, const KernelConfig& kcfg) {
             LaunchFluidAdvanceLocalNoDiff(fluidvars, intvars, kcfg); // Do not want to pass kcfg to GPU or make this code less readable by passing long list of params
          };
@@ -78,8 +78,36 @@ class KernelConfigurer {
       }
 };
 
+// See documentation for what each of these Boundary Conditions speceify exactly
+class BCsConfigurer {
+   private:
+      using KernelLauncher = std::function<void(float*, const int, const int, const int, const BoundaryConfig& bcfg)>;
+      std::map<std::string, KernelLauncher> boundaryFunctions;
+      BoundaryConfig config;
+
+   public:
+      BCsConfigurer(const BoundaryConfig& bcfg) : config(bcfg) {
+         boundaryFunctions["pbc-z"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+            LaunchBCsPBCZ(fluidvars, Nx, Ny, Nz, bcfg); // Perfectly-conducting, rigid walls for xy, periodic in z 
+         };
+         /* ADD MORE BOUNDARY CONDITIONS */
+      }
+
+      void LaunchKernels(const std::string& bcBundle, float* fluidvars, const int Nx, const int Ny, const int Nz){
+         auto it = boundaryFunctions.find(bcBundle);
+         if (it == boundaryFunctions.end()) {
+            throw std::runtime_error("Unknown bcs selected: " + bcBundle);
+         }
+         it->second(fluidvars, Nx, Ny, Nz, config);
+      }
+};
+
 int main(int argc, char* argv[]){
    std::string sim_type = argv[1];
+   // std::string q_type = argv[2]
+   // std::string bcs_type = argv[3]
+   // std::string qint_type = argv[4]
+   // std::string qintbcs_type = argv[5]
 
    int Nt = atoi(argv[2]);
    int Nx = atoi(argv[3]);
@@ -254,6 +282,9 @@ int main(int argc, char* argv[]){
 
    KernelConfigurer fluidKcfg(fluidKernelParameters);
 
+   /* 
+   THERE SHOULD BE A `class BCsConfigurer to test different ones! 
+   */
    rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
    rigidConductingWallBCsTopBottom<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, Nx, Ny, Nz);
    PBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
@@ -271,7 +302,10 @@ int main(int argc, char* argv[]){
    NOTE:
    You DEFINITELY want to use microkernels here
    */
-   /* REFACTOR TO HAVE A RUNTIME CLASS THAT DECIDES WHAT SET OF KERNELS TO USE */
+   /* 
+   REFACTOR TO HAVE A RUNTIME CLASS THAT DECIDES WHAT SET OF KERNELS TO USE 
+   `class QintBCsConfigurer` 
+   */
    QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    QintBdryTopBottomNoDiff<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);

@@ -57,13 +57,21 @@ After you have all the dependencies installed
 Currently, only `ARCH_ONDEV` is end-to-end implemented. `make` will cause a set of binaries to be built in the appropriate directories. 
 
 ### Run Instructions
-`python simulation_launcher.py -`
-- Since only the `on-device` architecture is currently implemented, this does not need any arguments to be accepted, however following the principle of YAGNI (You Are Gonna Need It) I have added a `mode` argument. It currently does nothing so I just input the `-` character as a placeholder.
+`python simulation_launcher.py arch mode`
+- THIS FILE launches the simulation for whatever solver architecture `arch` that is specified, with or without an artificial diffusivity via `mode`, and using whatever configuration is specified by the data in `arch/input.inp`
 
-The above command reads the file `input.inp` in the specified build folder (which is currently `on-device/`), and launches the simulation accordingly. 
+The above command reads the file `arch/input.inp` in the specified build folder (which is currently `on-device/`), and launches the simulation accordingly. 
 
 See the **input file specification** for the appropriate solver to understand the list of all inputs and their meaning:
 - [ARCH_ONDEV Input File](./on-device/README.md#input-file) 
+
+`arch`
+- Either `host-device` or `-` (host-device by default). Configure the runtime using `input.inp` 
+- See `simulation_launcher.py` for specifics. 
+
+`mode`
+- Either `nodiff` or `-` (no diffusion by default). Configure the runtime using `input.inp`
+- See `simulation_launcher.py` for specifics
 
 ### Directory Structure
 `simulation_launcher.py`
