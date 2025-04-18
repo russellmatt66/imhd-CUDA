@@ -78,7 +78,8 @@ class KernelConfigurer {
       }
 };
 
-// See documentation for what each of these Boundary Conditions speceify exactly
+// See documentation for what each of these Boundary Conditions specify exactly
+/* WHERE (?) */
 class BCsConfigurer {
    private:
       using KernelLauncher = std::function<void(float*, const int, const int, const int, const BoundaryConfig& bcfg)>;
@@ -88,11 +89,14 @@ class BCsConfigurer {
    public:
       BCsConfigurer(const BoundaryConfig& bcfg) : config(bcfg) {
          boundaryFunctions["pbc-z"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-            LaunchBCsPBCZ(fluidvars, Nx, Ny, Nz, bcfg); // Perfectly-conducting, rigid walls for xy, periodic in z 
+            LaunchFluidBCsPBCZ(fluidvars, Nx, Ny, Nz, config); // Periodic in z 
          };
-         /* ADD MORE BOUNDARY CONDITIONS */
+         /* ADD MORE BOUNDARY CONDITIONS 
+         For example, PBCs in every direction! (Orszag-Tang)
+         */
       }
 
+      /* Could we pick a better name for `bcBundle` (?) */
       void LaunchKernels(const std::string& bcBundle, float* fluidvars, const int Nx, const int Ny, const int Nz){
          auto it = boundaryFunctions.find(bcBundle);
          if (it == boundaryFunctions.end()) {
@@ -102,6 +106,32 @@ class BCsConfigurer {
       }
 };
 
+/* 
+This runtime is for solving the evolution of Bennett profiles.
+
+Bennett profiles are Ideal MHD equilibrium states characterized by an axially-symmetric current density and electromagnetic field. 
+
+For a cylindrical configuration, which is easily embedded in a rectilinear coordinate system, this amounts to solving for a system of hyperbolic PDEs whose components you
+can express as being single functions of the radius, which is the distance from the axis, $r^2 = x^2 + y^2$.      
+
+Furthermore, certain conditions on, and relationships between, the J and B fields permit the identification of a class of "pinch"-based equilibria. 
+The Bennett profile is a classic example, being that of a parabolic axial current density with some amplitude, $J_{0}$, out to some pinch radius, $r_{pinch}$. 
+By itself this will generate an azimuthal magnetic field, $B_{\theta}$. 
+
+If, in addition, you were to add a uniform axial magnetic field, $\vec{B}_{z} = B_{0}\hat{z}$ ... 
+Then, what you would encounter is a "screw"pinch equilibrium where a helical magnetic field confines plasma whose stability is supported by the external (say) applied magnetic field   
+
+This choice for the axial current density profile only limits us to cases where we are discussing 1D "screw"pinch (described above) or z-pinch equilibria. 
+The stability of the Z-pinch configuration is a great way to demonstrate some fundamental MHD instabilities, the m = 0, kink, and m = 1, sausage, instabilities.
+
+A "Z"-pinch refers to a plasma pinch with an axial current density, that is axisymmetric. 
+
+"Axisymmetric" is the shorthand of a plasma scientist for when a situation is treated as both azimuthally and axially-symmetric, leaving only a radial dependence.
+Amusingly, some sources will characterize this as exhibiting "radial" symmetry, but this is inconsistent with the definition of symmetry in the context of the continuous, hyperbolic
+PDEs of the Ideal Magnetohydrodynamics, and they are merely wishing to highlight the radial character of the dependence on the axial current density in the case of a Z-pinch.
+
+A "theta"-pinch will have an azimuthal current density instead.  
+*/
 int main(int argc, char* argv[]){
    std::string sim_type = argv[1];
    // std::string q_type = argv[2]
@@ -287,7 +317,7 @@ int main(int argc, char* argv[]){
    */
    rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
    rigidConductingWallBCsTopBottom<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, Nx, Ny, Nz);
-   PBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
+   PBCsInZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 
    /*
@@ -318,8 +348,27 @@ int main(int argc, char* argv[]){
    checkCuda(cudaDeviceSynchronize());    
 
    /* 
-   REFACTOR TO HAVE A WRAPPER 
-   Argument is `std::string shm_name_var`
+   REFACTOR TO HAVE A WRAPPER. Where should it go? lib/on-device/utils/utils.cpp 
+   
+   float* SHMAlloWrapper(const std::string shm_name, const size_t data_size){
+      int shm_fd = shm_open(shm_name.data(), O_CREAT | O_RDWR, 0666);
+      
+      if (shm_fd == -1) {
+         std::cerr << "Failed to create (host) shared memory!" << std::endl;
+         return NULL; // This connects to an external layer to check for `EXIT_FAILURE`
+      }
+      
+      ftruncate(shm_fd, data_size);
+      
+      float* shm_h = (float*)mmap(0, data_size);
+      
+      if (shm_h == MAP_FAILED) {
+         std::cerr << "mmap failed!" << std::endl;
+         return NULL; // This connects to an external layer to check for `EXIT_FAILURE`
+      }
+      
+      return shm_h
+   }
    */
    // Use IPC to write data out in order to avoid redundant work 
    std::string shm_name_fluidvar = "/shared_h_fluidvar";
@@ -354,7 +403,6 @@ int main(int argc, char* argv[]){
         std::cerr << "Error executing attribute command" << std::endl;
    }
 
-   // COMPUTE STABILITY CRITERION
    /* REFACTOR TO BASE ON ANALYTIC EXPRESSIONS FOR EIGNEVALUES */
    // First, transfer grid data
    std::string shm_name_gridx = "/shared_h_gridx";
@@ -394,14 +442,19 @@ int main(int argc, char* argv[]){
          std::cerr << "Error executing writegrid binary: " << eigen_bin_name << std::endl;
    }
 
-   if (!(eigen_bin_name == "none")){ // Don't always want to check stability - expensive raster scan
-      std::cout << "Forking to process for computing CFL number (checking stability)" << std::endl;
-      ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
-      if (ret != 0) {
-         std::cerr << "Error executing Eigen binary: " << eigen_bin_name << std::endl;
-         std::cerr << "Error code: " << ret << std::endl;
-      }
-   }
+   /* 
+   ADAPTIVE TIMESTEP
+   This entire usage of Eigen to perform an eigenvalue solve based on analytical forms of the conservative Flux Jacobians is a waste of computational effort
+   The eigenvalues of Ideal MHD are readily computed from the primitive Flux Jacobians, and this should be done instead
+   */
+   // if (!(eigen_bin_name == "none")){ // Don't always want to check stability - expensive raster scan
+   //    std::cout << "Forking to process for computing CFL number (checking stability)" << std::endl;
+   //    ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
+   //    if (ret != 0) {
+   //       std::cerr << "Error executing Eigen binary: " << eigen_bin_name << std::endl;
+   //       std::cerr << "Error code: " << ret << std::endl;
+   //    }
+   // }
 
    // SIMULATION LOOP
    for (int it = 1; it < Nt; it++){
@@ -412,7 +465,7 @@ int main(int argc, char* argv[]){
       checkCuda(cudaDeviceSynchronize());
       
       std::cout << "Launching microkernel for PBCs" << std::endl; 
-      PBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
+      PBCsInZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       std::cout << "Kernels for computing fluid variables completed" << std::endl;
       

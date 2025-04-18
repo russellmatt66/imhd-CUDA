@@ -5,6 +5,8 @@
 
 #include "utils.hpp"
 
+// 
+
 // PHDF5 output functions
 int callBinary_AttrWrite(const std::string file_name, const int Nx, const int Ny, const int Nz, const std::string attr_bin_name){
     std::string addatt_command = "./" + attr_bin_name + " " + file_name + " " + std::to_string(Nx) + " "
@@ -88,7 +90,7 @@ Determines CFL number at every point in the domain using analytic expressions fo
 Adaptive method that returns value of new timestep necessary to maintain stability
 Choice is made based on safety factor  
 */
-float adaptiveTimeStep(const float dt){
+float adaptiveTimeStep(const float dt, const float* h_fluidvars){
     float new_dt = dt;
     /* WRITE */
     return new_dt;
@@ -96,6 +98,12 @@ float adaptiveTimeStep(const float dt){
 
 
 // This is used in benchmarking, and debug versions of code
+/* PERHAPS THIS ABOVE EXPRESSION SUGGESTS THAT THESE CONCERNS SHOULD BE SEPARATED?
+x There are reasons not too, for example, maybe the specific changes can all be local so this can serve globally to load values into memory. 
+o If this is purely used in those contexts, then there are strong reasons to move it out of here. 
+The tradeoff is having to expand `debug/` and `bench/` build systems to accomodate `lib/` sub-directories
+Maybe there should be a global `lib/`?
+*/
 // Python launcher does parsing of input file normally
 // Extra layer is unwanted when it comes to debugging / benchmarking 
 void parseInputFileDebug(std::vector<float>& inputs, const std::string input_file){

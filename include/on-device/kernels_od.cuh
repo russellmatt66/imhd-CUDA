@@ -1,26 +1,24 @@
 #ifndef KERNELS_OD_CUH
 #define KERNELS_OD_CUH
 
-// Lax-Wendroff scheme
-/*
-CUDA discourages the use of complex class structures, and race conditions that exist as a consequence of asynchronous thread execution necessitate that the fluid data be 
-partitioned into two sets:
-
-(1) The set of fluid variables at the current timestep (const)
-(2) The set of fluid variables for the future timestep (*_np1)
-
-(1) will be held static while data is populated into (2). Then, data will be transferred from (2) -> (1), and the process repeated. 
-*/ 
-
 // physical constants
 #define gamma (5.0 / 3.0)
 
-struct KernelConfig { // variables needed to launch kernrels
+struct KernelConfig { // variables needed to launch kernels
     dim3 gridDim, blockDim;
     float D; // numerical diffusivity
     float dt, dx, dy, dz; 
     int Nx, Ny, Nz;
 };
+
+// Lax-Wendroff scheme
+/*
+The algorithm necessitates that the fluid data be partitioned into two sets:
+
+(1) The set of fluid variables at the current timestep (fluidvar)
+(2) The set of intermediate variables at the current timestep (intvar)
+
+*/ 
 
 // Global kernels and launchers
 // Megakernels
@@ -42,7 +40,9 @@ __global__ void BoundaryConditions(float* fluidvar, const float* intvar,
      const float D, const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);
 
-// Microkernels
+// Microkernels 
+// - High Register Pressure
+// - No Diffusion
 __global__ void FluidAdvanceMicroRhoLocalNoDiff(float* fluidvar, const float* intvar, 
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
