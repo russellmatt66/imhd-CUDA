@@ -84,7 +84,7 @@ __global__ void rigidConductingWallBCsTopBottom(float* fluidvar, const int Nx, c
 }
 
 // 28 registers per thread
-__global__ void PBCsZ(float* fluidvar, const int Nx, const int Ny, const int Nz)
+__global__ void PBCsInZ(float* fluidvar, const int Nx, const int Ny, const int Nz)
 {
     int i = threadIdx.x + blockDim.x * blockIdx.x;
     int j = threadIdx.y + blockDim.y * blockIdx.y;
@@ -98,6 +98,13 @@ __global__ void PBCsZ(float* fluidvar, const int Nx, const int Ny, const int Nz)
     }
     return;
 }
+
+void LaunchFluidBCsPBCZ(float* fluidvars, const int Nx, const int Ny, const int Nz, BoundaryConfig& bcfg){
+    /* IMPLEMENT */
+    // PBCsInZ<<<bcfg.egd_frontback, bcfg.tbd_frontback>>>
+    return;
+}
+
 
 /* 
 NOTE:
