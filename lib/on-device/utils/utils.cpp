@@ -1,11 +1,34 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <cstddef>
+
 #include <unistd.h>
+#include <sys/mman.h>
+#include <fcntl.h>
 
 #include "utils.hpp"
 
-// 
+// Wrapper around SHMAllocation for float* (can simply template this function to generalize, but that's not necessary at this point)
+float* SHMAllocator(const std::string shm_name, const size_t data_size){
+    int shm_fd = shm_open(shm_name.data(), O_CREAT | O_RDWR, 0666);
+
+    if (shm_fd == -1) {
+        std::cerr << "Failed to create (host) shared memory!" << std::endl;
+        return NULL; // This connects to an external layer to check for `EXIT_FAILURE`
+    }
+
+    ftruncate(shm_fd, data_size);
+
+    float* shm_h = (float*)mmap(0, data_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+
+    if (shm_h == MAP_FAILED) {
+        std::cerr << "mmap failed!" << std::endl;
+        return NULL; // This connects to an external layer to check for `EXIT_FAILURE`
+    }
+
+    return shm_h;
+}
 
 // PHDF5 output functions
 int callBinary_AttrWrite(const std::string file_name, const int Nx, const int Ny, const int Nz, const std::string attr_bin_name){

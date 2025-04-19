@@ -7,9 +7,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string>
-#include <map>
-#include <functional>
-#include <stdexcept>
+// #include <map>
+// #include <functional>
+// #include <stdexcept>
 
 #include "initialize_od.cuh"
 #include "kernels_od.cuh"
@@ -19,103 +19,109 @@
 
 #include "utils.cuh"
 #include "utils.hpp"
+#include "configurers.hpp"
+
+// MAIN starts ~L150 
 
 /* 
 THIS CAN BE MOVED TO LIBRARIES 
+4/18/25:
+- Moved to `imhd-cuda/include/on-device/utils/configurers.hpp
+- Deleting this when operation has been validated
 */
 // I don't want to have a separate runtime file for each problem
-class SimulationInitializer {
-   private:
-       using KernelLauncher = std::function<void(float*, const InitConfig&)>;
-       std::map<std::string, KernelLauncher> initFunctions;
-       InitConfig config;
+// class SimulationInitializer {
+//    private:
+//        using KernelLauncher = std::function<void(float*, const InitConfig&)>;
+//        std::map<std::string, KernelLauncher> initFunctions;
+//        InitConfig config;
    
-   public:
-       SimulationInitializer(const InitConfig& config) : config(config) {
-           initFunctions["screwpinch"] = [this](float* data, const InitConfig& cfg) {
-               LaunchScrewPinch(data, cfg); // Do not want to pass cfg to GPU or make this code less readable by passing long list of cfg parameters
-           };
-           initFunctions["screwpinch-stride"] = [this](float* data, const InitConfig& cfg) {
-               LaunchScrewPinchStride(data, cfg);
-           };
-           /* ADD OTHER INITIALIZERS */
-       } 
+//    public:
+//        SimulationInitializer(const InitConfig& config) : config(config) {
+//            initFunctions["screwpinch"] = [this](float* data, const InitConfig& cfg) {
+//                LaunchScrewPinch(data, cfg); // Do not want to pass cfg to GPU or make this code less readable by passing long list of cfg parameters
+//            };
+//            initFunctions["screwpinch-stride"] = [this](float* data, const InitConfig& cfg) {
+//                LaunchScrewPinchStride(data, cfg);
+//            };
+//            /* ADD OTHER INITIALIZERS */
+//        } 
 
-       void initialize(const std::string& simType, float* data){
-           auto it = initFunctions.find(simType);
-           if (it == initFunctions.end()) {
-               throw std::runtime_error("Unknown simulation type: " + simType);
-           }
-           it->second(data, config);
-       }
-};
+//        void initialize(const std::string& simType, float* data){
+//            auto it = initFunctions.find(simType);
+//            if (it == initFunctions.end()) {
+//                throw std::runtime_error("Unknown simulation type: " + simType);
+//            }
+//            it->second(data, config);
+//        }
+// };
 
-/* 
-THIS CAN BE MOVED TO LIBRARIES
-*/
-// I don't want to have a separate runtime file for each possible choice of megakernels / microkernels
-// Due to structure, it looks like I will need to separate instances of this class
-class KernelConfigurer {
-   private:
-      using KernelLauncher = std::function<void(float*, const float*, const KernelConfig& kcfg)>;
-      std::map<std::string, KernelLauncher> kernelFunctions;
-      KernelConfig config;
+// /* 
+// THIS CAN BE MOVED TO LIBRARIES
+// */
+// // I don't want to have a separate runtime file for each possible choice of megakernels / microkernels
+// // Due to structure, it looks like I will need to separate instances of this class
+// class KernelConfigurer {
+//    private:
+//       using KernelLauncher = std::function<void(float*, const float*, const KernelConfig& kcfg)>;
+//       std::map<std::string, KernelLauncher> kernelFunctions;
+//       KernelConfig config;
 
-   public:
-      KernelConfigurer(const KernelConfig& kcfg) : config(kcfg) {
-         kernelFunctions["fluidadvancelocal-nodiff"] = [this](float* fluidvars, const float *intvars, const KernelConfig& kcfg) {
-            LaunchFluidAdvanceLocalNoDiff(fluidvars, intvars, kcfg); // Do not want to pass kcfg to GPU or make this code less readable by passing long list of params
-         };
-         /* ADD MORE BUNDLES OF KERNELS TO RUN */
-      }
+//    public:
+//       KernelConfigurer(const KernelConfig& kcfg) : config(kcfg) {
+//          kernelFunctions["fluidadvancelocal-nodiff"] = [this](float* fluidvars, const float *intvars, const KernelConfig& kcfg) {
+//             LaunchFluidAdvanceLocalNoDiff(fluidvars, intvars, kcfg); // Do not want to pass kcfg to GPU or make this code less readable by passing long list of params
+//          };
+//          /* ADD MORE BUNDLES OF KERNELS TO RUN */
+//       }
 
-      void LaunchKernels(const std::string& kBundle, float* fvars_or_intvars, const float* intvars_or_fvars){
-         auto it = kernelFunctions.find(kBundle);
-         if (it == kernelFunctions.end()) {
-            throw std::runtime_error("Unknown kernel bundle selected: " + kBundle);
-         }
-         it->second(fvars_or_intvars, intvars_or_fvars, config);
-      }
-};
+//       void LaunchKernels(const std::string& kBundle, float* fvars_or_intvars, const float* intvars_or_fvars){
+//          auto it = kernelFunctions.find(kBundle);
+//          if (it == kernelFunctions.end()) {
+//             throw std::runtime_error("Unknown kernel bundle selected: " + kBundle);
+//          }
+//          it->second(fvars_or_intvars, intvars_or_fvars, config);
+//       }
+// };
 
-// See documentation for what each of these Boundary Conditions specify exactly
-/* WHERE (?) */
-class BCsConfigurer {
-   private:
-      using KernelLauncher = std::function<void(float*, const int, const int, const int, const BoundaryConfig& bcfg)>;
-      std::map<std::string, KernelLauncher> boundaryFunctions;
-      BoundaryConfig config;
+// // See documentation for what each of these Boundary Conditions specify exactly
+// /* WHERE (?) */
+// class BCsConfigurer {
+//    private:
+//       using KernelLauncher = std::function<void(float*, const int, const int, const int, const BoundaryConfig& bcfg)>;
+//       std::map<std::string, KernelLauncher> boundaryFunctions;
+//       BoundaryConfig config;
 
-   public:
-      BCsConfigurer(const BoundaryConfig& bcfg) : config(bcfg) {
-         boundaryFunctions["pbc-z"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-            LaunchFluidBCsPBCZ(fluidvars, Nx, Ny, Nz, config); // Periodic in z 
-         };
-         /* ADD MORE BOUNDARY CONDITIONS 
-         For example, PBCs in every direction! (Orszag-Tang)
-         */
-      }
+//    public:
+//       BCsConfigurer(const BoundaryConfig& bcfg) : config(bcfg) {
+//          boundaryFunctions["pbc-z"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+//             LaunchFluidBCsPBCZ(fluidvars, Nx, Ny, Nz, config); // Periodic in z 
+//          };
+//          /* ADD MORE BOUNDARY CONDITIONS 
+//          For example, PBCs in every direction! (Orszag-Tang)
+//          */
+//       }
 
-      /* Could we pick a better name for `bcBundle` (?) */
-      void LaunchKernels(const std::string& bcBundle, float* fluidvars, const int Nx, const int Ny, const int Nz){
-         auto it = boundaryFunctions.find(bcBundle);
-         if (it == boundaryFunctions.end()) {
-            throw std::runtime_error("Unknown bcs selected: " + bcBundle);
-         }
-         it->second(fluidvars, Nx, Ny, Nz, config);
-      }
-};
+//       /* Could we pick a better name for `bcBundle` (?) */
+//       void LaunchKernels(const std::string& bcBundle, float* fluidvars, const int Nx, const int Ny, const int Nz){
+//          auto it = boundaryFunctions.find(bcBundle);
+//          if (it == boundaryFunctions.end()) {
+//             throw std::runtime_error("Unknown bcs selected: " + bcBundle);
+//          }
+//          it->second(fluidvars, Nx, Ny, Nz, config);
+//       }
+// };
 
 /* 
 This runtime is for solving the evolution of Bennett profiles.
 
 Bennett profiles are Ideal MHD equilibrium states characterized by an axially-symmetric current density and electromagnetic field. 
 
-For a cylindrical configuration, which is easily embedded in a rectilinear coordinate system, this amounts to solving for a system of hyperbolic PDEs whose components you
+For a cylindrical configuration, which is naturally embedded in a rectilinear coordinate system, this amounts to solving for a system of hyperbolic PDEs whose components you
 can express as being single functions of the radius, which is the distance from the axis, $r^2 = x^2 + y^2$.      
 
 Furthermore, certain conditions on, and relationships between, the J and B fields permit the identification of a class of "pinch"-based equilibria. 
-The Bennett profile is a classic example, being that of a parabolic axial current density with some amplitude, $J_{0}$, out to some pinch radius, $r_{pinch}$. 
+The Bennett profile is a classic example, being that of a parabolic axial current density with some on-axis amplitude, $J_{0}$, which extends out to some pinch radius, $r_{pinch}$, where it goes to zero. 
 By itself this will generate an azimuthal magnetic field, $B_{\theta}$. 
 
 If, in addition, you were to add a uniform axial magnetic field, $\vec{B}_{z} = B_{0}\hat{z}$ ... 
@@ -130,7 +136,18 @@ A "Z"-pinch refers to a plasma pinch with an axial current density, that is axis
 Amusingly, some sources will characterize this as exhibiting "radial" symmetry, but this is inconsistent with the definition of symmetry in the context of the continuous, hyperbolic
 PDEs of the Ideal Magnetohydrodynamics, and they are merely wishing to highlight the radial character of the dependence on the axial current density in the case of a Z-pinch.
 
-A "theta"-pinch will have an azimuthal current density instead.  
+A "theta"-pinch will have an azimuthal current density instead, and correspondingly only an axial magnetic field. 
+This makes sense if you think about it from the direction of imposing an axial magnetic field first. 
+
+A screwpinch will have both axial, and azimuthal magnetic fields, but they will not have radial fields. Only a radial dependence which exhibits the axisymmetric nature of the geometry.
+There is otherwise nothing else about spacetime taken into account. 
+No imposition of corrections to account for accelerating to, or travelling at, speeds which are very close to that of light. Meaning, no special or general-relavistic notions here.
+
+This is just pure Newtonian Mechanics in essence. We treat each particle in this gas as being distributed according to a Maxwellian, having three translational degrees of freedom.
+From here we get the adiabatic index, and via thermodynamics we can select an equation of state to relate the pressure to the density, which serves as a closure to the system. 
+
+Two popular choices are an ideal gas closure, $p = nT$, or a polytropic gas relation, $p = \rho^{\gamma}$, which is somewhat more challenging to handle.   
+
 */
 int main(int argc, char* argv[]){
    std::string sim_type = argv[1];
@@ -226,10 +243,6 @@ int main(int argc, char* argv[]){
 	float dy = (y_max - y_min) / (Ny - 1);
 	float dz = (z_max - z_min) / (Nz - 1);
 
-   // Execution grid and threadblock configurations for the Grid Initialization megakernel
-   // dim3 egd_grid(SM_mult_grid_x * numberOfSMs, SM_mult_grid_y * numberOfSMs, SM_mult_grid_z * numberOfSMs);
-   // dim3 tbd_grid(xgrid_threads, ygrid_threads, zgrid_threads);
-
    // Execution grid and threadblock configurations for the Grid Initialization microkernels
    dim3 egd_xgrid(SM_mult_grid_x * numberOfSMs, 1, 1); // "egd" = "execution_grid_dimensions"
    dim3 egd_ygrid(1, SM_mult_grid_y * numberOfSMs, 1);
@@ -289,9 +302,9 @@ int main(int argc, char* argv[]){
    initParameters.Ny = Ny;
    initParameters.Nz = Nz;
 
-   SimulationInitializer simInit(initParameters);
+   SimulationInitializer simInit(initParameters); // For selecting different initialization kernel to use, i.e., pinch, Orszag-Tang
 
-   simInit.initialize(sim_type, fluidvars);
+   simInit.initialize(sim_type, fluidvars); // Non-blocking call to initialization kernels defined by `sim_type`
    checkCuda(cudaDeviceSynchronize());
 
    KernelConfig fluidKernelParameters; // For selecting different bundles of kernels to use, i.e., megakernel or ordered microkernels (for profiling) 
@@ -310,10 +323,16 @@ int main(int argc, char* argv[]){
    fluidKernelParameters.Ny = Ny;
    fluidKernelParameters.Nz = Nz;
 
-   KernelConfigurer fluidKcfg(fluidKernelParameters);
+   KernelConfigurer fluidKcfg(fluidKernelParameters); // For selecting different kernels to run for doing the solve
 
    /* 
    THERE SHOULD BE A `class BCsConfigurer to test different ones! 
+   4/18/25:
+   - This class has been implemented in `imhd-cuda/include/on-device/utils`.
+   - This functionality is integral to Orszag-Tang
+   */
+   /* 
+   REPLACE WITH APPROPRIATE CALLS TO BoundaryConfigurer   
    */
    rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
    rigidConductingWallBCsTopBottom<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, Nx, Ny, Nz);
@@ -325,6 +344,11 @@ int main(int argc, char* argv[]){
    If you want to use microkernels here, you have to come up with an execution configuration set, and addtl. synchronization 
    */
    /* REFACTOR TO HAVE A RUNTIME CLASS THAT DECIDES WHAT SET OF KERNELS TO USE */
+   /* 
+   This class has been implemented
+   See above comments
+   */
+   /* REPLACE BELOW WITH APPROPRIATE CALLS TO KernelConfigurer*/
    ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
@@ -335,6 +359,10 @@ int main(int argc, char* argv[]){
    /* 
    REFACTOR TO HAVE A RUNTIME CLASS THAT DECIDES WHAT SET OF KERNELS TO USE 
    `class QintBCsConfigurer` 
+   */
+   /*
+   4/18/25:
+   - Can we use BoundaryConfigurer here? 
    */
    QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
@@ -348,9 +376,13 @@ int main(int argc, char* argv[]){
    checkCuda(cudaDeviceSynchronize());    
 
    /* 
-   REFACTOR TO HAVE A WRAPPER. Where should it go? lib/on-device/utils/utils.cpp 
-   
-   float* SHMAlloWrapper(const std::string shm_name, const size_t data_size){
+   REFACTOR TO HAVE A WRAPPER. 
+   - Where should it go? lib/on-device/utils/utils.cpp 
+   4/18/25: 
+   - It has gone there. 
+   - Deleting this after everything has been shmalloced and operation validated. 
+
+   float* SHMAllocator(const std::string shm_name, const size_t data_size){
       int shm_fd = shm_open(shm_name.data(), O_CREAT | O_RDWR, 0666);
       
       if (shm_fd == -1) {
