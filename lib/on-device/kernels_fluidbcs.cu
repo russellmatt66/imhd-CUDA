@@ -12,15 +12,14 @@
 /* THIS SHOULD BE DEFINED A SINGLE TIME IN A SINGLE PLACE */
 #define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx) * (Ny) + (i) * (Ny) + j) // parentheses are necessary to avoid calculating `i - 1 * Ny` or `k - 1 * (Nx * Ny)`
 
-/* 
+/*
+Global kernels
+
 REGISTER PRESSURES: (registers per thread)
 rigidConductingWallBCsLeftRight=30
 rigidConductingWallBCsTopBottom=30
 PBCs=28
-BoundaryConditions=74
-BoundaryConditionsNoDiff=40
 */
-
 // Rigid, perfectly-conducting wall boundary conditions
 // xz-planes (j = 0, j = Ny-1)
 // 30 registers per thread 
@@ -86,8 +85,6 @@ __global__ void rigidConductingWallBCsTopBottom(float* fluidvars, const int Nx, 
     return;
 }
 
-// Non-blocking launchers of the above kernels
-
 // Periodic Boundary Conditions (PBCs)
 // 28 registers per thread
 __global__ void PBCsInZ(float* fluidvars, const int Nx, const int Ny, const int Nz)
@@ -105,9 +102,15 @@ __global__ void PBCsInZ(float* fluidvars, const int Nx, const int Ny, const int 
     return;
 }
 
-// Non-blocking launchers of the kernels
+// Non-blocking launchers of the above global kernels
 // Whole point is to collect information into `BoundaryConfig` data type for modularity
-void LaunchFluidBCsPBCZ(float* fluidvars, const int Nx, const int Ny, const int Nz, BoundaryConfig& bcfg){
+void LaunchFluidBCsPBCZ(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
     PBCsInZ<<<bcfg.egd_frontback, bcfg.tbd_frontback>>>(fluidvars, Nx, Ny, Nz);
+    return;
+}
+
+void LaunchFluidBCsPCRWXY(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+    rigidConductingWallBCsLeftRight<<<bcfg.egd_leftright, bcfg.tbd_leftright>>>(fluidvars, Nx, Ny, Nz);
+    rigidConductingWallBCsTopBottom<<<bcfg.egd_topbottom, bcfg.tbd_topbottom>>>(fluidvars, Nx, Ny, Nz);
     return;
 }

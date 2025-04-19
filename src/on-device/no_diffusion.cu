@@ -16,8 +16,8 @@
 #include "kernels_fluidbcs.cuh"
 #include "kernels_od_intvar.cuh"
 #include "kernels_intvarbcs.cuh"
-
 #include "utils.cuh"
+
 #include "utils.hpp"
 #include "configurers.hpp"
 
@@ -332,7 +332,8 @@ int main(int argc, char* argv[]){
    - This functionality is integral to Orszag-Tang
    */
    /* 
-   REPLACE WITH APPROPRIATE CALLS TO BoundaryConfigurer   
+   COULD REPLACE WITH APPROPRIATE CALLS TO BoundaryConfigurer   
+   Recognize that all pinch geometries will use these boundary conditions, and the intermediate variables must be consistent
    */
    rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
    rigidConductingWallBCsTopBottom<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, Nx, Ny, Nz);

@@ -42,53 +42,56 @@ class SimulationInitializer {
  */
  // I don't want to have a separate runtime file for each possible choice of megakernels / microkernels
  // Due to structure, it looks like I will need to separate instances of this class
- class KernelConfigurer {
+class KernelConfigurer {
     private:
-       using KernelLauncher = std::function<void(float*, const float*, const KernelConfig& kcfg)>;
-       std::map<std::string, KernelLauncher> kernelFunctions;
-       KernelConfig config;
- 
+        using KernelLauncher = std::function<void(float*, const float*, const KernelConfig& kcfg)>;
+        std::map<std::string, KernelLauncher> kernelFunctions;
+        KernelConfig config;
+
     public:
-       KernelConfigurer(const KernelConfig& kcfg) : config(kcfg) {
-          kernelFunctions["fluidadvancelocal-nodiff"] = [this](float* fluidvars, const float *intvars, const KernelConfig& kcfg) {
-             LaunchFluidAdvanceLocalNoDiff(fluidvars, intvars, kcfg); // Do not want to pass kcfg to GPU or make this code less readable by passing long list of params
-          };
-          /* ADD MORE BUNDLES OF KERNELS TO RUN */
-       }
+        KernelConfigurer(const KernelConfig& kcfg) : config(kcfg) {
+            kernelFunctions["fluidadvancelocal-nodiff"] = [this](float* fluidvars, const float *intvars, const KernelConfig& kcfg) {
+                LaunchFluidAdvanceLocalNoDiff(fluidvars, intvars, kcfg); // Do not want to pass kcfg to GPU or make this code less readable by passing long list of params
+            };
+            /* ADD MORE BUNDLES OF KERNELS TO RUN */
+        }
+
+        void LaunchKernels(const std::string& kBundle, float* fvars_or_intvars, const float* intvars_or_fvars){
+            auto it = kernelFunctions.find(kBundle);
+            if (it == kernelFunctions.end()) {
+                throw std::runtime_error("Unknown kernel bundle selected: " + kBundle);
+            }
+            it->second(fvars_or_intvars, intvars_or_fvars, config);
+        }
+};
  
-       void LaunchKernels(const std::string& kBundle, float* fvars_or_intvars, const float* intvars_or_fvars){
-          auto it = kernelFunctions.find(kBundle);
-          if (it == kernelFunctions.end()) {
-             throw std::runtime_error("Unknown kernel bundle selected: " + kBundle);
-          }
-          it->second(fvars_or_intvars, intvars_or_fvars, config);
-       }
- };
- 
- // See documentation for what each of these Boundary Conditions specify exactly
- /* WHERE (?) */
- class BoundaryConfigurer {
+// See documentation for what each of these Boundary Conditions specify exactly
+/* WHERE (?) */
+class BoundaryConfigurer {
     private:
-       using KernelLauncher = std::function<void(float*, const int, const int, const int, const BoundaryConfig& bcfg)>;
-       std::map<std::string, KernelLauncher> boundaryFunctions;
-       BoundaryConfig config;
- 
+        using KernelLauncher = std::function<void(float*, const int, const int, const int, const BoundaryConfig& bcfg)>;
+        std::map<std::string, KernelLauncher> boundaryFunctions;
+        BoundaryConfig config;
+
     public:
-       BoundaryConfigurer(const BoundaryConfig& bcfg) : config(bcfg) {
-          boundaryFunctions["pbc-z"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-             LaunchFluidBCsPBCZ(fluidvars, Nx, Ny, Nz, config); // Periodic in z 
-          };
-          /* ADD MORE BOUNDARY CONDITIONS 
-          For example, PBCs in every direction! (Orszag-Tang)
-          */
-       }
- 
-       /* Could we pick a better name for `bcBundle` (?) */
-       void LaunchKernels(const std::string& bcBundle, float* fluidvars, const int Nx, const int Ny, const int Nz){
-          auto it = boundaryFunctions.find(bcBundle);
-          if (it == boundaryFunctions.end()) {
-             throw std::runtime_error("Unknown bcs selected: " + bcBundle);
-          }
-          it->second(fluidvars, Nx, Ny, Nz, config);
-       }
- };
+        BoundaryConfigurer(const BoundaryConfig& bcfg) : config(bcfg) {
+            boundaryFunctions["pcw-xy"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPCRWXY(fluidvars, Nx, Ny, Nz, bcfg); // Perfectly-conducting, rigid walls boundary conditions in x- and y-directions
+            };
+            boundaryFunctions["pbc-z"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPBCZ(fluidvars, Nx, Ny, Nz, bcfg); // Periodic in z 
+            };
+            /* ADD MORE BOUNDARY CONDITIONS 
+            For example, PBCs in every direction! (Orszag-Tang)
+            */
+        }
+
+        /* Could we pick a better name for `bcBundle` (?) */
+        void LaunchKernels(const std::string& bcBundle, float* fvars_or_intvars, const int Nx, const int Ny, const int Nz){
+            auto it = boundaryFunctions.find(bcBundle);
+            if (it == boundaryFunctions.end()) {
+                throw std::runtime_error("Unknown bcs selected: " + bcBundle);
+            }
+            it->second(fvars_or_intvars, Nx, Ny, Nz, config);
+        }
+};
