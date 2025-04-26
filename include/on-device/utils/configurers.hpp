@@ -7,9 +7,6 @@
 #include "kernels_od.cuh"
 #include "kernels_fluidbcs.cuh"
 
-/* 
-THIS CAN BE MOVED TO LIBRARIES 
-*/
 // I don't want to have a separate runtime file for each problem
 class SimulationInitializer {
     private:
@@ -37,11 +34,8 @@ class SimulationInitializer {
         }
  };
  
- /* 
- THIS CAN BE MOVED TO LIBRARIES
- */
- // I don't want to have a separate runtime file for each possible choice of megakernels / microkernels
- // Due to structure, it looks like I will need to separate instances of this class
+// I don't want to have a separate runtime file for each possible choice of megakernels / microkernels
+// Due to structure, it looks like I will need to create multiple separate instances of this class
 class KernelConfigurer {
     private:
         using KernelLauncher = std::function<void(float*, const float*, const KernelConfig& kcfg)>;
@@ -66,7 +60,18 @@ class KernelConfigurer {
 };
  
 // See documentation for what each of these Boundary Conditions specify exactly
-/* WHERE (?) */
+/* 
+WHERE (?) 
+
+There aren't that many different kinds of BCs, really. Two basic situations that I know are relevant to Ideal MHD are:
+(1) Rigid, perfectly-conducting walls (PCRWs) + PBC (X-, Y-, or Z-direction)
+(2) ALL PBCs
+
+The first kind are particularly relevant to studying fusion equilibria, and the second are relevant to infinite problems like the Orszag-Tang vortex.
+
+The reason for having a class, and wrappers, that call these kernels variously is to make the action of solving the boundary conditions modular. 
+This provides the benefit of not needing a separate runtime file for each unique set of boundary conditions that are implemented.
+*/
 class BoundaryConfigurer {
     private:
         using KernelLauncher = std::function<void(float*, const int, const int, const int, const BoundaryConfig& bcfg)>;
@@ -77,6 +82,13 @@ class BoundaryConfigurer {
         BoundaryConfigurer(const BoundaryConfig& bcfg) : config(bcfg) {
             boundaryFunctions["pcw-xy"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
                 LaunchFluidBCsPCRWXY(fluidvars, Nx, Ny, Nz, bcfg); // Perfectly-conducting, rigid walls boundary conditions in x- and y-directions
+            };
+            /* FINALIZE */
+            boundaryFunctions["pbc-x"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPBCX(fluidvar, Nx, Ny, Nz, bcfg);
+            };
+            boundaryFunctions["pbc-y"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPBCY(fluidvar, Nx, Ny, Nz, bcfg);
             };
             boundaryFunctions["pbc-z"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
                 LaunchFluidBCsPBCZ(fluidvars, Nx, Ny, Nz, bcfg); // Periodic in z 
