@@ -1,7 +1,7 @@
 #ifndef FLUIDBCS_CUH
 #define FLUIDBCS_CUH
 
-struct BoundaryConfig { // variables need to launch BC kernels   
+struct BoundaryConfig { // variables needed to launch BC kernels   
     dim3 egd_frontback, egd_leftright, egd_topbottom;
     dim3 tbd_frontback, tbd_leftright, tbd_topbottom; 
     float dt, dx, dy, dz;

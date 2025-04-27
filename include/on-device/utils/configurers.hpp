@@ -80,9 +80,16 @@ class BoundaryConfigurer {
 
     public:
         BoundaryConfigurer(const BoundaryConfig& bcfg) : config(bcfg) {
-            boundaryFunctions["pcw-xy"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+            boundaryFunctions["pcrw-xy"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
                 LaunchFluidBCsPCRWXY(fluidvars, Nx, Ny, Nz, bcfg); // Perfectly-conducting, rigid walls boundary conditions in x- and y-directions
             };
+            /* FINALIZE */
+            boundaryFunctions["pcrw-yz"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPCRWYZ(fluidvars, Nx, Ny, Nz, bcfg);
+            }
+            boundaryFunctions["pcrw-xz"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPCRWXZ(fluidvars, Nx, Ny, Nz, bcfg);
+            }
             /* FINALIZE */
             boundaryFunctions["pbc-x"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
                 LaunchFluidBCsPBCX(fluidvar, Nx, Ny, Nz, bcfg);
