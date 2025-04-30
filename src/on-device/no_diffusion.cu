@@ -364,6 +364,7 @@ int main(int argc, char* argv[]){
    /*
    4/18/25:
    - Can we use BoundaryConfigurer here? 
+   - QintBoundaryConfigurer because of the expanded need for execution configs
    */
    QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
@@ -373,7 +374,7 @@ int main(int argc, char* argv[]){
    QintBdryBottomRightNoDiff<<<egd_qintbdry_bottomright, tbd_qintbdry_bottomright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
-   QintBdryPBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
+   QintBdryPBCsZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
    /* 
@@ -517,7 +518,7 @@ int main(int argc, char* argv[]){
       checkCuda(cudaDeviceSynchronize());    
 
       std::cout << "Launching kernel for computing Qint PBCs" << std::endl; 
-      QintBdryPBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
+      QintBdryPBCsZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());    
 
       std::cout << "Transferring updated fluid data to host" << std::endl;

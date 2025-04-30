@@ -7,7 +7,7 @@ struct BoundaryConfig { // variables needed to launch BC kernels
     float dt, dx, dy, dz;
     int Nx, Ny, Nz;
 };
- 
+
 // GPU Kernels
 __global__ void rigidConductingWallBCsLeftRight(float* fluidvar, const int Nx, const int Ny, const int Nz);
 
