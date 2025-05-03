@@ -5,6 +5,7 @@ gpc_to_m = 3.085678e25
 pc_to_m = gpc_to_m*1e-6
 
 ly_to_m = 9.46073e15
+ls_to_m = 2.99792458e8
 
 # TEMPERATURE
 eV_to_degK = 1.1606e4

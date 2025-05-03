@@ -10,14 +10,14 @@ import conversions as cnv
 import sys 
 
 # PROBLEM VARIABLES
-r_p = 1 # pinch radius [cm]
+r_p = 1e1 # pinch radius [cm]
 rp_meters = r_p*cnv.cm_to_meter # Used so much
 
 A_p = np.pi * (rp_meters)**2 # pinch area [m^2]
 
 L = 1 # pinch length [m]
 
-I0 = 50e3 # total plasma current  [A]
+I0 = 1e6 # total plasma current  [A]
 J0 = 2 * I0 / (A_p) # peak current density [A m^-2]
 print(f"The peak current density (at the axis) is {J0} [A m^-2]")
 
@@ -29,6 +29,7 @@ rho = m_D * n0 # plasma mass density [kg * m^-3]
 B_0 = 1 # uniform, axial magnetic field [T]
 
 rp_coeff = float(sys.argv[1])
+# rp_coeff = np.sqrt(2.0 / 3.0) # this is the coefficient for where the magnetic field is greatest  
 r = rp_coeff * rp_meters # [rp] = [cm]
 print(f"The region under consideration is {rp_coeff} times the pinch radius of {r_p} [cm]")
 
@@ -70,3 +71,15 @@ print(f"The temperature drop in that region is {T(r) * cnv.degK_to_eV} [eV]")
 # def p_drop(r: float): 
 
 print(f"The pressure drop is {T(r) / (cnst.kB * n0)} [Pa]")
+
+def Jz(r): 
+    return n0 * cnst.q_e * uz(r) 
+print(f"The axial current density at this point is {Jz(r)} [A m^-2]")
+
+def Q_heat(r: float) -> float:
+    return (cnst.kappa_D / (n0 * cnst.kB)) * Jz(r) * Btheta(r)
+
+radial_heat_flux = Q_heat(r)
+print(f"The amplitude of the heat flux at the point {rp_coeff}R is {radial_heat_flux} [W / m^-2]")
+
+print(f"The ratio of electromagnetic power flux to thermal power flux is {np.sqrt(P_sq) / radial_heat_flux}")

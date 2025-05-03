@@ -1,5 +1,5 @@
 # Summary
-Directory for the bespoke VTK. Integrated into this is also a Python module I wrote that calculates Ideal MHD equilibrium for a handful of cases right now.
+Directory for the bespoke VTK.
 
 # Directory Structure
 `build/`
@@ -13,6 +13,3 @@ Directory for the bespoke VTK. Integrated into this is also a Python module I wr
 
 `lib/`
 - WIP
-
-`screwpinch/`
-- Python module that calculates Ideal MHD equilibria properties 
