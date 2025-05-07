@@ -1,8 +1,14 @@
 '''
-Calculates based on an axisymmetric configuration: 
+Calculates axisymmetric screw-pinch equilibria for a uniform 
+density plasma that has a Bennett profile.  
+
+Meaning,
+
 (/del_{/theta} = /del_{z} = 0)
-\vec{J} = J_{z}\hat{z}
-\vec{B} = B_{\theta}\hat{\theta} + B_{0}\hat{z}
+n = n_{0}
+\vec{J} = J_{z}(r) \hat{z} = J_{0}(1 - \frac{r^{2}}{R^{2}})\hat{z}
+\vec{B} = B_{\theta}(r) \hat{\theta} 
+e = e(\rho, p, \vec{J}, \vec{B})
 '''
 
 # TODO:
@@ -14,8 +20,12 @@ import conversions as cnv
 
 import sys 
 
+'''
+
+'''
+
 # PROBLEM VARIABLES
-L = 1e7 # length of plasma column [ly]
+L = 5e0 # length of plasma column [ly]
 R = 1e0 # radius of plasma column [ly]
 
 R_meters = R * cnv.ly_to_m

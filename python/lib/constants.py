@@ -5,6 +5,7 @@ import conversions as cnv
 m_H = 1.00784 * cnv.amu_to_kg # [kg] atomic mass of hydrogen
 
 # E&M
+e = 1.602e-19 # [C]
 q_e = 1.6e-19 # [C] elementary electric charge
 
 mu0 = pi * 4.0e-7 # [H m^-1] vacuum permeability
