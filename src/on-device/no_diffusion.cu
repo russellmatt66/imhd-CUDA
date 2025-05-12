@@ -302,12 +302,15 @@ int main(int argc, char* argv[]){
    initParameters.Ny = Ny;
    initParameters.Nz = Nz;
 
-   SimulationInitializer simInit(initParameters); // For selecting different initialization kernel to use, i.e., pinch, Orszag-Tang
+   // For selecting different initialization kernel to use, i.e., pinch, Orszag-Tang
+   SimulationInitializer simInit(initParameters); 
 
-   simInit.initialize(sim_type, fluidvars); // Non-blocking call to initialization kernels defined by `sim_type`
+   // Non-blocking call to initialization kernels defined by `sim_type`
+   simInit.initialize(sim_type, fluidvars); 
    checkCuda(cudaDeviceSynchronize());
 
-   KernelConfig fluidKernelParameters; // For selecting different bundles of kernels to use, i.e., megakernel or ordered microkernels (for profiling) 
+   // For selecting different bundles of kernels to use, i.e., megakernel or ordered microkernels (for profiling) 
+   KernelConfig fluidKernelParameters; 
 
    fluidKernelParameters.gridDim = egd_fluidadvance;
    fluidKernelParameters.blockDim = tbd_fluidadvance;
@@ -323,7 +326,8 @@ int main(int argc, char* argv[]){
    fluidKernelParameters.Ny = Ny;
    fluidKernelParameters.Nz = Nz;
 
-   KernelConfigurer fluidKcfg(fluidKernelParameters); // For selecting different kernels to run for doing the solve
+   // For selecting different kernels to run for doing the solve
+   KernelConfigurer fluidKcfg(fluidKernelParameters); 
 
    /* 
    THERE SHOULD BE A `class BCsConfigurer to test different ones! 

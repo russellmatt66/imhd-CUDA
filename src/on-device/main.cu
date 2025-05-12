@@ -20,6 +20,13 @@
 #include "utils.cuh"
 #include "utils.hpp"
 
+/*
+DON'T TRUST ANYTHING IN THIS FILE AT THE MOMENT
+
+The main development is currently occurring in `no_diffusion.cu`, and will be copied over to here when finished, and working. 
+A number of classes have been implemented which endow the software with a modular structure for defining, and running different sets of kernels. 
+*/
+
 /* 
 THIS CAN BE MOVED TO LIBRARIES 
 */

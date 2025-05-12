@@ -47,7 +47,11 @@ class KernelConfigurer {
             kernelFunctions["fluidadvancelocal-nodiff"] = [this](float* fluidvars, const float *intvars, const KernelConfig& kcfg) {
                 LaunchFluidAdvanceLocalNoDiff(fluidvars, intvars, kcfg); // Do not want to pass kcfg to GPU or make this code less readable by passing long list of params
             };
-            /* ADD MORE BUNDLES OF KERNELS TO RUN */
+            /* ADD MORE BUNDLES OF KERNELS TO RUN 
+            Examples: 
+            (1) Block computation of Predictor variables
+            (2) Different methods for the computation of Corrector Variables
+            */
         }
 
         void LaunchKernels(const std::string& kBundle, float* fvars_or_intvars, const float* intvars_or_fvars){
@@ -87,13 +91,14 @@ class BoundaryConfigurer {
             boundaryFunctions["pcrw-yz"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
                 LaunchFluidBCsPCRWYZ(fluidvars, Nx, Ny, Nz, bcfg);
             }
+            /* FINALIZE */
             boundaryFunctions["pcrw-xz"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
                 LaunchFluidBCsPCRWXZ(fluidvars, Nx, Ny, Nz, bcfg);
             }
-            /* FINALIZE */
             boundaryFunctions["pbc-x"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
                 LaunchFluidBCsPBCX(fluidvar, Nx, Ny, Nz, bcfg);
             };
+            /* FINALIZE */
             boundaryFunctions["pbc-y"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
                 LaunchFluidBCsPBCY(fluidvar, Nx, Ny, Nz, bcfg);
             };

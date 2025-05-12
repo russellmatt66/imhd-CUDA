@@ -9,7 +9,11 @@
 
 #include "utils.hpp"
 
-// Wrapper around SHMAllocation for float* (can simply template this function to generalize, but that's not necessary at this point)
+/* 
+TODO:
+(1) Research this matter, and find best practice
+There's a modern C++ language feature to do this better, but this works for now 
+*/
 float* SHMAllocator(const std::string shm_name, const size_t data_size){
     int shm_fd = shm_open(shm_name.data(), O_CREAT | O_RDWR, 0666);
 
@@ -30,6 +34,10 @@ float* SHMAllocator(const std::string shm_name, const size_t data_size){
     return shm_h;
 }
 
+/* 
+TODO:
+(1) Serial HDF5 output
+*/
 // PHDF5 output functions
 int callBinary_AttrWrite(const std::string file_name, const int Nx, const int Ny, const int Nz, const std::string attr_bin_name){
     std::string addatt_command = "./" + attr_bin_name + " " + file_name + " " + std::to_string(Nx) + " "
@@ -85,6 +93,10 @@ int callBinary_WriteGrid(const std::string bin_name, const std::string file_name
     return ret;
 }
 
+/* 
+TODO:
+(1) Replace with analytic expressions for the eigenvalues
+*/
 // Determines CFL number at every point in the domain using eigenvalue solve
 int callBinary_EigenSC(const std::string shm_name, const int Nx, const int Ny, const int Nz, const std::string bin_name, 
     const float dt, const float dx, const float dy, const float dz, 
@@ -125,7 +137,7 @@ float adaptiveTimeStep(const float dt, const float* h_fluidvars){
 x There are reasons not too, for example, maybe the specific changes can all be local so this can serve globally to load values into memory. 
 o If this is purely used in those contexts, then there are strong reasons to move it out of here. 
 The tradeoff is having to expand `debug/` and `bench/` build systems to accomodate `lib/` sub-directories
-Maybe there should be a global `lib/`?
+Maybe there should be a global `lib/utils`?
 */
 // Python launcher does parsing of input file normally
 // Extra layer is unwanted when it comes to debugging / benchmarking 
@@ -135,7 +147,7 @@ void parseInputFileDebug(std::vector<float>& inputs, const std::string input_fil
     std::string line;
     int i = 0;
     while(std::getline(input_file_stream, line)){
-        inputs[i] = std::atof(line.data());
+        inputs[i] = std::atof(line.data()); // quick and dirty - everything is fair game to be a float in the appropriate `input_file`
         i++;
     }
     return;
