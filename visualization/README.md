@@ -1,5 +1,5 @@
 # Summary
-Directory for the bespoke VTK
+Directory for the bespoke VTK.
 
 # Directory Structure
 `build/`
@@ -7,3 +7,9 @@ Directory for the bespoke VTK
 
 `src/`
 - The source code folder
+
+`include/`
+- WIP
+
+`lib/`
+- WIP

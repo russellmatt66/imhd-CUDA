@@ -1,7 +1,27 @@
 #ifndef INTVAR_BCS_CUH
 #define INTVAR_BCS_CUH
 
+/* 
+What you will notice is that this header file, and subsequent implementation, is significantly more complicated than the `fluidvars` equivalent.
+The reason for this is that the fluid variables do not need to be completely specified on the boundary every timestep for the fluidvar BCs to hold.
+
+For example, a simulation with PCRW for the x and y-dimensions can "set and forget" these variables to 0 at the boundary. 
+
+Therefore, there are lines at the top and bottom of these faces which do not matter to the fluidvars because they are not the nearest neighbors of 
+any points whose states are going to be evolved. However, they do matter to the intvars, who must be calculated roughly everywhere, 
+and as the number of periodic boundaries increases so too will the number of points that need to be calculated increase until every point needs to be
+in the case when all the boundaries are periodic (3D Orszag-Tang). 
+
+GPUs do not operate thread-by-thread, so in order to perform this work an execution configuration needs to be chosen to define the threadteams, and
+partition the workload. Then, this workload gets processed in groups of 32 which are called "warps". Each thread in a warp performs the same instruction 
+on its data. This is one of the fundamental sources of massive parallelism in a GPU. Another is the functional units which execute these warps, namely
+the Streaming Multiprocessors (SMs). Each SM has a certain amount of register memory which they each use to store information for the threads in the 
+threadblocks scheduled to run on them. This scheduling is performed by dedicated hardware specialized for the task. In modern NVIDIA GPUs, this 
+technology is referred to as the `Gigathread Engine`.
+*/
+
 // Megakernels that suffer from thread divergence
+// Why are these here? Proof of concept?
 __global__ void ComputeIntermediateVariablesBoundaryNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
@@ -15,7 +35,13 @@ __global__ void QintBdryFrontNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
-__global__ void QintBdryPBCs(const float* fluidvar, float* intvar,
+__global__ void QintBdryPBCsX(const float* fluidvar, float* intvar,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void QintBdryPBCsY(const float* fluidvar, float* intvar,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void QintBdryPBCsZ(const float* fluidvar, float* intvar,
     const int Nx, const int Ny, const int Nz);
 
 // Can deal with Left and Right Faces at the same time 

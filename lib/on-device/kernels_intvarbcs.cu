@@ -379,8 +379,45 @@ __global__ void QintBdryFrontNoDiff(const float* fluidvar, float* intvar,
         return;
     }
 
+/* 
+Periodic Boundary Conditions (PBCs) Microkernels
+*/
+__global__ void QintBdryPBCsX(const float* fluidvar, float* intvar,
+    const int Nx, const int Ny, const int Nz)
+    {   
+        int j = threadIdx.y + blockDim.y * blockIdx.y;
+        int k = threadIdx.z + blockDim.z * blockIdx.z;
+        
+        int cube_size = Nx * Ny * Nz; 
+
+        // PBCs @ i = Nx-1
+        if (j < Ny && k < Nz){
+            for (int ivf = 0; ivf < 8; ivf++){
+                intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + ivf * cube_size] = intvar[IDX3D(0, j, k, Nx, Ny, Nz) + ivf * cube_size];
+            }
+        }
+        return;
+    }
+
+__global__ void QintBdryPBCsY(const float* fluidvar, float* intvar,
+    const int Nx, const int Ny, const int Nz)
+    {   
+        int i = threadIdx.x + blockDim.x * blockIdx.x;
+        int k = threadIdx.z + blockDim.z * blockIdx.z;
+        
+        int cube_size = Nx * Ny * Nz; 
+
+        // PBCs @ j = Ny-1
+        if (i < Nx && k < Nz){
+            for (int ivf = 0; ivf < 8; ivf++){
+                intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + ivf * cube_size] = intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + ivf * cube_size];
+            }
+        }
+        return;
+    }
+
 // 28 registers per thread
-__global__ void QintBdryPBCs(const float* fluidvar, float* intvar,
+__global__ void QintBdryPBCsZ(const float* fluidvar, float* intvar,
     const int Nx, const int Ny, const int Nz)
     {
         int i = threadIdx.x + blockDim.x * blockIdx.x;
@@ -398,6 +435,14 @@ __global__ void QintBdryPBCs(const float* fluidvar, float* intvar,
     }
 
 // Can deal with Left and Right faces at the same time
+// Left Face 
+// j = 0
+// i \in [0,Nx-2] 
+// k \in [1,Nz-2]
+// Right Face
+// j = Ny-1
+// i \in [0,Nx-2] 
+// k \in [1,Nz-2]
 // 40 registers per thread
 __global__ void QintBdryLeftRightNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
@@ -440,6 +485,14 @@ __global__ void QintBdryLeftRightNoDiff(const float* fluidvar, float* intvar,
 }
 
 // Can deal with Top and Bottom Faces at the same time
+// Top Face
+// i = 0
+// j \in [0,Ny-2]
+// k \in [1,Nz-2]
+// Bottom Face
+// i = Nx-1
+// j \in [0,Ny-2]
+// k \in [1,Nz-2]
 // 40 registers per thread
 __global__ void QintBdryTopBottomNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
@@ -482,6 +535,7 @@ __global__ void QintBdryTopBottomNoDiff(const float* fluidvar, float* intvar,
 }
 
 // 34 registers per thread
+// (i, Ny-1, 0) - "FrontRight"
 __global__ void QintBdryFrontRightNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -506,6 +560,7 @@ __global__ void QintBdryFrontRightNoDiff(const float* fluidvar, float* intvar,
 } 
 
 // 34 registers per thread
+// (Nx-1, j, 0) - "FrontBottom"
 __global__ void QintBdryFrontBottomNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz) 
@@ -530,6 +585,7 @@ __global__ void QintBdryFrontBottomNoDiff(const float* fluidvar, float* intvar,
 }
 
 // 48 registers per thread
+// (Nx-1, Ny-1, k) - "BottomRight"
 __global__ void QintBdryBottomRightNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)

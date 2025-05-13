@@ -2,6 +2,12 @@
 This is the build folder for the on-device architecture
 
 # Input File
+`sim_type`
+- This selects what initial conditions to populate the data with
+- Used to hash for a C++ function which launches a corresponding kernel
+- See `class SimulationInitializer` for more details 
+- E.g., `screwpinch`, `screwpinch-stride`
+
 `Nt`
 - This is the number of timesteps the solver will take
 - INT32
