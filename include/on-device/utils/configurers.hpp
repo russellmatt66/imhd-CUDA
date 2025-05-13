@@ -33,7 +33,10 @@ class SimulationInitializer {
             it->second(data, config);
         }
  };
- 
+
+/* 
+(CORRECTOR) KERNEL CONFIGURER 
+*/
 // I don't want to have a separate runtime file for each possible choice of megakernels / microkernels
 // Due to structure, it looks like I will need to create multiple separate instances of this class
 class KernelConfigurer {
@@ -54,15 +57,25 @@ class KernelConfigurer {
             */
         }
 
-        void LaunchKernels(const std::string& kBundle, float* fvars_or_intvars, const float* intvars_or_fvars){
+        void LaunchKernels(const std::string& kBundle, float* fluidvars, const float* intvars){
             auto it = kernelFunctions.find(kBundle);
             if (it == kernelFunctions.end()) {
                 throw std::runtime_error("Unknown kernel bundle selected: " + kBundle);
             }
-            it->second(fvars_or_intvars, intvars_or_fvars, config);
+            it->second(fluidvars, intvars, config);
         }
 };
  
+/*
+(PREDICTOR) KERNEL CONFIGURER
+*/
+class PredictorConfigurer {
+    private:
+        /* COMPLETE */
+    public:
+        /* COMPLETE */
+};
+
 // See documentation for what each of these Boundary Conditions specify exactly
 /* 
 WHERE (?) 
@@ -84,38 +97,60 @@ class BoundaryConfigurer {
 
     public:
         BoundaryConfigurer(const BoundaryConfig& bcfg) : config(bcfg) {
-            boundaryFunctions["pcrw-xy"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPCRWXY(fluidvars, Nx, Ny, Nz, bcfg); // Perfectly-conducting, rigid walls boundary conditions in x- and y-directions
-            };
-            /* FINALIZE */
-            boundaryFunctions["pcrw-yz"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPCRWYZ(fluidvars, Nx, Ny, Nz, bcfg);
-            }
-            /* FINALIZE */
-            boundaryFunctions["pcrw-xz"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPCRWXZ(fluidvars, Nx, Ny, Nz, bcfg);
-            }
             boundaryFunctions["pbc-x"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPBCX(fluidvar, Nx, Ny, Nz, bcfg);
+                LaunchFluidBCsPBCX(fluidvars, Nx, Ny, Nz, bcfg);
             };
-            /* FINALIZE */
             boundaryFunctions["pbc-y"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPBCY(fluidvar, Nx, Ny, Nz, bcfg);
+                LaunchFluidBCsPBCY(fluidvars, Nx, Ny, Nz, bcfg);
             };
             boundaryFunctions["pbc-z"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
                 LaunchFluidBCsPBCZ(fluidvars, Nx, Ny, Nz, bcfg); // Periodic in z 
+            };
+            boundaryFunctions["pcrw-front"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPCRWFront(fluidvars, Nx, Ny, Nz, bcfg);
+            };
+            boundaryFunctions["pcrw-back"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPCRWBack(fluidvars, Nx, Ny, Nz, bcfg);
+            };
+            boundaryFunctions["pcrw-left"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPCRWLeft(fluidvars, Nx, Ny, Nz, bcfg);
+            };
+            boundaryFunctions["pcrw-right"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPCRWRight(fluidvars, Nx, Ny, Nz, bcfg);
+            };
+            boundaryFunctions["pcrw-top"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPCRWTop(fluidvars, Nx, Ny, Nz, bcfg);
+            };
+            boundaryFunctions["pcrw-bottom"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPCRWBottom(fluidvars, Nx, Ny, Nz, bcfg);
+            };
+            boundaryFunctions["pcrw-xy"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPCRWXY(fluidvars, Nx, Ny, Nz, bcfg); // Perfectly-conducting, rigid walls boundary conditions in x- and y-directions
+            };
+            boundaryFunctions["pcrw-yz"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPCRWYZ(fluidvars, Nx, Ny, Nz, bcfg);
+            };
+            boundaryFunctions["pcrw-xz"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
+                LaunchFluidBCsPCRWXZ(fluidvars, Nx, Ny, Nz, bcfg);
             };
             /* ADD MORE BOUNDARY CONDITIONS 
             For example, PBCs in every direction! (Orszag-Tang)
             */
         }
 
-        /* Could we pick a better name for `bcBundle` (?) */
-        void LaunchKernels(const std::string& bcBundle, float* fvars_or_intvars, const int Nx, const int Ny, const int Nz){
+        void LaunchKernels(const std::string& bcBundle, float* fluidvars, const int Nx, const int Ny, const int Nz){
             auto it = boundaryFunctions.find(bcBundle);
             if (it == boundaryFunctions.end()) {
                 throw std::runtime_error("Unknown bcs selected: " + bcBundle);
             }
-            it->second(fvars_or_intvars, Nx, Ny, Nz, config);
+            it->second(fluidvars, Nx, Ny, Nz, config);
         }
+};
+
+class PredictorBoundaryConfigurer {
+    private:
+        /* COMPLETE */
+        using KernelLauncher = std::function<void()>;
+    public:
+        /* COMPLETE */
 };

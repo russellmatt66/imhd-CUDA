@@ -9,6 +9,17 @@
 #define IDX3D(i, j, k, Nx, Ny, Nz) (k * (Nx * Ny) + i * Ny + j) // row-major, column-minor order
 #define IDXGRID(i, j, k, Np, Nx, Ny, Nz) (IDX3D(i, j, k, Nx, Ny, Nz) + 3 * Np) // this is for writing the grid to storage in the specified format x0 y0 z0 x0 y1 z0 ... (see comments below)
 
+
+/*
+GPUDirectStorage (GDS) is a technology in the CUDA stack that allows the programmer to bypass the host, and transfer data directly from 
+device memory to storage. 
+
+This file implements functions for performing these operations. 
+The functionality is currently unused because PHDF5 provides a fast way to write data to a common file format (.h5).
+It is still here because this file contains important information about the the memory storage pattern.
+It also serves as a PoC for implementing GDS functionality, which is a useful ability  
+*/
+
 // data looks like d000 d010 d020 ... d0,Ny-1,0 d100 d110 ... dNx-1,Ny-1,0 d001 d011 ... dNx-1,Ny-1,Nz-1
 // row-major, column-minor order
 void writeDataGDS(const char* filename, const float* data, const int size){

@@ -83,6 +83,9 @@
     "[markdown]": {
     "editor.wordWrapColumn": 80,
     "editor.wordWrap": "bounded"
-    }
+    },
+    "python.analysis.extraPaths": [
+        "./python/lib"
+    ]
 }
 
