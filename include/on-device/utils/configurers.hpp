@@ -38,15 +38,14 @@ class SimulationInitializer {
 (CORRECTOR) KERNEL CONFIGURER 
 */
 // I don't want to have a separate runtime file for each possible choice of megakernels / microkernels
-// Due to structure, it looks like I will need to create multiple separate instances of this class
-class KernelConfigurer {
+class FluidKernelConfigurer {
     private:
         using KernelLauncher = std::function<void(float*, const float*, const KernelConfig& kcfg)>;
         std::map<std::string, KernelLauncher> kernelFunctions;
         KernelConfig config;
 
     public:
-        KernelConfigurer(const KernelConfig& kcfg) : config(kcfg) {
+        FluidKernelConfigurer(const KernelConfig& kcfg) : config(kcfg) {
             kernelFunctions["fluidadvancelocal-nodiff"] = [this](float* fluidvars, const float *intvars, const KernelConfig& kcfg) {
                 LaunchFluidAdvanceLocalNoDiff(fluidvars, intvars, kcfg); // Do not want to pass kcfg to GPU or make this code less readable by passing long list of params
             };
@@ -89,14 +88,14 @@ The first kind are particularly relevant to studying fusion equilibria, and the 
 The reason for having a class, and wrappers, that call these kernels variously is to make the action of solving the boundary conditions modular. 
 This provides the benefit of not needing a separate runtime file for each unique set of boundary conditions that are implemented.
 */
-class BoundaryConfigurer {
+class FluidBoundaryConfigurer {
     private:
         using KernelLauncher = std::function<void(float*, const int, const int, const int, const BoundaryConfig& bcfg)>;
         std::map<std::string, KernelLauncher> boundaryFunctions;
         BoundaryConfig config;
 
     public:
-        BoundaryConfigurer(const BoundaryConfig& bcfg) : config(bcfg) {
+        FluidBoundaryConfigurer(const BoundaryConfig& bcfg) : config(bcfg) {
             boundaryFunctions["pbc-x"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
                 LaunchFluidBCsPBCX(fluidvars, Nx, Ny, Nz, bcfg);
             };
@@ -147,6 +146,34 @@ class BoundaryConfigurer {
         }
 };
 
+/*
+The predictor variables must be calculated on the boundaries due to the presence of fluxes in the system. 
+
+Depending on the boundary conditions there are some points in the computational domain which might not influence the global solution, however, 
+it is best practice to calculate the values everywhere because these points will change with the B.Cs so doing otherwise would invite subtle bugs.
+
+The method by which the predictor variables are calculated on the boundaries depends on the specific way that the fluid (corrector) variables
+are handled on the boundaries. 
+
+An additional constraint exists due to the execution model of an NVIDIA GPU. Performant computation of the boundaries in CUDA requires microkernels
+whose execution configurations are adjusted to compute along linear dimensions (1D), rather than rectangular as in the case of fluid BCs (2D), 
+or rectangular prism as in the case of the predictor / corrector megakernels (3D). The way that an NVIDIA GPU works at a fundamental level (warps) means 
+that it is very inefficient to assign thread teams to a problem that is lower-dimension than the threadblock they originate from.
+
+For example, a 3D execution configuration that is launched with a megakernel to calculate the predictor variables EVERYWHERE in the computational domain
+will either require so many (and convoluted) if statements to ensure that all the proper rules are implemented that the performance will evaporate 
+in the face of all the thread divergence. If, rather than implementing a megakernel to calculate the intvars everywhere, instead a 3D grid of 
+3D threadblocks was launched to compute the boundaries the performance would again dissipate due to the introduction of a large number of wasteful
+memory access cycles as - due to the mismatched geometry - only a small fraction of the threads in each team would receive the necessary data each read.
+
+Furthermore, it is not satisfactory to fuse the microkernels into one that is amenable to a 2D execution configuration, as can be done in the fluid BC case,
+because the fluid variables are being SPECIFIED on the boundaries whereas the intermediate (predictor) variables are being calculated there so that the
+nearest-neighbor interior points can get the fluxes that they need in order to be updated in a valid manner. 
+
+Consequently, there is a different rule necessary for how to update the "spatchcocked" sets of points in the corners of the cartesian computational grid 
+which find themselves nearest neighbors to infinity on two, and sometimes even three, sides. Care must be taken to avoid OOB accesses depending on 
+the exact advance equations that are implemented. 
+*/
 class PredictorBoundaryConfigurer {
     private:
         /* COMPLETE */
