@@ -3,8 +3,29 @@
 #include "kernels_intvarbcs.cuh"
 #include "diffusion.cuh"
 
+#include "utils.cuh" // For error-checking CUDA macro
+
 /* THIS NEEDS TO BE DEFINED A SINGLE TIME IN A SINGLE PLACE */
 #define IDX3D(i, j, k, Nx, Ny, Nz) ((k) * (Nx) * (Ny) + (i) * (Ny) + j)
+
+// Due to complexity of Qint boundaries, the launchers are defined first
+// Blocking, multi-step, launcher
+void LaunchIntvarsBCsPBCZ(const float* fluidvars, float* intvars, const int Nx, const int Ny, const int Nz, const IntvarBoundaryConfig& ibcfg){ 
+    float dt = ibcfg.dt, dx = ibcfg.dx, dy = ibcfg.dy, dz = ibcfg.dz;
+
+    QintBdryFrontNoDiff<<<ibcfg.egd_frontback, ibcfg.tbd_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+    QintBdryLeftRightNoDiff<<<ibcfg.egd_leftright, ibcfg.tbd_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+    QintBdryTopBottomNoDiff<<<ibcfg.egd_topbottom, ibcfg.tbd_topbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+    QintBdryFrontBottomNoDiff<<<ibcfg.egd_Y1D, ibcfg.tbd_Y1D>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+    QintBdryFrontRightNoDiff<<<ibcfg.egd_X1D, ibcfg.tbd_X1D>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+    QintBdryBottomRightNoDiff<<<ibcfg.egd_Z1D, ibcfg.tbd_Z1D>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+    checkCuda(cudaDeviceSynchronize());
+
+    QintBdryPBCsZ<<<ibcfg.egd_frontback, ibcfg.tbd_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
+    checkCuda(cudaDeviceSynchronize());
+    return;
+}
+
 
 /* 
 REGISTER PRESSURES: (registers per thread)

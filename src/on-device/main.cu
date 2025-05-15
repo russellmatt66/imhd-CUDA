@@ -21,6 +21,8 @@
 #include "utils.hpp"
 
 /*
+5/14/25: Moving beyond the below comments, this file is going to serve as the testbed for implementing the modular configurers.  
+
 DON'T TRUST ANYTHING IN THIS FILE AT THE MOMENT
 
 The main development is currently occurring in `no_diffusion.cu`, and will be copied over to here when finished, and working. 
@@ -293,7 +295,7 @@ int main(int argc, char* argv[]){
    QintBdryBottomRightNoDiff<<<egd_qintbdry_bottomright, tbd_qintbdry_bottomright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
-   QintBdryPBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
+   QintBdryPBCsZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
    /* 
@@ -410,7 +412,7 @@ int main(int argc, char* argv[]){
       checkCuda(cudaDeviceSynchronize());    
 
       std::cout << "Launching kernel for computing Qint PBCs" << std::endl; 
-      QintBdryPBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
+      QintBdryPBCsZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());    
 
       std::cout << "Transferring updated fluid data to host" << std::endl;

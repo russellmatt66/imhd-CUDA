@@ -1,3 +1,9 @@
+/*
+This file is the original implementation of a successful runtime for solving the screw-pinch equilibrium.
+
+It is here for a reference, see `main.cu` for the completely-modular on-device runtime 
+*/
+
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
@@ -327,7 +333,7 @@ int main(int argc, char* argv[]){
    fluidKernelParameters.Nz = Nz;
 
    // For selecting different kernels to run for doing the solve
-   KernelConfigurer fluidKcfg(fluidKernelParameters); 
+   FluidKernelConfigurer fluidKcfg(fluidKernelParameters); 
 
    /* 
    THERE SHOULD BE A `class BCsConfigurer to test different ones! 

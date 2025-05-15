@@ -6,6 +6,8 @@
 #include "initialize_od.cuh"
 #include "kernels_od.cuh"
 #include "kernels_fluidbcs.cuh"
+#include "kernels_od_intvar.cuh"
+#include "kernels_intvarbcs.cuh"
 
 // I don't want to have a separate runtime file for each problem
 class SimulationInitializer {
@@ -67,10 +69,15 @@ class FluidKernelConfigurer {
  
 /*
 (PREDICTOR) KERNEL CONFIGURER
+The predictor step (speaking specifically about Lax-Wendroff) "looks" in the opposite direction of the corrector step for the finite difference
 */
 class PredictorConfigurer {
     private:
         /* COMPLETE */
+        using KernelLauncher = std::function<void()>;
+        std::map<std::string, KernelLauncher> kernelFunctions;
+        KernelConfig config;
+
     public:
         /* COMPLETE */
 };
@@ -162,7 +169,7 @@ that it is very inefficient to assign thread teams to a problem that is lower-di
 
 For example, a 3D execution configuration that is launched with a megakernel to calculate the predictor variables EVERYWHERE in the computational domain
 will either require so many (and convoluted) if statements to ensure that all the proper rules are implemented that the performance will evaporate 
-in the face of all the thread divergence. If, rather than implementing a megakernel to calculate the intvars everywhere, instead a 3D grid of 
+in the face of thread divergence. If, rather than implementing a megakernel to calculate the intvars everywhere, instead a 3D grid of 
 3D threadblocks was launched to compute the boundaries the performance would again dissipate due to the introduction of a large number of wasteful
 memory access cycles as - due to the mismatched geometry - only a small fraction of the threads in each team would receive the necessary data each read.
 
@@ -174,10 +181,25 @@ Consequently, there is a different rule necessary for how to update the "spatchc
 which find themselves nearest neighbors to infinity on two, and sometimes even three, sides. Care must be taken to avoid OOB accesses depending on 
 the exact advance equations that are implemented. 
 */
+// Non-blocking launchers - don't want to place this code in main file, and don't want to introduce CUDA dependencies here for synchronization
 class PredictorBoundaryConfigurer {
     private:
-        /* COMPLETE */
-        using KernelLauncher = std::function<void()>;
+        using KernelLauncher = std::function<void(const float* , float*, const int, const int, const int, const IntvarBoundaryConfig&)>;
+        std::map<std::string, KernelLauncher> intvarBoundaryFunctions;
+        IntvarBoundaryConfig config;
     public:
         /* COMPLETE */
+        PredictorBoundaryConfigurer(const IntvarBoundaryConfig& ibcfg) : config(ibcfg) {
+            intvarBoundaryFunctions["pbc-z"] = [this](const float* fluidvars, float* intvars, const int Nx, const int Ny, const int Nz, const IntvarBoundaryConfig& ibcfg) {
+                LaunchIntvarsBCsPBCZ(fluidvars, intvars, Nx, Ny, Nz, ibcfg); // Blocking, two-step, microkernel mixture   
+            };
+        }
+
+        void LaunchKernels(const std::string& intvarsBCsBundle, const float* fluidvars, float* intvars, const int Nx, const int Ny, const int Nz){
+            auto it = intvarBoundaryFunctions.find(intvarsBCsBundle);
+            if (it == intvarBoundaryFunctions.end()) {
+                throw std::runtime_error("Unknown bcs selected: " + intvarsBCsBundle);
+            }
+            it->second(fluidvars, intvars, Nx, Ny, Nz, config);
+        }
 };
