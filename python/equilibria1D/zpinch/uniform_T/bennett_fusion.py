@@ -53,7 +53,7 @@ N = (cnst.mu0 * I0**2) / (16.0 * np.pi * cnst.kB * T * cnv.eV_to_degK)
 
 print(f"The linear density of plasma particles is {N} [m^{-1}]")
 
-n0 = 1e24 # core plasma density [m^{-3}]
+n0 = 1e21 # core plasma density [m^{-3}]
 
 # "Bennett parameter"
 b = bennett.b_get(u0, T * cnv.eV_to_degK)

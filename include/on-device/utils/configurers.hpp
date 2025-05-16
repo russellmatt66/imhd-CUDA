@@ -71,7 +71,7 @@ class FluidKernelConfigurer {
 (PREDICTOR) KERNEL CONFIGURER
 The predictor step (speaking specifically about Lax-Wendroff) "looks" in the opposite direction of the corrector step for the finite difference
 */
-class PredictorConfigurer {
+class PredictorKernelConfigurer {
     private:
         /* COMPLETE */
         using KernelLauncher = std::function<void()>;
