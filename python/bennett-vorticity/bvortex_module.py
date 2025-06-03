@@ -9,6 +9,7 @@ where,
 '''
 import constants as cnst 
 
+
 def n(r: float, b: float, n0: float):
     return n0 / (1 + b*n0*r**2)**2
 
