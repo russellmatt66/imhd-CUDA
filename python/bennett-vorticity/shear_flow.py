@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 
 '''
 Obtains plots for Bennett Vortex profiles
-- 
+-
+PLEASE NOTE that \xi^{2} is related to an inverse temperature.  
 '''
 r_star = np.linspace(0.0, 5.0, num=1000)
 
