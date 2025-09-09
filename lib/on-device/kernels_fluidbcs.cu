@@ -310,79 +310,87 @@ __global__ void rigidConductingWallBCsFrontBack(float* fluidvars, const int Nx, 
 // Non-blocking launchers of the CUDA kernels
 */
 // Whole point is to collect information into `BoundaryConfig` data type for modularity
-void LaunchFluidBCsPBCX(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
-    PBCsInX<<<bcfg.egd_topbottom, bcfg.tbd_topbottom>>>(fluidvars, Nx, Ny, Nz);
-    return;
+void LaunchFluidBCsPCRWXYPBCZ(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+   rigidConductingWallBCsLeftRight<<<bcfg.egd_leftright, bcfg.tbd_leftright>>>(fluidvars, Nx, Ny, Nz);
+   rigidConductingWallBCsTopBottom<<<bcfg.egd_topbottom, bcfg.tbd_topbottom>>>(fluidvars, Nx, Ny, Nz);
+   PBCsInZ<<<bcfg.egd_frontback, bcfg.tbd_frontback>>>(fluidvars, Nx, Ny, Nz);
+   return;
 }
 
-void LaunchFluidBCsPBCY(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
-    PBCsInY<<<bcfg.egd_leftright, bcfg.tbd_leftright>>>(fluidvars, Nx, Ny, Nz);
-    return;
-}
+/* TOO GRANULAR - delete when safe */
+// void LaunchFluidBCsPBCX(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+//     PBCsInX<<<bcfg.egd_topbottom, bcfg.tbd_topbottom>>>(fluidvars, Nx, Ny, Nz);
+//     return;
+// }
 
-void LaunchFluidBCsPBCZ(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
-    PBCsInZ<<<bcfg.egd_frontback, bcfg.tbd_frontback>>>(fluidvars, Nx, Ny, Nz);
-    return;
-}
+// void LaunchFluidBCsPBCY(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+//     PBCsInY<<<bcfg.egd_leftright, bcfg.tbd_leftright>>>(fluidvars, Nx, Ny, Nz);
+//     return;
+// }
 
-// Granular, single-face kernels that specify a PCRW boundary condition  
-void LaunchFluidBCsPCRWTop(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
-    PCRWFluidBCsTop<<<bcfg.egd_topbottom, bcfg.tbd_topbottom>>>(fluidvars, Nx, Ny, Nz);
-    return;
-}
+// void LaunchFluidBCsPBCZ(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+//     PBCsInZ<<<bcfg.egd_frontback, bcfg.tbd_frontback>>>(fluidvars, Nx, Ny, Nz);
+//     return;
+// }
 
-void LaunchFluidBCsPCRWBottom(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
-    PCRWFluidBCsBottom<<<bcfg.egd_topbottom, bcfg.tbd_topbottom>>>(fluidvars, Nx, Ny, Nz);
-    return;
-}
+// // Granular, single-face kernels that specify a PCRW boundary condition  
+// void LaunchFluidBCsPCRWTop(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+//     PCRWFluidBCsTop<<<bcfg.egd_topbottom, bcfg.tbd_topbottom>>>(fluidvars, Nx, Ny, Nz);
+//     return;
+// }
 
-void LaunchFluidBCsPCRWLeft(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
-    PCRWFluidBCsLeft<<<bcfg.egd_leftright, bcfg.tbd_leftright>>>(fluidvars, Nx, Ny, Nz);
-    return;
-}
+// void LaunchFluidBCsPCRWBottom(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+//     PCRWFluidBCsBottom<<<bcfg.egd_topbottom, bcfg.tbd_topbottom>>>(fluidvars, Nx, Ny, Nz);
+//     return;
+// }
 
-void LaunchFluidBCsPCRWRight(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
-    PCRWFluidBCsRight<<<bcfg.egd_leftright, bcfg.tbd_leftright>>>(fluidvars, Nx, Ny, Nz);
-    return;
-}
+// void LaunchFluidBCsPCRWLeft(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+//     PCRWFluidBCsLeft<<<bcfg.egd_leftright, bcfg.tbd_leftright>>>(fluidvars, Nx, Ny, Nz);
+//     return;
+// }
 
-void LaunchFluidBCsPCRWFront(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
-    PCRWFluidBCsFront<<<bcfg.egd_frontback, bcfg.tbd_frontback>>>(fluidvars, Nx, Ny, Nz);
-    return;
-}
+// void LaunchFluidBCsPCRWRight(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+//     PCRWFluidBCsRight<<<bcfg.egd_leftright, bcfg.tbd_leftright>>>(fluidvars, Nx, Ny, Nz);
+//     return;
+// }
 
-void LaunchFluidBCsPCRWBack(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
-    PCRWFluidBCsBack<<<bcfg.egd_frontback, bcfg.tbd_frontback>>>(fluidvars, Nx, Ny, Nz);
-    return;
-}
+// void LaunchFluidBCsPCRWFront(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+//     PCRWFluidBCsFront<<<bcfg.egd_frontback, bcfg.tbd_frontback>>>(fluidvars, Nx, Ny, Nz);
+//     return;
+// }
 
-// Legacy kernels which launch more than one PCRW kernel
-// Non-blocking. See inside for reason.
-void LaunchFluidBCsPCRWXY(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
-    /*
-    The overlap in the computational sub-domains of these kernels should not be a serious cause of concern for a data race
-    Any permutation of the order in which the threads could write to the locations will result in the same output 
-    because the same data is being written regardless. 
-    */
-    rigidConductingWallBCsLeftRight<<<bcfg.egd_leftright, bcfg.tbd_leftright>>>(fluidvars, Nx, Ny, Nz);
-    rigidConductingWallBCsTopBottom<<<bcfg.egd_topbottom, bcfg.tbd_topbottom>>>(fluidvars, Nx, Ny, Nz);
-    return;
-}
+// void LaunchFluidBCsPCRWBack(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+//     PCRWFluidBCsBack<<<bcfg.egd_frontback, bcfg.tbd_frontback>>>(fluidvars, Nx, Ny, Nz);
+//     return;
+// }
 
-void LaunchFluidBCsPCRWXZ(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
-    /*
-    See `void LaunchFluidBCsPCRWXY(...)` for explanation of why this is non-blocking 
-    */
-    rigidConductingWallBCsTopBottom<<<bcfg.egd_topbottom, bcfg.tbd_topbottom>>>(fluidvars, Nx, Ny, Nz);
-    rigidConductingWallBCsFrontBack<<<bcfg.egd_frontback, bcfg.tbd_frontback>>>(fluidvars, Nx, Ny, Nz);
-    return;
-}
+// // Legacy kernels which launch more than one PCRW kernel
+// // Non-blocking. See inside for reason.
+// void LaunchFluidBCsPCRWXY(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+//     /*
+//     The overlap in the computational sub-domains of these kernels should not be a serious cause of concern for a data race
+//     Any permutation of the order in which the threads could write to the locations will result in the same output 
+//     because the same data is being written regardless. 
+//     */
+//     rigidConductingWallBCsLeftRight<<<bcfg.egd_leftright, bcfg.tbd_leftright>>>(fluidvars, Nx, Ny, Nz);
+//     rigidConductingWallBCsTopBottom<<<bcfg.egd_topbottom, bcfg.tbd_topbottom>>>(fluidvars, Nx, Ny, Nz);
+//     return;
+// }
 
-void LaunchFluidBCsPCRWYZ(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
-    /*
-    See previous for explanation of why this is non-blocking
-    */
-    rigidConductingWallBCsLeftRight<<<bcfg.egd_leftright, bcfg.tbd_leftright>>>(fluidvars, Nx, Ny, Nz);
-    rigidConductingWallBCsFrontBack<<<bcfg.egd_frontback, bcfg.tbd_frontback>>>(fluidvars, Nx, Ny, Nz);
-    return;
-}
+// void LaunchFluidBCsPCRWXZ(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+//     /*
+//     See `void LaunchFluidBCsPCRWXY(...)` for explanation of why this is non-blocking 
+//     */
+//     rigidConductingWallBCsTopBottom<<<bcfg.egd_topbottom, bcfg.tbd_topbottom>>>(fluidvars, Nx, Ny, Nz);
+//     rigidConductingWallBCsFrontBack<<<bcfg.egd_frontback, bcfg.tbd_frontback>>>(fluidvars, Nx, Ny, Nz);
+//     return;
+// }
+
+// void LaunchFluidBCsPCRWYZ(float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+//     /*
+//     See previous for explanation of why this is non-blocking
+//     */
+//     rigidConductingWallBCsLeftRight<<<bcfg.egd_leftright, bcfg.tbd_leftright>>>(fluidvars, Nx, Ny, Nz);
+//     rigidConductingWallBCsFrontBack<<<bcfg.egd_frontback, bcfg.tbd_frontback>>>(fluidvars, Nx, Ny, Nz);
+//     return;
+// }

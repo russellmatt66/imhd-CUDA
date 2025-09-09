@@ -1,6 +1,16 @@
 #ifndef KERNELS_OD_INTVAR_CUH
 #define KERNELS_OD_INTVAR_CUH
 
+struct IVKernelConfig {
+    dim3 gridDim, blockDim;
+    float D;
+    float dt, dx, dy, dz;
+    int Nx, Ny, Nz;
+};
+
+// Kernel Launchers
+void LaunchIntvarAdvanceLocalNoDiff(const float* fluidvars, float* intvars, IVKernelConfig ivkcfg);
+
 // MEGAKERNELS
 // Non-thrashing megakernels
 __global__ void ComputeIntVarsLocalNoDiff(const float* fluidvar, float* intvar,

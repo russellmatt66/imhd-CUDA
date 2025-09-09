@@ -16,7 +16,6 @@ struct IntvarBoundaryConfig{
 // void LaunchIntvarsBCsPBCZ_XY(const float* fluidvars, float* intvars, const int Nx, const int Ny, const int Nz, const IntvarBoundaryConfig& ibcfg);
 void LaunchIntvarsBCsPBCZ(const float* fluidvars, float* intvars, const int Nx, const int Ny, const int Nz, const IntvarBoundaryConfig& ibcfg);
 
-
 /* 
 What you will notice is that this header file, and subsequent implementation, is significantly more complicated than the `fluidvars` equivalent.
 The reason for this is that the fluid variables do not need to be completely specified on the boundary every timestep for the fluidvar BCs to hold.

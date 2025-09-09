@@ -74,12 +74,25 @@ The predictor step (speaking specifically about Lax-Wendroff) "looks" in the opp
 class PredictorKernelConfigurer {
     private:
         /* COMPLETE */
-        using KernelLauncher = std::function<void()>;
+        using KernelLauncher = std::function<void(const float*, float*, const IVKernelConfig& ivkcfg)>;
         std::map<std::string, KernelLauncher> kernelFunctions;
-        KernelConfig config;
+        IVKernelConfig config;
 
     public:
         /* COMPLETE */
+        PredictorKernelConfigurer(const IVKernelConfig& ivkcfg) : config(ivkcfg) {
+            kernelFunctions["fluidadvancelocal-nodiff"] = [this](const float* fluidvars, float* intvars, const IVKernelConfig& ivkcfg) {
+                LaunchIntvarAdvanceLocalNoDiff(fluidvars, intvars, ivkcfg);
+            };
+        }
+
+        void LaunchKernels(const std::string& ivBundle, const float* fluidvars, float* intvars){
+            auto it = kernelFunctions.find(ivBundle);
+            if (it == kernelFunctions.end()) {
+                throw std::runtime_error("Unknown I.V. kernel bundle selection: " + ivBundle);
+            }
+            it->second(fluidvars, intvars, config);
+        }
 };
 
 // See documentation for what each of these Boundary Conditions specify exactly
@@ -103,41 +116,8 @@ class FluidBoundaryConfigurer {
 
     public:
         FluidBoundaryConfigurer(const BoundaryConfig& bcfg) : config(bcfg) {
-            boundaryFunctions["pbc-x"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPBCX(fluidvars, Nx, Ny, Nz, bcfg);
-            };
-            boundaryFunctions["pbc-y"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPBCY(fluidvars, Nx, Ny, Nz, bcfg);
-            };
-            boundaryFunctions["pbc-z"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPBCZ(fluidvars, Nx, Ny, Nz, bcfg); // Periodic in z 
-            };
-            boundaryFunctions["pcrw-front"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPCRWFront(fluidvars, Nx, Ny, Nz, bcfg);
-            };
-            boundaryFunctions["pcrw-back"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPCRWBack(fluidvars, Nx, Ny, Nz, bcfg);
-            };
-            boundaryFunctions["pcrw-left"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPCRWLeft(fluidvars, Nx, Ny, Nz, bcfg);
-            };
-            boundaryFunctions["pcrw-right"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPCRWRight(fluidvars, Nx, Ny, Nz, bcfg);
-            };
-            boundaryFunctions["pcrw-top"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPCRWTop(fluidvars, Nx, Ny, Nz, bcfg);
-            };
-            boundaryFunctions["pcrw-bottom"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPCRWBottom(fluidvars, Nx, Ny, Nz, bcfg);
-            };
-            boundaryFunctions["pcrw-xy"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPCRWXY(fluidvars, Nx, Ny, Nz, bcfg); // Perfectly-conducting, rigid walls boundary conditions in x- and y-directions
-            };
-            boundaryFunctions["pcrw-yz"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPCRWYZ(fluidvars, Nx, Ny, Nz, bcfg);
-            };
-            boundaryFunctions["pcrw-xz"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg) {
-                LaunchFluidBCsPCRWXZ(fluidvars, Nx, Ny, Nz, bcfg);
+            boundaryFunctions["pcrw-xy_pbc-z"] = [this](float* fluidvars, const int Nx, const int Ny, const int Nz, const BoundaryConfig& bcfg){
+                LaunchFluidBCsPCRWXYPBCZ(fluidvars, Nx, Ny, Nz, bcfg);
             };
             /* ADD MORE BOUNDARY CONDITIONS 
             For example, PBCs in every direction! (Orszag-Tang)
