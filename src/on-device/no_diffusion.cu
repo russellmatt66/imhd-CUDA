@@ -340,6 +340,12 @@ int main(int argc, char* argv[]){
    4/18/25:
    - This class has been implemented in `imhd-cuda/include/on-device/utils`.
    - This functionality is integral to Orszag-Tang
+   - Configurers allow for flexible selection of kernel bundles and boundary conditions
+   
+   11/4/25:
+   - Configurers are developed, driving code is being written and tested 
+   - This file should stand without the configurers for posterity
+   - Implements PBCs in Z, and perfectly-conducting walls in X and Y
    */
    /* 
    COULD REPLACE WITH APPROPRIATE CALLS TO BoundaryConfigurer   

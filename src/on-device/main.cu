@@ -86,6 +86,10 @@ int main(int argc, char* argv[]){
    int SM_mult_FA_y = atoi(argv[47]);
    int SM_mult_FA_z = atoi(argv[48]);
 
+   // Kernel Configurer keys
+   // These five strings are the keys which then the respective Configurer classes use to select which set of kernels to launch
+
+
    // CUDA BOILERPLATE 
    int deviceId;
    int numberOfSMs;
@@ -216,14 +220,13 @@ int main(int argc, char* argv[]){
    // rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
    // rigidConductingWallBCsTopBottom<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, Nx, Ny, Nz);
    // PBCsInZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
-   fluidBCKcfg.LaunchKernels(fvbc_init, fluidvars, Nx, Ny, Nz);
+   fluidBCKcfg.LaunchKernels(fvbc_init_type, fluidvars, Nx, Ny, Nz); /* There is a better name for the keystring */
    checkCuda(cudaDeviceSynchronize());
 
    /*
    NOTE: 
    If you want to use microkernels here, you have to come up with an execution configuration set, and addtl. synchronization 
    */
-   /* REFACTOR TO HAVE A RUNTIME CLASS THAT DECIDES WHAT SET OF KERNELS TO USE */
    IVKernelConfig ivKernelParameters; // For selecting different bundles of kernels to use, i.e., megakernel or ordered microkernels (for profiling) 
 
    ivKernelParameters.gridDim = egd_fluidadvance;
@@ -242,13 +245,23 @@ int main(int argc, char* argv[]){
 
    PredictorKernelConfigurer ivKcfg(ivKernelParameters);
    
-   ivKcfg.LaunchKernels(ivk_type, fluidvars, intvars);
+   ivKcfg.LaunchKernels(ivk_type, fluidvars, intvars); // this keystring is named well - ivk = "intermediate variable kernel"
    // ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
    /*
    NOTE:
    You DEFINITELY want to use microkernels here
+   
+   The macrokernel approach will lead to thread divergence and inefficient memory patterns.
+   
+   The entanglement of these computations with the boundary conditions means that complicated and subtle bugs can occur if each surface
+   is not handled individually. 
+   
+   The most significant of these is the corner problem, where multiple boundaries intersect. 
+   
+   The previous, and still existing in `no_diffusion.cu`, implemented approach is hardcoded PBCs in Z, and perfectly-conducting walls in X and Y.
+
    */
    /* 
    REFACTOR TO HAVE A RUNTIME CLASS THAT DECIDES WHAT SET OF KERNELS TO USE 
@@ -285,6 +298,7 @@ int main(int argc, char* argv[]){
    
    ivBCKcfg.LaunchKernels(ivbc_type, fluidvars, intvars, Nx, Ny, Nz); // Blocking launcher (is this a guarantee?)
 
+   // An example of a working boundary condition kernel launch for the intermediate variable boundaries
    // QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    // QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    // QintBdryTopBottomNoDiff<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
@@ -374,6 +388,8 @@ int main(int argc, char* argv[]){
          std::cerr << "Error executing writegrid binary: " << eigen_bin_name << std::endl;
    }
 
+   // Check Stability
+   /* REFACTOR to base on analytic expressions for the eigenvalues */
    if (!(eigen_bin_name == "none")){ // Don't always want to check stability - expensive raster scan
       std::cout << "Forking to process for computing CFL number (checking stability)" << std::endl;
       ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
