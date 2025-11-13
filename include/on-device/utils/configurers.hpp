@@ -81,9 +81,17 @@ class PredictorKernelConfigurer {
     public:
         /* COMPLETE */
         PredictorKernelConfigurer(const IVKernelConfig& ivkcfg) : config(ivkcfg) {
-            kernelFunctions["fluidadvancelocal-nodiff"] = [this](const float* fluidvars, float* intvars, const IVKernelConfig& ivkcfg) {
-                LaunchIntvarAdvanceLocalNoDiff(fluidvars, intvars, ivkcfg);
+            kernelFunctions["corrector_advance-tp_nodiff"] = [this](const float* fluidvars, float* intvars, const IVKernelConfig& ivkcfg) {
+                LaunchIntvarAdvanceNoDiff(fluidvars, intvars, ivkcfg);
             };
+            kernelFunctions["corrector_advance-stride_nodiff"] = [this](const float* fluidvars, float* intvars, const IVKernelConfig& ivkcfg) {
+                LaunchIntvarAdvanceStrideNoDiff(fluidvars, intvars, ivkcfg);
+            };
+            /* ADD MORE BUNDLES OF KERNELS TO RUN
+            Examples: 
+            (1) Shared memory computation
+            (2) Higher-order methods
+            */
         }
 
         void LaunchKernels(const std::string& ivBundle, const float* fluidvars, float* intvars){
@@ -142,7 +150,7 @@ it is best practice to calculate the values everywhere because these points will
 The method by which the predictor variables are calculated on the boundaries depends on the specific way that the fluid (corrector) variables
 are handled on the boundaries. 
 
-An additional constraint exists due to the execution model of an NVIDIA GPU. Performant computation of the boundaries in CUDA requires microkernels
+An additional constraint exists due to the execution model of an NVIDIA GPU. Performant computation of the corner boundaries in CUDA requires microkernels
 whose execution configurations are adjusted to compute along linear dimensions (1D), rather than rectangular as in the case of fluid BCs (2D), 
 or rectangular prism as in the case of the predictor / corrector megakernels (3D). The way that an NVIDIA GPU works at a fundamental level (warps) means 
 that it is very inefficient to assign thread teams to a problem that is lower-dimension than the threadblock they originate from.
@@ -151,7 +159,8 @@ For example, a 3D execution configuration that is launched with a megakernel to 
 will either require so many (and convoluted) if statements to ensure that all the proper rules are implemented that the performance will evaporate 
 in the face of thread divergence. If, rather than implementing a megakernel to calculate the intvars everywhere, instead a 3D grid of 
 3D threadblocks was launched to compute the boundaries the performance would again dissipate due to the introduction of a large number of wasteful
-memory access cycles as - due to the mismatched geometry - only a small fraction of the threads in each team would receive the necessary data each read.
+memory access cycles as - due to the mismatched geometry - only a small fraction of the threads in each team would receive the necessary data each read, and  
+only a small fraction of the threads in each team would be doing useful work.
 
 Furthermore, it is not satisfactory to fuse the microkernels into one that is amenable to a 2D execution configuration, as can be done in the fluid BC case,
 because the fluid variables are being SPECIFIED on the boundaries whereas the intermediate (predictor) variables are being calculated there so that the

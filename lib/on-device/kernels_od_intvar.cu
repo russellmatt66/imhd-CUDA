@@ -27,7 +27,7 @@ ComputeIntEMicroLocalNoDiff=90
 */
 // MEGAKERNELS
 /* TODO: Megakernel that uses large amounts of registers to avoid thrashing the cache */
-__global__ void ComputeIntVarsLocalNoDiff(const float* fluidvar, float* intvar,
+__global__ void ComputeIntVarsSHMEMNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
@@ -40,12 +40,13 @@ __global__ void ComputeIntVarsLocalNoDiff(const float* fluidvar, float* intvar,
         int zthreads = blockDim.z * gridDim.z;
 
         /* 
-        COMPUTE THE INTERMEDIATE VARIABLES USING LOCAL (SHARED) MEMORY
+        COMPUTE THE INTERMEDIATE VARIABLES USING SHARED MEMORY
         */
 
         return;
     }
 
+// Total Parallelism implementation
 // Thrashes the cache
 // 42 registers per thread
 __global__ void ComputeIntermediateVariablesNoDiff(const float* fluidvar, float* intvar,
@@ -89,6 +90,7 @@ __global__ void ComputeIntermediateVariablesStrideNoDiff(const float* fluidvar, 
     
         int cube_size = Nx * Ny * Nz;
 
+        /* Why do these start at 1? */
         for (int k = tidz + 1; k < Nz - 1; k += zthreads){
             for (int i = tidx + 1; i < Nx - 1; i += xthreads){
                 for (int j = tidy + 1; j < Ny - 1; j += ythreads){
