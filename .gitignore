@@ -67,6 +67,7 @@
 /debug/build/CMakeCache.txt
 
 # HIDING DEPRECATED CMAKE FILES AND BINARY
+/deprecated/*
 /deprecated/build/CMakeFiles/*
 /deprecated/build/Makefile
 /deprecated/build/*.cmake
@@ -86,15 +87,15 @@
 /deprecated/data/Bz/*
 /deprecated/data/e/*
 /deprecated/data/grid/*
-!/deprecated/data/rho/README.md
-!/deprecated/data/rhovx/README.md
-!/deprecated/data/rhovy/README.md
-!/deprecated/data/rhovz/README.md
-!/deprecated/data/Bx/README.md
-!/deprecated/data/By/README.md
-!/deprecated/data/Bz/README.md
-!/deprecated/data/e/README.md
-!/deprecated/data/grid/README.md
+# !/deprecated/data/rho/README.md
+# !/deprecated/data/rhovx/README.md
+# !/deprecated/data/rhovy/README.md
+# !/deprecated/data/rhovz/README.md
+# !/deprecated/data/Bx/README.md
+# !/deprecated/data/By/README.md
+# !/deprecated/data/Bz/README.md
+# !/deprecated/data/e/README.md
+# !/deprecated/data/grid/README.md
 
 /deprecated/examples/visualization/build/CMakeFiles/*
 /deprecated/examples/visualization/build/*.cmake
@@ -107,10 +108,10 @@
 /deprecated/examples/visualization/debug/Makefile
 
 /deprecated/tests/output/build/*
-!/deprecated/tests/output/build/README.md
+# !/deprecated/tests/output/build/README.md
 
 /deprecated/visualization/build/*
-!/deprecated/visualization/build/README.md
+# !/deprecated/visualization/build/README.md
 
 # HIDING CMAKE FILES FROM `./tests/`
 tests/output/build/CMakeCache.txt
