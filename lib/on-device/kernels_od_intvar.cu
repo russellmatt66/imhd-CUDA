@@ -47,6 +47,7 @@ __global__ void ComputeIntVarsSHMEMNoDiff(const float* fluidvar, float* intvar,
     }
 
 // Total Parallelism implementation
+// For large data volumes this incurs performance penalty due to launcher overhead 
 // Thrashes the cache
 // 42 registers per thread
 __global__ void ComputeIntermediateVariablesNoDiff(const float* fluidvar, float* intvar,
@@ -74,6 +75,27 @@ __global__ void ComputeIntermediateVariablesNoDiff(const float* fluidvar, float*
         return;
     }
 
+void LaunchIntvarAdvanceNoDiff(const float* fluidvars, float* intvars, IVKernelConfig ivkcfg)
+{
+    dim3 gridDim = ivkcfg.gridDim;
+    dim3 blockDim = ivkcfg.blockDim;
+
+    ComputeIntermediateVariablesNoDiff<<<gridDim, blockDim>>>(
+        fluidvars,
+        intvars,
+        ivkcfg.dt,
+        ivkcfg.dx,
+        ivkcfg.dy,
+        ivkcfg.dz,
+        ivkcfg.Nx,
+        ivkcfg.Ny,
+        ivkcfg.Nz
+    );
+
+    return;
+}
+
+// Strided implementation
 // Thrashes the cache
 // 80 registers per thread
 __global__ void ComputeIntermediateVariablesStrideNoDiff(const float* fluidvar, float* intvar,
@@ -109,6 +131,26 @@ __global__ void ComputeIntermediateVariablesStrideNoDiff(const float* fluidvar, 
 
         return;
     }
+
+void LaunchIntvarAdvanceStrideNoDiff(const float* fluidvars, float* intvars, IVKernelConfig ivkcg)
+{
+    dim3 gridDim = ivkcg.gridDim;
+    dim3 blockDim = ivkcg.blockDim;
+
+    ComputeIntermediateVariablesStrideNoDiff<<<gridDim, blockDim>>>(
+        fluidvars,
+        intvars,
+        ivkcg.dt,
+        ivkcg.dx,
+        ivkcg.dy,
+        ivkcg.dz,
+        ivkcg.Nx,
+        ivkcg.Ny,
+        ivkcg.Nz
+    );
+
+    return;
+}
 
 // 74 registers per thread
 /* DIFFUSION NOT VERIFIED */

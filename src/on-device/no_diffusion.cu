@@ -156,7 +156,7 @@ Two popular choices are an ideal gas closure, $p = nT$, or a polytropic gas rela
 
 */
 int main(int argc, char* argv[]){
-   std::string sim_type = argv[1];
+   std::string sim_init_keystring = argv[1];
    // std::string q_type = argv[2]
    // std::string bcs_type = argv[3]
    // std::string qint_type = argv[4]
@@ -311,8 +311,8 @@ int main(int argc, char* argv[]){
    // For selecting different initialization kernel to use, i.e., pinch, Orszag-Tang
    SimulationInitializer simInit(initParameters); 
 
-   // Non-blocking call to initialization kernels defined by `sim_type`
-   simInit.initialize(sim_type, fluidvars); 
+   // Non-blocking call to initialization kernels defined by `sim_init_keystring`
+   simInit.initialize(sim_init_keystring, fluidvars); 
    checkCuda(cudaDeviceSynchronize());
 
    // For selecting different bundles of kernels to use, i.e., megakernel or ordered microkernels (for profiling) 
