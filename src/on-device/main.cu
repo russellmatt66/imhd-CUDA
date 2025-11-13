@@ -21,9 +21,11 @@
 #include "configurers.hpp"
 #include "utils.hpp"
 
+// Forward declaration if SHMAllocator is defined in utils.cpp
+// float* SHMAllocator(const std::string shm_name, const size_t data_size);
+
 int main(int argc, char* argv[]){
-   std::string sim_type = argv[1];
-   // std::string fluidbc_bundle = argv[2];
+   std::string sim_init_keystring = argv[1]; // keystring for the ICs
 
    int Nt = atoi(argv[2]);
    int Nx = atoi(argv[3]);
@@ -88,7 +90,11 @@ int main(int argc, char* argv[]){
 
    // Kernel Configurer keys
    // These five strings are the keys which then the respective Configurer classes use to select which set of kernels to launch
-
+   std::string fvbc_init_keystring = argv[49]; // keystring for the initial conditions of the fluid variable boundaries
+   std::string ivk_keystring = argv[50]; // keystring for the intermediate variable kernel(s)
+   std::string ivbc_keystring = argv[51]; // keystring for the intermediate variable boundary conditions
+   std::string fvk_keystring = argv[52]; // keystring for the fluid variable kernel(s) 
+   std::string fvbc_loop_keystring = argv[53]; // keystring for the fluid variable boundary conditions during the simulation loop
 
    // CUDA BOILERPLATE 
    int deviceId;
@@ -181,7 +187,7 @@ int main(int argc, char* argv[]){
 
    SimulationInitializer simInit(initParameters);
 
-   simInit.initialize(sim_type, fluidvars);
+   simInit.initialize(sim_init_keystring, fluidvars);
    checkCuda(cudaDeviceSynchronize());
 
    // Initialize the class which configures the compute for the bulk fluid variables
@@ -202,7 +208,7 @@ int main(int argc, char* argv[]){
    fluidKernelParameters.Nz = Nz;
 
    FluidKernelConfigurer fluidKcfg(fluidKernelParameters); 
-   // No need to run compute on the bulk fluid variables yet 
+   // No need to run compute on the bulk fluid variables yet so no need to launch anything here
 
    // Initialize the class which configures the compute for the fluid boundary variables
    BoundaryConfig fluidBoundaryParams;
@@ -220,7 +226,7 @@ int main(int argc, char* argv[]){
    // rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
    // rigidConductingWallBCsTopBottom<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, Nx, Ny, Nz);
    // PBCsInZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
-   fluidBCKcfg.LaunchKernels(fvbc_init_type, fluidvars, Nx, Ny, Nz); /* There is a better name for the keystring */
+   fluidBCKcfg.LaunchKernels(fvbc_init_keystring, fluidvars, Nx, Ny, Nz); /* There is a better name for the keystring */
    checkCuda(cudaDeviceSynchronize());
 
    /*
@@ -245,7 +251,7 @@ int main(int argc, char* argv[]){
 
    PredictorKernelConfigurer ivKcfg(ivKernelParameters);
    
-   ivKcfg.LaunchKernels(ivk_type, fluidvars, intvars); // this keystring is named well - ivk = "intermediate variable kernel"
+   ivKcfg.LaunchKernels(ivk_keystring, fluidvars, intvars); // this keystring is named well - ivk = "intermediate variable kernel"
    // ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
@@ -296,7 +302,7 @@ int main(int argc, char* argv[]){
 
    PredictorBoundaryConfigurer ivBCKcfg(ivBCParams);
    
-   ivBCKcfg.LaunchKernels(ivbc_type, fluidvars, intvars, Nx, Ny, Nz); // Blocking launcher (is this a guarantee?)
+   ivBCKcfg.LaunchKernels(ivbc_keystring, fluidvars, intvars, Nx, Ny, Nz); // Blocking launcher (is this a guarantee?)
 
    // An example of a working boundary condition kernel launch for the intermediate variable boundaries
    // QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
@@ -314,6 +320,9 @@ int main(int argc, char* argv[]){
    REFACTOR TO HAVE A WRAPPER 
    Argument is `std::string shm_name_var`
    Returns `float*` to the shared memory data
+   
+   11/12/2025 - DONE, see `float* SHMAllocator(const std::string shm_name, const size_t data_size)` function in lib/utils/utils.cpp
+   
    */
    // Use IPC to write data out in order to avoid redundant work 
    std::string shm_name_fluidvar = "/shared_h_fluidvar";
@@ -329,6 +338,7 @@ int main(int argc, char* argv[]){
       std::cerr << "mmap failed!" << std::endl;
       return EXIT_FAILURE;
    }
+   // float* shm_h_fluidvar = SHMAllocator(shm_name_fluidvar, fluid_data_size);
 
    std::cout << "Transferring device data to host" << std::endl;
    cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);
@@ -359,6 +369,9 @@ int main(int argc, char* argv[]){
       std::cerr << "mmap failed for grid_x!" << std::endl;
       return EXIT_FAILURE;
    }
+
+   // float* shm_h_gridx = (float*)SHMAllocator(shm_name_gridx, sizeof(float) * Nx); // Is this cast necessary?
+
    cudaMemcpy(shm_h_gridx, x_grid, sizeof(float) * Nx, cudaMemcpyDeviceToHost);
 
    std::string shm_name_gridy = "/shared_h_gridy";
@@ -369,27 +382,37 @@ int main(int argc, char* argv[]){
       std::cerr << "mmap failed for grid_y!" << std::endl;
       return EXIT_FAILURE;
    }
+
+   // float* shm_h_gridy = (float*)SHMAllocator(shm_name_gridy, sizeof(float) * Ny);
+
    cudaMemcpy(shm_h_gridy, y_grid, sizeof(float) * Ny, cudaMemcpyDeviceToHost);
 
    std::string shm_name_gridz = "/shared_h_gridz";
    shm_fd = shm_open(shm_name_gridz.data(), O_CREAT | O_RDWR, 0666);
    ftruncate(shm_fd, sizeof(float) * Nz);
    float* shm_h_gridz = (float*)mmap(0, sizeof(float) * Nz, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+   
+   // float* shm_h_gridz = (float*)SHMAllocator(shm_name_gridz, sizeof(float) * Nz);
+   
    if (shm_h_gridz == MAP_FAILED) {
       std::cerr << "mmap failed for grid_z!" << std::endl;
       return EXIT_FAILURE;
    }
    cudaMemcpy(shm_h_gridz, z_grid, sizeof(float) * Nz, cudaMemcpyDeviceToHost);
+   
    checkCuda(cudaDeviceSynchronize());
 
    std::cout << "Forking to process for writing grid to storage" << std::endl;
    ret = callBinary_WriteGrid(write_grid_bin_name, path_to_data, shm_name_gridx, shm_name_gridy, shm_name_gridz, Nx, Ny, Nz);
    if (ret != 0) {
-         std::cerr << "Error executing writegrid binary: " << eigen_bin_name << std::endl;
+         std::cerr << "Error executing writegrid binary: " << write_grid_bin_name << std::endl;
    }
 
    // Check Stability
-   /* REFACTOR to base on analytic expressions for the eigenvalues */
+   /* 
+   REFACTOR
+   - Base this on analytic expressions for the eigenvalues so it's not a full eigenvalue solve (:|)
+   */
    if (!(eigen_bin_name == "none")){ // Don't always want to check stability - expensive raster scan
       std::cout << "Forking to process for computing CFL number (checking stability)" << std::endl;
       ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
@@ -404,12 +427,12 @@ int main(int argc, char* argv[]){
       std::cout << "Starting timestep " << it << std::endl;
 
       std::cout << "Computing fluid variables" << std::endl;
-      fluidKcfg.LaunchKernels(fvk_type, fluidvars, intvars);
+      fluidKcfg.LaunchKernels(fvk_keystring, fluidvars, intvars);
       // FluidAdvanceLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       
       std::cout << "Computing fluid boundary conditions" << std::endl;
-      fluidBCKcfg.LaunchKernels(fvbc_loop, fluidvars, Nx, Ny, Nz); 
+      fluidBCKcfg.LaunchKernels(fvbc_loop_keystring, fluidvars, Nx, Ny, Nz); 
       // PBCsInZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       std::cout << "Kernels for computing fluid variables completed" << std::endl;
@@ -417,7 +440,7 @@ int main(int argc, char* argv[]){
       std::cout << "Computing intermediate variables" << std::endl; 
       /* NOTE: Thrashes the cache */
       // ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      ivKcfg.LaunchKernels(ivk_type, fluidvars, intvars);
+      ivKcfg.LaunchKernels(ivk_keystring, fluidvars, intvars);
       checkCuda(cudaDeviceSynchronize());
 
       std::cout << "Computing Qint boundaries" << std::endl; 
@@ -432,7 +455,7 @@ int main(int argc, char* argv[]){
       // std::cout << "Launching kernel for computing Qint PBCs" << std::endl; 
       // QintBdryPBCsZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
       // checkCuda(cudaDeviceSynchronize());    
-      ivBCKcfg.LaunchKernels(ivbc_type, fluidvars, intvars, Nx, Ny, Nz);
+      ivBCKcfg.LaunchKernels(ivbc_keystring, fluidvars, intvars, Nx, Ny, Nz);
 
       std::cout << "Transferring updated fluid data to host" << std::endl;
       cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);
@@ -467,13 +490,13 @@ int main(int argc, char* argv[]){
    checkCuda(cudaFree(y_grid));
    checkCuda(cudaFree(z_grid));
    // checkCuda(cudaFree(d_initParameters));
-   
+
    // Host
-   munmap(shm_h_fluidvar, 8 * fluid_data_size);
-   munmap(shm_h_gridx, sizeof(float) * Nx);
+   munmap(shm_h_fluidvar, 8 * fluid_data_size); // Sharing memory between processes to avoid O(Nx * Ny * Nz) writes and reads
+   munmap(shm_h_gridx, sizeof(float) * Nx); 
    munmap(shm_h_gridy, sizeof(float) * Ny);
    munmap(shm_h_gridz, sizeof(float) * Nz);
-   shm_unlink(shm_name_fluidvar.data());
+   shm_unlink(shm_name_fluidvar.data()); 
    shm_unlink(shm_name_gridx.data());
    shm_unlink(shm_name_gridy.data());
    shm_unlink(shm_name_gridz.data());

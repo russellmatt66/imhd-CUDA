@@ -18,3 +18,5 @@ float adaptiveTimeStep(const float dt);
 
 void parseInputFileDebug(std::vector<float>& inputs, const std::string input_file);
 // void parseInputFileBench(std::vector<float>& inputs, const std::string input_file);
+
+float* SHMAllocator(const std::string shm_name, const size_t data_size);

@@ -346,10 +346,11 @@ int main(int argc, char* argv[]){
    - Configurers are developed, driving code is being written and tested 
    - This file should stand without the configurers for posterity
    - Implements PBCs in Z, and perfectly-conducting walls in X and Y
-   */
-   /* 
-   COULD REPLACE WITH APPROPRIATE CALLS TO BoundaryConfigurer   
-   Recognize that all pinch geometries will use these boundary conditions, and the intermediate variables must be consistent
+
+   11/12/25:
+   - Architectural standpoint perspective is to separate the concerns and have the configurers given their own file where they 
+   are utilized fully instead of utilizing them fully everywhere or in only one place. 
+   - For testing and debugging purposes it is also behooven to have a reference implementation(s).
    */
    rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
    rigidConductingWallBCsTopBottom<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, Nx, Ny, Nz);
@@ -360,11 +361,6 @@ int main(int argc, char* argv[]){
    NOTE: 
    If you want to use microkernels here, you have to come up with an execution configuration set, and addtl. synchronization 
    */
-   /* REFACTOR TO HAVE A RUNTIME CLASS THAT DECIDES WHAT SET OF KERNELS TO USE */
-   /* 
-   This class has been implemented
-   See above comments
-   */
    /* REPLACE BELOW WITH APPROPRIATE CALLS TO KernelConfigurer*/
    ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
@@ -372,15 +368,6 @@ int main(int argc, char* argv[]){
    /*
    NOTE:
    You DEFINITELY want to use microkernels here
-   */
-   /* 
-   REFACTOR TO HAVE A RUNTIME CLASS THAT DECIDES WHAT SET OF KERNELS TO USE 
-   `class QintBCsConfigurer` 
-   */
-   /*
-   4/18/25:
-   - Can we use BoundaryConfigurer here? 
-   - QintBoundaryConfigurer because of the expanded need for execution configs
    */
    QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
@@ -435,13 +422,15 @@ int main(int argc, char* argv[]){
       return EXIT_FAILURE;
    }
 
-   std::cout << "Transferring device data to host" << std::endl;
+   // float* shm_h_fluidvar = SHMAllocator(shm_name_fluidvar, fluid_data_size);
+
+   std::cout << "Transferring device fluid data to host" << std::endl;
    cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);
    checkCuda(cudaDeviceSynchronize());
 
    std::string filename_fluidvar = path_to_data + "fluidvars_0.h5";
 
-   std::cout << "Writing Screw-Pinch ICs out with PHDF5" << std::endl;
+   std::cout << "Writing ICs out with PHDF5" << std::endl;
    int ret = callBinary_PHDF5Write(filename_fluidvar, Nx, Ny, Nz, shm_name_fluidvar, fluid_data_size, num_proc, phdf5_bin_name); 
    if (ret != 0) {
         std::cerr << "Error executing PHDF5 command" << std::endl;
@@ -463,6 +452,9 @@ int main(int argc, char* argv[]){
       std::cerr << "mmap failed for grid_x!" << std::endl;
       return EXIT_FAILURE;
    }
+
+   // float* shm_h_gridx = (float*)SHMAllocator(shm_name_gridx, sizeof(float) * Nx); // Is this cast necessary?
+
    cudaMemcpy(shm_h_gridx, x_grid, sizeof(float) * Nx, cudaMemcpyDeviceToHost);
 
    std::string shm_name_gridy = "/shared_h_gridy";
@@ -475,6 +467,8 @@ int main(int argc, char* argv[]){
    }
    cudaMemcpy(shm_h_gridy, y_grid, sizeof(float) * Ny, cudaMemcpyDeviceToHost);
 
+   // float* shm_h_gridy = (float*)SHMAllocator(shm_name_gridy, sizeof(float) * Ny);
+
    std::string shm_name_gridz = "/shared_h_gridz";
    shm_fd = shm_open(shm_name_gridz.data(), O_CREAT | O_RDWR, 0666);
    ftruncate(shm_fd, sizeof(float) * Nz);
@@ -483,6 +477,9 @@ int main(int argc, char* argv[]){
       std::cerr << "mmap failed for grid_z!" << std::endl;
       return EXIT_FAILURE;
    }
+
+   // float* shm_h_gridz = (float*)SHMAllocator(shm_name_gridz, sizeof(float) * Nz);
+
    cudaMemcpy(shm_h_gridz, z_grid, sizeof(float) * Nz, cudaMemcpyDeviceToHost);
    checkCuda(cudaDeviceSynchronize());
 
@@ -494,7 +491,8 @@ int main(int argc, char* argv[]){
 
    /* 
    ADAPTIVE TIMESTEP
-   This entire usage of Eigen to perform an eigenvalue solve based on analytical forms of the conservative Flux Jacobians is a waste of computational effort
+   This entire usage of Eigen to perform an eigenvalue solve based on analytical forms of the conservative Flux Jacobians is a waste 
+   of computational effort.
    The eigenvalues of Ideal MHD are readily computed from the primitive Flux Jacobians, and this should be done instead
    */
    // if (!(eigen_bin_name == "none")){ // Don't always want to check stability - expensive raster scan

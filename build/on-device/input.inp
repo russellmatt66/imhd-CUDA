@@ -1,4 +1,4 @@
-sim_type=screwpinch-stride
+sim_init_keystring=screwpinch-stride
 Nt=5
 Nx=64
 Ny=64
@@ -46,3 +46,8 @@ SM_mult_init_z=1
 SM_mult_FA_x=3
 SM_mult_FA_y=3
 SM_mult_FA_z=3
+fvbc_init_keystring=
+ivk_keystring=
+ivbc_keystring=
+fvk_keystring=
+fvbc_loop_keystring=
