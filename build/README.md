@@ -38,9 +38,9 @@ Again, it has only been tested to work on the following configuration:
 
 Each of the dependencies listed above has instructions on their websites for how to obtain the software. 
 
-Currently, data is written out with Parallel HDF5 (PHDF5), and means for doing a serial write has not yet been implemented. 
+Currently, data is written out with Parallel HDF5 (PHDF5). The means for doing a serial write has not yet been implemented. 
 
-That means at present you will need PHDF5 installed in order to build, and run the software. 
+That means at present you will need PHDF5 installed on your system in order to build, and run the software. 
 
 ## How to Build
 After you have all the dependencies installed
@@ -58,7 +58,7 @@ Currently, only `ARCH_ONDEV` is end-to-end implemented. `make` will cause a set 
 
 ### Run Instructions
 `python simulation_launcher.py arch mode`
-- THIS FILE launches the simulation for whatever solver architecture `arch` that is specified, with or without an artificial diffusivity via `mode`, and using whatever configuration is specified by the data in `arch/input.inp`
+- THIS FILE launches the simulation for whatever solver architecture `arch` that is specified, with or without an artificial diffusivity via `mode`, and using whatever configuration is specified by the data in `arch/input.inp`. See the file `simulation_launcher.py` in this folder for the different inputs to `mode`.
 
 The above command reads the file `arch/input.inp` in the specified build folder (which is currently `on-device/`), and launches the simulation accordingly. 
 
