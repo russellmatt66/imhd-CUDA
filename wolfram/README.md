@@ -4,3 +4,6 @@ Directory for Wolfram Mathematica notebooks which supports analytic calculation 
 # Directory Structure
 `imhd-equilibria/`
 o Folder where pinch-related notebooks are
+
+`bennett-vorticity/`
+o Folder where Bennett Vortex related notebooks are
