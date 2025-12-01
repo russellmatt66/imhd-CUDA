@@ -224,14 +224,13 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
             intvar[IDX3D(i, j, 0, Nx, Ny, Nz) + 7 * cube_size] = intE(i, j, 0, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz);
         }
 
-        /* SURELY THESE DON'T NEED DIFFUSION */
-        // Left and Right Faces
+        // Right and Left Faces 
         // j = {0, Ny - 1}
         // i \in [0,Nx-2] 
         // k \in [1,Nz-2]
         if (i < Nx-1 && k > 0 && k < Nz-1){
 
-            // Left Face
+            // Right Face
             // j = 0
             // i \in [0,Nx-2] 
             // k \in [1,Nz-2]
@@ -244,7 +243,7 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
             intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 6 * cube_size] = intBZRight(i, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
             intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 7 * cube_size] = intERight(i, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
 
-            // Right Face
+            // Left Face
             // j = Ny-1
             // i \in [0,Nx-2] 
             // k \in [1,Nz-2]
@@ -258,7 +257,6 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
             intvar[IDX3D(i, 0, k, Nx, Ny, Nz) + 7 * cube_size] = intE(i, 0, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
         }
 
-        /* SURELY THESE DON'T NEED DIFFUSION */
         // Top and Bottom Faces
         // i = {0, Nx-1}
         // j \in [0,Ny-2]
@@ -292,7 +290,6 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
             intvar[IDX3D(Nx-1, j, k, Nx, Ny, Nz) + 7 * cube_size] = intEBottom(j, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
         }
 
-        /* SURELY THESE DON'T NEED DIFFUSION */
         // After the above is done, there are still FIVE lines where data has not been specified
         // {(i, Ny-1, 0), (Nx-1, j, 0), (Nx-1, Ny-1, k), (Nx-1, j, Nz-1), (i, Ny-1, Nz-1)} 
         // {"FrontRight", "FrontBottom", "BottomRight", "BackBottom", "BackRight"}
@@ -456,11 +453,11 @@ __global__ void QintBdryPBCsZ(const float* fluidvar, float* intvar,
     }
 
 // Can deal with Left and Right faces at the same time
-// Left Face 
+// Right Face 
 // j = 0
 // i \in [0,Nx-2] 
 // k \in [1,Nz-2]
-// Right Face
+// Left Face
 // j = Ny-1
 // i \in [0,Nx-2] 
 // k \in [1,Nz-2]
@@ -475,7 +472,7 @@ __global__ void QintBdryLeftRightNoDiff(const float* fluidvar, float* intvar,
     int cube_size = Nx * Ny * Nz;
 
     if (i < Nx-1 && k > 0 && k < Nz-1){
-        // Left Face
+        // Right Face
         // j = 0
         // i \in [0,Nx-2] 
         // k \in [1,Nz-2]
@@ -488,7 +485,7 @@ __global__ void QintBdryLeftRightNoDiff(const float* fluidvar, float* intvar,
         intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 6 * cube_size] = intBZRight(i, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
         intvar[IDX3D(i, Ny-1, k, Nx, Ny, Nz) + 7 * cube_size] = intERight(i, k, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e
 
-        // Right Face
+        // Left Face
         // j = Ny-1
         // i \in [0,Nx-2] 
         // k \in [1,Nz-2]
@@ -556,8 +553,8 @@ __global__ void QintBdryTopBottomNoDiff(const float* fluidvar, float* intvar,
 }
 
 // 34 registers per thread
-// (i, Ny-1, 0) - "FrontRight"
-__global__ void QintBdryFrontRightNoDiff(const float* fluidvar, float* intvar,
+// ([0, Nx-2], Ny-1, 0) - "FrontLeft"
+__global__ void QintBdryFrontLeftNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
@@ -565,16 +562,16 @@ __global__ void QintBdryFrontRightNoDiff(const float* fluidvar, float* intvar,
 
     int cube_size = Nx * Ny * Nz;
 
-    // (i, Ny-1, 0) - "FrontRight"
+    // ([0, Nx-2], Ny-1, 0) - "FrontLeft"
     if (i < Nx-1){
-        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz)] = intRhoFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
-        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + cube_size] = intRhoVXFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
-        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
-        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
-        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 4 * cube_size] = intBXFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
-        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 5 * cube_size] = intBYFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
-        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 6 * cube_size] = intBZFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
-        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 7 * cube_size] = intEFrontRight(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e   
+        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz)] = intRhoFrontLeft(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rho
+        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + cube_size] = intRhoVXFrontLeft(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_x
+        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 2 * cube_size] = intRhoVYFrontLeft(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_y
+        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 3 * cube_size] = intRhoVZFrontLeft(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // rhov_z
+        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 4 * cube_size] = intBXFrontLeft(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bx
+        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 5 * cube_size] = intBYFrontLeft(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // By
+        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 6 * cube_size] = intBZFrontLeft(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // Bz
+        intvar[IDX3D(i, Ny-1, 0, Nx, Ny, Nz) + 7 * cube_size] = intEFrontLeft(i, fluidvar, dt, dx, dy, dz, Nx, Ny, Nz); // e   
     }
 
     return;
@@ -630,11 +627,11 @@ __global__ void QintBdryBottomRightNoDiff(const float* fluidvar, float* intvar,
     return;
 }
 
-// Device kernels that deal with the Right Face
+// Device kernels that deal with the Left Face
 // j = Ny-1
 // i \in [0, Nx-1]
 // k \in [1, Nz-2]
-__device__ float intRhoRight(const int i, const int k, 
+__device__ float intRhoLeft(const int i, const int k, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -645,7 +642,7 @@ __device__ float intRhoRight(const int i, const int k,
             - (dt / dz) * (ZFluxRho(i, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxRho(i, Ny-1, k, fluidvar, Nx, Ny, Nz));        
     }
 
-__device__ float intRhoVXRight(const int i, const int k,
+__device__ float intRhoVXLeft(const int i, const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -656,7 +653,7 @@ __device__ float intRhoVXRight(const int i, const int k,
             - (dt / dz) * (ZFluxRhoVX(i, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxRhoVX(i, Ny-1, k, fluidvar, Nx, Ny, Nz)); 
     }
 
-__device__ float intRhoVYRight(const int i, const int k,
+__device__ float intRhoVYLeft(const int i, const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -667,7 +664,7 @@ __device__ float intRhoVYRight(const int i, const int k,
             - (dt / dz) * (ZFluxRhoVY(i, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxRhoVY(i, Ny-1, k, fluidvar, Nx, Ny, Nz)); 
     }
 
-__device__ float intRhoVZRight(const int i, const int k,
+__device__ float intRhoVZLeft(const int i, const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -678,7 +675,7 @@ __device__ float intRhoVZRight(const int i, const int k,
             - (dt / dz) * (ZFluxRhoVZ(i, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxRhoVZ(i, Ny-1, k, fluidvar, Nx, Ny, Nz)); 
     }
 
-__device__ float intBXRight(const int i, const int k,
+__device__ float intBXLeft(const int i, const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -689,7 +686,7 @@ __device__ float intBXRight(const int i, const int k,
             - (dt / dz) * (ZFluxBX(i, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxBX(i, Ny-1, k, fluidvar, Nx, Ny, Nz)); 
     }
 
-__device__ float intBYRight(const int i, const int k,
+__device__ float intBYLeft(const int i, const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -700,7 +697,7 @@ __device__ float intBYRight(const int i, const int k,
             - (dt / dz) * (ZFluxBY(i, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxBY(i, Ny-1, k, fluidvar, Nx, Ny, Nz)); 
     }
 
-__device__ float intBZRight(const int i, const int k, 
+__device__ float intBZLeft(const int i, const int k, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -711,7 +708,7 @@ __device__ float intBZRight(const int i, const int k,
             - (dt / dz) * (ZFluxBZ(i, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxBZ(i, Ny-1, k, fluidvar, Nx, Ny, Nz)); 
     }
 
-__device__ float intERight(const int i, const int k,
+__device__ float intELeft(const int i, const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -814,10 +811,6 @@ __device__ float intEBottom(const int j, const int k,
             - (dt / dz) * (ZFluxE(Nx-1, j, k+1, fluidvar, Nx, Ny, Nz) - ZFluxE(Nx-1, j, k, fluidvar, Nx, Ny, Nz));
     }
 
-/* 
-I THINK THE FOLLOWING IS UNNECESSARY
-COMPUTING ANYTHING TO DO WITH THE Back Face IS POINTLESS 
-*/
 // Device kernels that deal with the Back Face 
 // k = Nz-1
 // i \in [1, Nx-2]
@@ -910,11 +903,11 @@ __device__ float intEBack(const int i, const int j,
             - (dt / dz) * (ZFluxE(i, j, 1, fluidvar, Nx, Ny, Nz) - ZFluxE(i, j, Nz-1, fluidvar, Nx, Ny, Nz)); // PBCs
     }
 
-// Device kernels that deal with the FrontRight line
+// Device kernels that deal with the FrontLeft line
 // i \in [0,Nx-2]
 // j = Ny-1
 // k = 0
-__device__ float intRhoFrontRight(const int i, 
+__device__ float intRhoFrontLeft(const int i, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -925,7 +918,7 @@ __device__ float intRhoFrontRight(const int i,
             - (dt / dz) * (ZFluxRho(i, Ny-1, 1, fluidvar, Nx, Ny, Nz) - ZFluxRho(i, Ny-1, 0, fluidvar, Nx, Ny, Nz));        
     }
 
-__device__ float intRhoVXFrontRight(const int i,
+__device__ float intRhoVXFrontLeft(const int i,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -936,7 +929,7 @@ __device__ float intRhoVXFrontRight(const int i,
             - (dt / dz) * (ZFluxRhoVX(i, Ny-1, 1, fluidvar, Nx, Ny, Nz) - ZFluxRhoVX(i, Ny-1, 0, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intRhoVYFrontRight(const int i,
+__device__ float intRhoVYFrontLeft(const int i,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -947,7 +940,7 @@ __device__ float intRhoVYFrontRight(const int i,
             - (dt / dz) * (ZFluxRhoVY(i, Ny-1, 1, fluidvar, Nx, Ny, Nz) - ZFluxRhoVY(i, Ny-1, 0, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intRhoVZFrontRight(const int i, 
+__device__ float intRhoVZFrontLeft(const int i, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -958,7 +951,7 @@ __device__ float intRhoVZFrontRight(const int i,
             - (dt / dz) * (ZFluxRhoVZ(i, Ny-1, 1, fluidvar, Nx, Ny, Nz) - ZFluxRhoVZ(i, Ny-1, 0, fluidvar, Nx, Ny, Nz));  
     }
 
-__device__ float intBXFrontRight(const int i, 
+__device__ float intBXFrontLeft(const int i, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -969,7 +962,7 @@ __device__ float intBXFrontRight(const int i,
             - (dt / dz) * (ZFluxBX(i, Ny-1, 1, fluidvar, Nx, Ny, Nz) - ZFluxBX(i, Ny-1, 0, fluidvar, Nx, Ny, Nz));  
     }
 
-__device__ float intBYFrontRight(const int i, 
+__device__ float intBYFrontLeft(const int i, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -980,7 +973,7 @@ __device__ float intBYFrontRight(const int i,
             - (dt / dz) * (ZFluxBY(i, Ny-1, 1, fluidvar, Nx, Ny, Nz) - ZFluxBY(i, Ny-1, 0, fluidvar, Nx, Ny, Nz));  
     }
 
-__device__ float intBZFrontRight(const int i,
+__device__ float intBZFrontLeft(const int i,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -991,7 +984,7 @@ __device__ float intBZFrontRight(const int i,
             - (dt / dz) * (ZFluxBZ(i, Ny-1, 1, fluidvar, Nx, Ny, Nz) - ZFluxBZ(i, Ny-1, 0, fluidvar, Nx, Ny, Nz));  
     }
 
-__device__ float intEFrontRight(const int i, 
+__device__ float intEFrontLeft(const int i, 
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -1094,11 +1087,11 @@ __device__ float intEFrontBottom(const int j,
             - (dt / dz) * (ZFluxE(Nx-1, j, 1, fluidvar, Nx, Ny, Nz) - YFluxE(Nx-1, j, 0, fluidvar, Nx, Ny, Nz));
     }
 
-// Device kernels that deal with the BottomRight Line
+// Device kernels that deal with the BottomLeft edge
 // i = Nx-1
 // j = Ny-1
 // k \in [0, Nz-2]
-__device__ float intRhoBottomRight(const int k,
+__device__ float intRhoBottomLeft(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -1109,7 +1102,7 @@ __device__ float intRhoBottomRight(const int k,
             - (dt / dz) * (ZFluxRho(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxRho(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intRhoVXBottomRight(const int k,
+__device__ float intRhoVXBottomLeft(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -1120,7 +1113,7 @@ __device__ float intRhoVXBottomRight(const int k,
             - (dt / dz) * (ZFluxRhoVX(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxRhoVX(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intRhoVYBottomRight(const int k,
+__device__ float intRhoVYBottomLeft(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -1131,7 +1124,7 @@ __device__ float intRhoVYBottomRight(const int k,
             - (dt / dz) * (ZFluxRhoVY(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxRhoVY(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intRhoVZBottomRight(const int k,
+__device__ float intRhoVZBottomLeft(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -1142,7 +1135,7 @@ __device__ float intRhoVZBottomRight(const int k,
             - (dt / dz) * (ZFluxRhoVZ(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxRhoVZ(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intBXBottomRight(const int k,
+__device__ float intBXBottomLeft(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -1153,7 +1146,7 @@ __device__ float intBXBottomRight(const int k,
             - (dt / dz) * (ZFluxBX(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxBX(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intBYBottomRight(const int k,
+__device__ float intBYBottomLeft(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -1164,7 +1157,7 @@ __device__ float intBYBottomRight(const int k,
             - (dt / dz) * (ZFluxBY(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxBY(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intBZBottomRight(const int k,
+__device__ float intBZBottomLeft(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -1175,7 +1168,7 @@ __device__ float intBZBottomRight(const int k,
             - (dt / dz) * (ZFluxBZ(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxBZ(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-__device__ float intEBottomRight(const int k,
+__device__ float intEBottomLeft(const int k,
     const float* fluidvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
@@ -1186,11 +1179,7 @@ __device__ float intEBottomRight(const int k,
             - (dt / dz) * (ZFluxE(Nx-1, Ny-1, k+1, fluidvar, Nx, Ny, Nz) - ZFluxE(Nx-1, Ny-1, k, fluidvar, Nx, Ny, Nz));
     }
 
-/* 
-I THINK THE FOLLOWING IS UNNECESSARY
-COMPUTING ANYTHING TO DO WITH THE Back Face IS POINTLESS 
-*/
-// Device kernels that deal with the BackBottom Line
+// Device kernels that deal with the BackBottom edge
 // i = Nx-1
 // j \in [0, Ny-2]
 // k = Nz-1

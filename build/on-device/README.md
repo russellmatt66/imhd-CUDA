@@ -2,9 +2,9 @@
 This is the build folder for the on-device architecture
 
 # Input File
-`sim_type`
+`sim_init_keystring`
 - This selects what initial conditions to populate the data with
-- Used to hash for a C++ function which launches a corresponding kernel
+- Key that hashes for a C++ function which launches a kernel to initialize the computational volume
 - See `class SimulationInitializer` for more details 
 - E.g., `screwpinch`, `screwpinch-stride`
 
@@ -100,7 +100,7 @@ This is the build folder for the on-device architecture
 - E.g., `on-device/utils/write_grid`
 
 `eigen_bin_name`
-- Where the binary that computes CFL criterion on every gridpoint lives 
+- Where the binary that computes CFL criterion using on every gridpoint lives 
 - Highly recommend NO CHANGE 
 - E.g., `none` if you don't want to run it during the simulation
 - E.g., `on-device/utils/fj_evs_compute` if you do
@@ -109,62 +109,129 @@ This is the build folder for the on-device architecture
 - Number of processors used in the PHDF5 write
 - E.g., `4`
 
-`meshblockdims_xthreads`
+`xgrid_threads`
 - Number of threads in the x-dimension of the threadblocks that create the mesh
 - Execution config. threadblock rules apply 
 - E.g., `8`
 
-`meshblockdims_ythreads`
+`ygrid_threads`
 - Number of threads in the y-dimension of the threadblocks that create the mesh 
 - Execution config. threadblock rules apply 
 - E.g., `8`
 
-`meshblockdims_zthreads`
+`zgrid_threads`
 - Number of threads in the z-dimension of the threadblocks that create the mesh 
 - Execution config. threadblock rules apply 
 - E.g., `8`
 
-`initblockdims_xthreads`
+`init_xthreads`
 - Number of threads in the x-dimension of the threadblocks that initialize data
 - Execution config. threadblock rules apply 
 - E.g., `8`
 
-`initblockdims_ythreads`
+`init_ythreads`
 - Number of threads in the y-dimension of the threadblocks that initialize data
 - Execution config. threadblock rules apply 
 - E.g., `8`
 
-`initblockdims_zthreads`
+`init_zthreads`
 - Number of threads in the z-dimension of the threadblocks that initialize data 
 - Execution config. threadblock rules apply 
 - E.g., `8`
 
-`intvarblockdims_xthreads`
-- Number of threads in the x-dimension of the threadblocks that process Qint
+`FA_xthreads`
+- Number of threads in the x-dimension of the threadblocks that launch the kernels for calculating Q and Qint on the interior of the computational domain
 - Execution config. threadblock rules apply 
 - E.g., `8`
 
-`intvarblockdims_ythreads`
-- Number of threads in the y-dimension of the threadblocks that process Qint
+`FA_ythreads`
+- Number of threads in the y-dimension of the threadblocks that launch the kernels for calculating Q and Qint on the interior of the computational domain
 - Execution config. threadblock rules apply 
 - E.g., `8`
 
-`intvarblockdims_zthreads`
-- Number of threads in the z-dimension of the threadblocks that process Qint 
+`FA_zthreads`
+- Number of threads in the z-dimension of the threadblocks that launch the kernels for calculating Q and Qint on the interior of the computational domain 
 - Execution config. threadblock rules apply 
 - E.g., `8`
 
-`fluidvarblockdims_xthreads`
-- Number of threads in the x-dimension of the threadblocks that process Q
+`BCLeftRight_xthreads`
+- Number of threads in the x-dimension of the threadblocks that process Q and Qint on the Left and Right faces of the computational domain
+- Left: {i,j,k} \in {[0, Nx-2], Ny-1, [1, Nz-2]}
+- Right: {i,j,k} \in {[0, Nx-2], 0, [1, Nz-2]}
 - Execution config. threadblock rules apply 
 - E.g., `8`
 
-`fluidvarblockdims_ythreads`
-- Number of threads in the y-dimension of the threadblocks that process Q
+`BCLeftRight_zthreads`
+- Number of threads in the z-dimension of the threadblocks that process Q and Qint on the Left and Right faces of the computational domain
+- Left: {i,j,k} \in {[0, Nx-2], Ny-1, [1, Nz-2]}
+- Right: {i,j,k} \in {[0, Nx-2], 0, [1, Nz-2]}
 - Execution config. threadblock rules apply 
 - E.g., `8`
 
-`fluidvarblockdims_zthreads`
-- Number of threads in the z-dimension of the threadblocks that process Q 
+`BCTopBottom_ythreads`
+- Number of threads in the y-dimension of the threadblocks that process Q and Qint on the Top and Bottom faces of the computational domain 
 - Execution config. threadblock rules apply 
+- Top: (i,j,k) \in {0, [0, Ny-2], [1, Nz-2]}
+- Bottom: (i,j,k) \in {Nx-1, [0, Ny-2], [1, Nz-2]}
 - E.g., `8`
+
+`PBC_xthreads`
+- Number of threads in the first dimension of the threadblocks that process periodic boundary conditions across a particular pair of faces of the computational domain
+
+`PBC_ythreads`
+- Number of threads in the second dimension of the threadblocks that process periodic boundary conditions across a particular pair of faces of the computational domain
+
+`QintBC_FrontLeft_xthreads`
+- Number of threads in the x-dimension of the threadblocks that process Qint along the FrontLeft edge of the computational domain
+- FrontLeft: (i,j,k) \in {[0, Nx-2], Ny-1, 0} 
+
+`QintBC_FrontBottom_ythreads`
+- Number of threads in the y-dimension of the threadblocks that process Qint along the FrontBottom edge of the computational domain
+- FrontBottom: (i,j,k) \in {Nx-1, [0, Ny-2], 0}
+
+`QintBC_BottomLeft_zthreads`
+- Number of threads in the z-dimension of the threadblocks that process Qint
+along the BottomLeft edge of the computational domain
+- BottomLeft: (i,j,k) \in {Nx-1, Ny-1, [0, Nz-2]}
+
+`SM_mult_grid_x`
+- Multiplies the number of device SMs to get the number of blocks in the execution grid of the kernels which initialize the grid x-data
+
+`SM_mult_grid_y`
+- Multiplies the number of device SMs to get the number of blocks in the execution grid of the kernels which initialize the grid y-data
+
+`SM_mult_grid_z`
+- Multiplies the number of device SMs to get the number of blocks in the execution grid of the kernels which initialize the grid z-data
+
+`SM_mult_init_x`
+- Multiplies the number of device SMs to get the number of x-blocks in the execution grid of the kernels which initialize the plasma state
+
+`SM_mult_init_y`
+- Multiplies the number of device SMs to get the number of y-blocks in the execution grid of the kernels which initialize the plasma state
+
+`SM_mult_init_z`
+- Multiplies the number of device SMs to get the number of z-blocks in the execution grid of the kernels which initialize the plasma state
+
+`SM_mult_FA_x`
+- Multiplies the number of device SMs to get the number of x-blocks in the execution grid of the kernels which advance the Q and Qint variables
+
+`SM_mult_FA_y`
+- Multiplies the number of device SMs to get the number of y-blocks in the execution grid of the kernels which advance the Q and Qint variables
+
+`SM_mult_FA_z`
+- Multiplies the number of device SMs to get the number of z-blocks in the execution grid of the kernels which advance the Q and Qint variables
+
+`fvbc_init_keystring`
+- Keystring for hashing which set of initialization kernels to run  
+
+`ivk_keystring`
+- Keystring for hashing which set of kernels to advance the state of Qint on the interior of the computational domain  
+ 
+`ivbc_keystring`
+- Keystring for hashing which set of kernels to run for calculating the state of Qint on the boundaries
+
+`fvk_keystring`
+- Keystring for hashing which set of kernels to run for advancing the state of Q on the interior of the computational domain 
+
+`fvbc_loop_keystring`
+- Keystring for hashing which set of kernels to run for calculating the state of Q on the boundaries of the computational domain during the main loop of the simulation   

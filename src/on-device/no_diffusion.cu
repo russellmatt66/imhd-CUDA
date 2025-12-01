@@ -316,24 +316,24 @@ int main(int argc, char* argv[]){
    checkCuda(cudaDeviceSynchronize());
 
    // For selecting different bundles of kernels to use, i.e., megakernel or ordered microkernels (for profiling) 
-   KernelConfig fluidKernelParameters; 
+   // KernelConfig fluidKernelParameters; 
 
-   fluidKernelParameters.gridDim = egd_fluidadvance;
-   fluidKernelParameters.blockDim = tbd_fluidadvance;
+   // fluidKernelParameters.gridDim = egd_fluidadvance;
+   // fluidKernelParameters.blockDim = tbd_fluidadvance;
 
-   fluidKernelParameters.D = D;
+   // fluidKernelParameters.D = D;
    
-   fluidKernelParameters.dt = dt;
-   fluidKernelParameters.dx = dx;
-   fluidKernelParameters.dy = dy;
-   fluidKernelParameters.dz = dz;
+   // fluidKernelParameters.dt = dt;
+   // fluidKernelParameters.dx = dx;
+   // fluidKernelParameters.dy = dy;
+   // fluidKernelParameters.dz = dz;
 
-   fluidKernelParameters.Nx = Nx;
-   fluidKernelParameters.Ny = Ny;
-   fluidKernelParameters.Nz = Nz;
+   // fluidKernelParameters.Nx = Nx;
+   // fluidKernelParameters.Ny = Ny;
+   // fluidKernelParameters.Nz = Nz;
 
-   // For selecting different kernels to run for doing the solve
-   FluidKernelConfigurer fluidKcfg(fluidKernelParameters); 
+   // // For selecting different kernels to run for doing the solve
+   // FluidKernelConfigurer fluidKcfg(fluidKernelParameters); 
 
    /* 
    THERE SHOULD BE A `class BCsConfigurer to test different ones! 

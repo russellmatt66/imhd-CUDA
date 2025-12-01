@@ -10,6 +10,8 @@ This file launches the simulation once the specified architecture has been built
 
 Input Args:
 (1) architecture: The architecture folder to run the simulation from (e.g., `on-device`)
+- 
+
 (2) mode: keystring for selecting what to do. 
 - 'nodiff' to run without artificial diffusivity, 
 - '' or anything else to run with diffusivity.
