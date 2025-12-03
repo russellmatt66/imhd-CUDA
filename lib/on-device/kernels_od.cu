@@ -542,13 +542,18 @@ __global__ void FluidAdvanceNoDiffSHMEM(float* fluidvar, const float* intvar,
         /* NEED TO READ DATA INTO SHARED MEMORY */
         // __shared__ float shmem_intvar[8 * ((blockDim.x * blockDim.y * blockDim.z) + 2 * (blockDim.x * blockDim.y + blockDim.y * blockDim.z + blockDim.x * blockDim.z))];
         
-        __shared__ float shmem_intvar[8 * (blockDim.x + 2) * (blockDim.y +2) * (blockDim.z + 2)];
+        __shared__ float shmem_intvar[8 * (blockDim.x + 2) * (blockDim.y + 2) * (blockDim.z + 2)];
         
         int tx = threadIdx.x;
         int ty = threadIdx.y;
         int tz = threadIdx.z;
 
-        /* Every thread deals completely with a single location - how to deal with halos? */
+        /* 
+        Every thread deals completely with a single location - how to deal with halos? 
+        Just read in the largest cube possible with all the halos, then each thread can access its own halos without divergence or more synchronization.
+        Tradeoff is wasted shared memory for edge data that doesn't get used by any threads, but this is not that big of a deal compared to the benefits. 
+        */
+        /* Reads in the main cube - needs to read in (blockDim.x + 2) * (blockDim.y + 2) * (blockDim.z + 2) cube */
         for (int ivf = 0; ivf < 8; ivf++) { 
             shmem_intvar[IDX3D(tx, ty, tz, blockDim.x, blockDim.y, blockDim.z) + ivf * cube_size] = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + ivf * cube_size];
         }
