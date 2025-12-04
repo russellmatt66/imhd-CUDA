@@ -36,6 +36,14 @@ __global__ void FluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar,
 
 void LaunchFluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar, const KernelConfig& kcfg);
 
+__global__ void FluidAdvanceNoDiffSHMEM(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
+__global__ void FluidAdvanceStrideNoDiffSHMEM(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz);
+
 __global__ void BoundaryConditions(float* fluidvar, const float* intvar, 
      const float D, const float dt, const float dx, const float dy, const float dz,
      const int Nx, const int Ny, const int Nz);

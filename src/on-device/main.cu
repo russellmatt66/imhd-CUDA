@@ -16,77 +16,16 @@
 #include "kernels_fluidbcs.cuh"
 #include "kernels_od_intvar.cuh"
 #include "kernels_intvarbcs.cuh"
-
 #include "utils.cuh"
+
+#include "configurers.hpp"
 #include "utils.hpp"
 
-/*
-DON'T TRUST ANYTHING IN THIS FILE AT THE MOMENT
-
-The main development is currently occurring in `no_diffusion.cu`, and will be copied over to here when finished, and working. 
-A number of classes have been implemented which endow the software with a modular structure for defining, and running different sets of kernels. 
-*/
-
-/* 
-THIS CAN BE MOVED TO LIBRARIES 
-*/
-// I don't want to have a separate runtime file for each problem
-class SimulationInitializer {
-   private:
-       using KernelLauncher = std::function<void(float*, const InitConfig&)>;
-       std::map<std::string, KernelLauncher> initFunctions;
-       InitConfig config;
-   
-   public:
-       SimulationInitializer(const InitConfig& config) : config(config) {
-           initFunctions["screwpinch"] = [this](float* data, const InitConfig& cfg) {
-               LaunchScrewPinch(data, cfg); // Do not want to pass cfg to GPU or make this code less readable by passing long list of cfg parameters
-           };
-           initFunctions["screwpinch-stride"] = [this](float* data, const InitConfig& cfg) {
-               LaunchScrewPinchStride(data, cfg);
-           };
-           /* ADD OTHER INITIALIZERS */
-       } 
-
-       void initialize(const std::string& simType, float* data){
-           auto it = initFunctions.find(simType);
-           if (it == initFunctions.end()) {
-               throw std::runtime_error("Unknown simulation type: " + simType);
-           }
-           it->second(data, config);
-       }
-};
-
-/* 
-THIS CAN BE MOVED TO LIBRARIES
-*/
-// I don't want to have a separate runtime file for each possible choice of megakernels / microkernels
-// Due to structure, it looks like I will need to separate instances of this class
-class KernelConfigurer {
-   private:
-      using KernelLauncher = std::function<void(float*, const float*, const KernelConfig& kcfg)>;
-      std::map<std::string, KernelLauncher> kernelFunctions;
-      KernelConfig config;
-
-   public:
-      KernelConfigurer(const KernelConfig& kcfg) : config(config) {
-         kernelFunctions["fluidadvancelocal-nodiff"] = [this](float* fluidvars, const float *intvars, const KernelConfig& kcfg) {
-            LaunchFluidAdvanceLocalNoDiff(fluidvars, intvars, kcfg); // Do not want to pass kcfg to GPU or make this code less readable by passing long list of params
-         };
-         /* ADD MORE BUNDLES OF KERNELS TO RUN */
-      }
-
-      void LaunchKernels(const std::string& kBundle, float* fvars_or_intvars, const float* intvars_or_fvars){
-         auto it = kernelFunctions.find(kBundle);
-         if (it == kernelFunctions.end()) {
-            throw std::runtime_error("Unknown kernel bundle selected: " + kBundle);
-         }
-         it->second(fvars_or_intvars, intvars_or_fvars, config);
-      }
-};
+// Forward declaration if SHMAllocator is defined in utils.cpp
+// float* SHMAllocator(const std::string shm_name, const size_t data_size);
 
 int main(int argc, char* argv[]){
-   std::string sim_type = argv[1];
+   std::string sim_init_keystring = argv[1]; // keystring for the ICs
 
    int Nt = atoi(argv[2]);
    int Nx = atoi(argv[3]);
@@ -148,6 +87,14 @@ int main(int argc, char* argv[]){
    int SM_mult_FA_x = atoi(argv[46]);
    int SM_mult_FA_y = atoi(argv[47]);
    int SM_mult_FA_z = atoi(argv[48]);
+
+   // Kernel Configurer keys
+   // These five strings are the keys which then the respective Configurer classes use to select which set of kernels to launch
+   std::string fvbc_init_keystring = argv[49]; // keystring for the initial conditions of the fluid variable boundaries
+   std::string ivk_keystring = argv[50]; // keystring for the intermediate variable kernel(s)
+   std::string ivbc_keystring = argv[51]; // keystring for the intermediate variable boundary conditions
+   std::string fvk_keystring = argv[52]; // keystring for the fluid variable kernel(s) 
+   std::string fvbc_loop_keystring = argv[53]; // keystring for the fluid variable boundary conditions during the simulation loop
 
    // CUDA BOILERPLATE 
    int deviceId;
@@ -240,15 +187,16 @@ int main(int argc, char* argv[]){
 
    SimulationInitializer simInit(initParameters);
 
-   simInit.initialize(sim_type, fluidvars);
+   simInit.initialize(sim_init_keystring, fluidvars);
    checkCuda(cudaDeviceSynchronize());
 
+   // Initialize the class which configures the compute for the bulk fluid variables
    KernelConfig fluidKernelParameters; // For selecting different bundles of kernels to use, i.e., megakernel or ordered microkernels (for profiling) 
 
    fluidKernelParameters.gridDim = egd_fluidadvance;
    fluidKernelParameters.blockDim = tbd_fluidadvance;
 
-   fluidKernelParameters.D = D;
+   fluidKernelParameters.D = D; // Numerical diffusion constant
    
    fluidKernelParameters.dt = dt;
    fluidKernelParameters.dx = dx;
@@ -259,46 +207,122 @@ int main(int argc, char* argv[]){
    fluidKernelParameters.Ny = Ny;
    fluidKernelParameters.Nz = Nz;
 
-   KernelConfigurer fluidKcfg(fluidKernelParameters);
+   FluidKernelConfigurer fluidKcfg(fluidKernelParameters); 
+   // No need to run compute on the bulk fluid variables yet so no need to launch anything here
 
-   /* 
-   THERE SHOULD BE A `class BCsConfigurer to test different ones! 
-   */
-   rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
-   rigidConductingWallBCsTopBottom<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, Nx, Ny, Nz);
-   PBCsInZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
+   // Initialize the class which configures the compute for the fluid boundary variables
+   BoundaryConfig fluidBoundaryParams;
+
+   fluidBoundaryParams.egd_frontback = egd_bdry_frontback;
+   fluidBoundaryParams.egd_leftright = egd_bdry_leftright;
+   fluidBoundaryParams.egd_topbottom = egd_bdry_topbottom;
+
+   fluidBoundaryParams.tbd_frontback = tbd_bdry_frontback;
+   fluidBoundaryParams.tbd_leftright = tbd_bdry_leftright;
+   fluidBoundaryParams.tbd_topbottom = tbd_bdry_topbottom;
+
+   FluidBoundaryConfigurer fluidBCKcfg(fluidBoundaryParams);
+
+   // rigidConductingWallBCsLeftRight<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, Nx, Ny, Nz);
+   // rigidConductingWallBCsTopBottom<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, Nx, Ny, Nz);
+   // PBCsInZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
+   fluidBCKcfg.LaunchKernels(fvbc_init_keystring, fluidvars, Nx, Ny, Nz); /* There is a better name for the keystring */
    checkCuda(cudaDeviceSynchronize());
 
    /*
    NOTE: 
    If you want to use microkernels here, you have to come up with an execution configuration set, and addtl. synchronization 
    */
-   /* REFACTOR TO HAVE A RUNTIME CLASS THAT DECIDES WHAT SET OF KERNELS TO USE */
-   ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   IVKernelConfig ivKernelParameters; // For selecting different bundles of kernels to use, i.e., megakernel or ordered microkernels (for profiling) 
+
+   ivKernelParameters.gridDim = egd_fluidadvance;
+   ivKernelParameters.blockDim = tbd_fluidadvance;
+
+   ivKernelParameters.D = D; // Numerical diffusion constant
+   
+   ivKernelParameters.dt = dt;
+   ivKernelParameters.dx = dx;
+   ivKernelParameters.dy = dy;
+   ivKernelParameters.dz = dz;
+
+   ivKernelParameters.Nx = Nx;
+   ivKernelParameters.Ny = Ny;
+   ivKernelParameters.Nz = Nz;
+
+   PredictorKernelConfigurer ivKcfg(ivKernelParameters);
+   
+   ivKcfg.LaunchKernels(ivk_keystring, fluidvars, intvars); // this keystring is named well - ivk = "intermediate variable kernel"
+   // ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());    
 
    /*
    NOTE:
    You DEFINITELY want to use microkernels here
+   
+   The macrokernel approach will lead to thread divergence and inefficient memory patterns.
+   
+   The entanglement of these computations with the boundary conditions means that complicated and subtle bugs can occur if each surface
+   is not handled individually. 
+   
+   The most significant of these is the corner problem, where multiple boundaries intersect. 
+   
+   The previous, and still existing in `no_diffusion.cu`, implemented approach is hardcoded PBCs in Z, and perfectly-conducting walls in X and Y.
+
    */
    /* 
    REFACTOR TO HAVE A RUNTIME CLASS THAT DECIDES WHAT SET OF KERNELS TO USE 
    `class QintBCsConfigurer` 
    */
-   QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   QintBdryTopBottomNoDiff<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   QintBdryFrontBottomNoDiff<<<egd_qintbdry_frontbottom, tbd_qintbdry_frontbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   QintBdryFrontRightNoDiff<<<egd_qintbdry_frontright, tbd_qintbdry_frontright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   QintBdryBottomRightNoDiff<<<egd_qintbdry_bottomright, tbd_qintbdry_bottomright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-   checkCuda(cudaDeviceSynchronize());    
+   IntvarBoundaryConfig ivBCParams;
 
-   QintBdryPBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
-   checkCuda(cudaDeviceSynchronize());    
+   ivBCParams.egd_X1D = egd_xgrid;
+   ivBCParams.egd_Y1D = egd_ygrid;
+   ivBCParams.egd_Z1D = egd_zgrid;
+
+   ivBCParams.tbd_X1D = tbd_xgrid;
+   ivBCParams.tbd_Y1D = tbd_ygrid;
+   ivBCParams.tbd_Z1D = tbd_zgrid;
+
+   ivBCParams.egd_frontback = egd_bdry_frontback;
+   ivBCParams.egd_leftright = egd_bdry_leftright;
+   ivBCParams.egd_topbottom = egd_bdry_topbottom;
+
+   ivBCParams.tbd_frontback = tbd_bdry_frontback;
+   ivBCParams.tbd_leftright = tbd_bdry_leftright;
+   ivBCParams.tbd_topbottom = tbd_bdry_topbottom;
+
+   ivBCParams.dt = dt;
+   ivBCParams.dx = dx;
+   ivBCParams.dy = dy;
+   ivBCParams.dz = dz;
+
+   ivBCParams.Nx = Nx;
+   ivBCParams.Ny = Ny;
+   ivBCParams.Nz = Nz;
+
+   PredictorBoundaryConfigurer ivBCKcfg(ivBCParams);
+   
+   ivBCKcfg.LaunchKernels(ivbc_keystring, fluidvars, intvars, Nx, Ny, Nz); // Blocking launcher (is this a guarantee?)
+
+   // An example of a working boundary condition kernel launch for the intermediate variable boundaries
+   // QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   // QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   // QintBdryTopBottomNoDiff<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   // QintBdryFrontBottomNoDiff<<<egd_qintbdry_frontbottom, tbd_qintbdry_frontbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   // QintBdryFrontRightNoDiff<<<egd_qintbdry_frontright, tbd_qintbdry_frontright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   // QintBdryBottomRightNoDiff<<<egd_qintbdry_bottomright, tbd_qintbdry_bottomright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+   // checkCuda(cudaDeviceSynchronize());    
+
+   // QintBdryPBCsZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
+   // checkCuda(cudaDeviceSynchronize());    
 
    /* 
    REFACTOR TO HAVE A WRAPPER 
    Argument is `std::string shm_name_var`
+   Returns `float*` to the shared memory data
+   
+   11/12/2025 - DONE, see `float* SHMAllocator(const std::string shm_name, const size_t data_size)` function in lib/utils/utils.cpp
+   
    */
    // Use IPC to write data out in order to avoid redundant work 
    std::string shm_name_fluidvar = "/shared_h_fluidvar";
@@ -314,6 +338,7 @@ int main(int argc, char* argv[]){
       std::cerr << "mmap failed!" << std::endl;
       return EXIT_FAILURE;
    }
+   // float* shm_h_fluidvar = SHMAllocator(shm_name_fluidvar, fluid_data_size);
 
    std::cout << "Transferring device data to host" << std::endl;
    cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);
@@ -344,6 +369,9 @@ int main(int argc, char* argv[]){
       std::cerr << "mmap failed for grid_x!" << std::endl;
       return EXIT_FAILURE;
    }
+
+   // float* shm_h_gridx = (float*)SHMAllocator(shm_name_gridx, sizeof(float) * Nx); // Is this cast necessary?
+
    cudaMemcpy(shm_h_gridx, x_grid, sizeof(float) * Nx, cudaMemcpyDeviceToHost);
 
    std::string shm_name_gridy = "/shared_h_gridy";
@@ -354,25 +382,37 @@ int main(int argc, char* argv[]){
       std::cerr << "mmap failed for grid_y!" << std::endl;
       return EXIT_FAILURE;
    }
+
+   // float* shm_h_gridy = (float*)SHMAllocator(shm_name_gridy, sizeof(float) * Ny);
+
    cudaMemcpy(shm_h_gridy, y_grid, sizeof(float) * Ny, cudaMemcpyDeviceToHost);
 
    std::string shm_name_gridz = "/shared_h_gridz";
    shm_fd = shm_open(shm_name_gridz.data(), O_CREAT | O_RDWR, 0666);
    ftruncate(shm_fd, sizeof(float) * Nz);
    float* shm_h_gridz = (float*)mmap(0, sizeof(float) * Nz, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+   
+   // float* shm_h_gridz = (float*)SHMAllocator(shm_name_gridz, sizeof(float) * Nz);
+   
    if (shm_h_gridz == MAP_FAILED) {
       std::cerr << "mmap failed for grid_z!" << std::endl;
       return EXIT_FAILURE;
    }
    cudaMemcpy(shm_h_gridz, z_grid, sizeof(float) * Nz, cudaMemcpyDeviceToHost);
+   
    checkCuda(cudaDeviceSynchronize());
 
    std::cout << "Forking to process for writing grid to storage" << std::endl;
    ret = callBinary_WriteGrid(write_grid_bin_name, path_to_data, shm_name_gridx, shm_name_gridy, shm_name_gridz, Nx, Ny, Nz);
    if (ret != 0) {
-         std::cerr << "Error executing writegrid binary: " << eigen_bin_name << std::endl;
+         std::cerr << "Error executing writegrid binary: " << write_grid_bin_name << std::endl;
    }
 
+   // Check Stability
+   /* 
+   REFACTOR
+   - Base this on analytic expressions for the eigenvalues so it's not a full eigenvalue solve (:|)
+   */
    if (!(eigen_bin_name == "none")){ // Don't always want to check stability - expensive raster scan
       std::cout << "Forking to process for computing CFL number (checking stability)" << std::endl;
       ret = callBinary_EigenSC(shm_name_fluidvar, Nx, Ny, Nz, eigen_bin_name, dt, dx, dy, dz, shm_name_gridx, shm_name_gridy, shm_name_gridz);
@@ -386,32 +426,36 @@ int main(int argc, char* argv[]){
    for (int it = 1; it < Nt; it++){
       std::cout << "Starting timestep " << it << std::endl;
 
-      std::cout << "Launching megakernel for computing fluid variables" << std::endl;
-      FluidAdvanceLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      std::cout << "Computing fluid variables" << std::endl;
+      fluidKcfg.LaunchKernels(fvk_keystring, fluidvars, intvars);
+      // FluidAdvanceLocalNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       
-      std::cout << "Launching microkernel for PBCs" << std::endl; 
-      PBCsInZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
+      std::cout << "Computing fluid boundary conditions" << std::endl;
+      fluidBCKcfg.LaunchKernels(fvbc_loop_keystring, fluidvars, Nx, Ny, Nz); 
+      // PBCsInZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, Nx, Ny, Nz);
       checkCuda(cudaDeviceSynchronize());
       std::cout << "Kernels for computing fluid variables completed" << std::endl;
       
-      std::cout << "Launching megakernel for computing intermediate variables" << std::endl; 
+      std::cout << "Computing intermediate variables" << std::endl; 
       /* NOTE: Thrashes the cache */
-      ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      // ComputeIntermediateVariablesNoDiff<<<egd_fluidadvance, tbd_fluidadvance>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      ivKcfg.LaunchKernels(ivk_keystring, fluidvars, intvars);
       checkCuda(cudaDeviceSynchronize());
 
-      std::cout << "Launching microkernels for computing Qint boundaries" << std::endl; 
-      QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      QintBdryTopBottomNoDiff<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      QintBdryFrontBottomNoDiff<<<egd_qintbdry_frontbottom, tbd_qintbdry_frontbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      QintBdryFrontRightNoDiff<<<egd_qintbdry_frontright, tbd_qintbdry_frontright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      QintBdryBottomRightNoDiff<<<egd_qintbdry_bottomright, tbd_qintbdry_bottomright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
-      checkCuda(cudaDeviceSynchronize());    
+      std::cout << "Computing Qint boundaries" << std::endl; 
+      // QintBdryFrontNoDiff<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      // QintBdryLeftRightNoDiff<<<egd_bdry_leftright, tbd_bdry_leftright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      // QintBdryTopBottomNoDiff<<<egd_bdry_topbottom, tbd_bdry_topbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      // QintBdryFrontBottomNoDiff<<<egd_qintbdry_frontbottom, tbd_qintbdry_frontbottom>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      // QintBdryFrontRightNoDiff<<<egd_qintbdry_frontright, tbd_qintbdry_frontright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      // QintBdryBottomRightNoDiff<<<egd_qintbdry_bottomright, tbd_qintbdry_bottomright>>>(fluidvars, intvars, dt, dx, dy, dz, Nx, Ny, Nz);
+      // checkCuda(cudaDeviceSynchronize());    
 
-      std::cout << "Launching kernel for computing Qint PBCs" << std::endl; 
-      QintBdryPBCs<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
-      checkCuda(cudaDeviceSynchronize());    
+      // std::cout << "Launching kernel for computing Qint PBCs" << std::endl; 
+      // QintBdryPBCsZ<<<egd_bdry_frontback, tbd_bdry_frontback>>>(fluidvars, intvars, Nx, Ny, Nz);
+      // checkCuda(cudaDeviceSynchronize());    
+      ivBCKcfg.LaunchKernels(ivbc_keystring, fluidvars, intvars, Nx, Ny, Nz);
 
       std::cout << "Transferring updated fluid data to host" << std::endl;
       cudaMemcpy(shm_h_fluidvar, fluidvars, fluid_data_size, cudaMemcpyDeviceToHost);
@@ -446,13 +490,13 @@ int main(int argc, char* argv[]){
    checkCuda(cudaFree(y_grid));
    checkCuda(cudaFree(z_grid));
    // checkCuda(cudaFree(d_initParameters));
-   
+
    // Host
-   munmap(shm_h_fluidvar, 8 * fluid_data_size);
-   munmap(shm_h_gridx, sizeof(float) * Nx);
+   munmap(shm_h_fluidvar, 8 * fluid_data_size); // Sharing memory between processes to avoid O(Nx * Ny * Nz) writes and reads
+   munmap(shm_h_gridx, sizeof(float) * Nx); 
    munmap(shm_h_gridy, sizeof(float) * Ny);
    munmap(shm_h_gridz, sizeof(float) * Nz);
-   shm_unlink(shm_name_fluidvar.data());
+   shm_unlink(shm_name_fluidvar.data()); 
    shm_unlink(shm_name_gridx.data());
    shm_unlink(shm_name_gridy.data());
    shm_unlink(shm_name_gridz.data());

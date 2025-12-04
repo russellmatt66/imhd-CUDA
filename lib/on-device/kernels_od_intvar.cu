@@ -27,7 +27,7 @@ ComputeIntEMicroLocalNoDiff=90
 */
 // MEGAKERNELS
 /* TODO: Megakernel that uses large amounts of registers to avoid thrashing the cache */
-__global__ void ComputeIntVarsLocalNoDiff(const float* fluidvar, float* intvar,
+__global__ void ComputeIntVarsSHMEMNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz)
     {
@@ -40,12 +40,14 @@ __global__ void ComputeIntVarsLocalNoDiff(const float* fluidvar, float* intvar,
         int zthreads = blockDim.z * gridDim.z;
 
         /* 
-        COMPUTE THE INTERMEDIATE VARIABLES USING LOCAL (SHARED) MEMORY
+        COMPUTE THE INTERMEDIATE VARIABLES USING SHARED MEMORY
         */
 
         return;
     }
 
+// Total Parallelism implementation
+// For large data volumes this incurs performance penalty due to launcher overhead 
 // Thrashes the cache
 // 42 registers per thread
 __global__ void ComputeIntermediateVariablesNoDiff(const float* fluidvar, float* intvar,
@@ -73,6 +75,27 @@ __global__ void ComputeIntermediateVariablesNoDiff(const float* fluidvar, float*
         return;
     }
 
+void LaunchIntvarAdvanceNoDiff(const float* fluidvars, float* intvars, IVKernelConfig ivkcfg)
+{
+    dim3 gridDim = ivkcfg.gridDim;
+    dim3 blockDim = ivkcfg.blockDim;
+
+    ComputeIntermediateVariablesNoDiff<<<gridDim, blockDim>>>(
+        fluidvars,
+        intvars,
+        ivkcfg.dt,
+        ivkcfg.dx,
+        ivkcfg.dy,
+        ivkcfg.dz,
+        ivkcfg.Nx,
+        ivkcfg.Ny,
+        ivkcfg.Nz
+    );
+
+    return;
+}
+
+// Strided implementation
 // Thrashes the cache
 // 80 registers per thread
 __global__ void ComputeIntermediateVariablesStrideNoDiff(const float* fluidvar, float* intvar,
@@ -89,6 +112,7 @@ __global__ void ComputeIntermediateVariablesStrideNoDiff(const float* fluidvar, 
     
         int cube_size = Nx * Ny * Nz;
 
+        /* Why do these start at 1? */
         for (int k = tidz + 1; k < Nz - 1; k += zthreads){
             for (int i = tidx + 1; i < Nx - 1; i += xthreads){
                 for (int j = tidy + 1; j < Ny - 1; j += ythreads){
@@ -107,6 +131,26 @@ __global__ void ComputeIntermediateVariablesStrideNoDiff(const float* fluidvar, 
 
         return;
     }
+
+void LaunchIntvarAdvanceStrideNoDiff(const float* fluidvars, float* intvars, IVKernelConfig ivkcg)
+{
+    dim3 gridDim = ivkcg.gridDim;
+    dim3 blockDim = ivkcg.blockDim;
+
+    ComputeIntermediateVariablesStrideNoDiff<<<gridDim, blockDim>>>(
+        fluidvars,
+        intvars,
+        ivkcg.dt,
+        ivkcg.dx,
+        ivkcg.dy,
+        ivkcg.dz,
+        ivkcg.Nx,
+        ivkcg.Ny,
+        ivkcg.Nz
+    );
+
+    return;
+}
 
 // 74 registers per thread
 /* DIFFUSION NOT VERIFIED */

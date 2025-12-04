@@ -36,7 +36,6 @@ FluidAdvanceMicroELocalNoDiff=90
 // Megakernels
 // FluidAdvance uses kernels that thrash the cache, very badly
 // FluidAdvanceLocal uses kernels that do not thrash the cache, but it puts a lot of pressure on the registers
-// FluidAdvance2 uses kernels that thrash the cache, less badly
 
 // 88 registers per thread
 __global__ void FluidAdvance(float* fluidvar, const float* intvar, 
@@ -529,6 +528,64 @@ void LaunchFluidAdvanceLocalNoDiff(float* fluidvar, const float* intvar, const K
     FluidAdvanceLocalNoDiff<<<kcfg.gridDim, kcfg.blockDim>>>(fluidvar, intvar, kcfg.dt, kcfg.dx, kcfg.dy, kcfg.dz, kcfg.Nx, kcfg.Ny, kcfg.Nz);
     return;
 }
+
+__global__ void FluidAdvanceNoDiffSHMEM(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        int i = threadIdx.x + blockDim.x * blockIdx.x;
+        int j = threadIdx.y + blockDim.y * blockIdx.y;
+        int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int cube_size = Nx * Ny * Nz;
+        
+        /* NEED TO READ DATA INTO SHARED MEMORY */
+        // __shared__ float shmem_intvar[8 * ((blockDim.x * blockDim.y * blockDim.z) + 2 * (blockDim.x * blockDim.y + blockDim.y * blockDim.z + blockDim.x * blockDim.z))];
+        
+        __shared__ float shmem_intvar[8 * (blockDim.x + 2) * (blockDim.y + 2) * (blockDim.z + 2)];
+        
+        int tx = threadIdx.x;
+        int ty = threadIdx.y;
+        int tz = threadIdx.z;
+
+        /* 
+        Every thread deals completely with a single location - how to deal with halos? 
+        Just read in the largest cube possible with all the halos, then each thread can access its own halos without divergence or more synchronization.
+        Tradeoff is wasted shared memory for edge data that doesn't get used by any threads, but this is not that big of a deal compared to the benefits. 
+        */
+        /* Reads in the main cube - needs to read in (blockDim.x + 2) * (blockDim.y + 2) * (blockDim.z + 2) cube */
+        for (int ivf = 0; ivf < 8; ivf++) { 
+            shmem_intvar[IDX3D(tx, ty, tz, blockDim.x, blockDim.y, blockDim.z) + ivf * cube_size] = intvar[IDX3D(i, j, k, Nx, Ny, Nz) + ivf * cube_size];
+        }
+        __syncthreads();
+
+        /* A better idea than to do all this microwork with the halos is just to read in the (blockDim.x + 2) * (blockDim.y + 2) * (blockDim.z + 2) cube */
+        // __shared__ float shmem_halo_right[blockDim.x * blockDim.z * 8];
+        // __shared__ float shmem_halo_left[blockDim.x * blockDim.z * 8];
+        // __shared__ float shmem_halo_top[blockDim.y * blockDim.z * 8];
+        // __shared__ float shmem_halo_bottom[blockDim.y * blockDim.z * 8];
+        // __shared__ float shmem_halo_front[blockDim.x * blockDim.y * 8];
+        // __shared__ float shmem_halo_back[blockDim.x * blockDim.y * 8];
+
+        return;
+    }
+
+/* WRITE */
+__global__ void FluidAdvanceStrideNoDiffSHMEM(float* fluidvar, const float* intvar, 
+    const float dt, const float dx, const float dy, const float dz,
+    const int Nx, const int Ny, const int Nz)
+    {
+        int i = threadIdx.x + blockDim.x * blockIdx.x;
+        int j = threadIdx.y + blockDim.y * blockIdx.y;
+        int k = threadIdx.z + blockDim.z * blockIdx.z;
+
+        int cube_size = Nx * Ny * Nz;
+        
+        // Placeholder for future shared memory implementation
+        
+
+        return;
+    }
 
 // Microkernels 
 // 32 registers per thread

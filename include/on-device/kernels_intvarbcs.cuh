@@ -1,20 +1,36 @@
 #ifndef INTVAR_BCS_CUH
 #define INTVAR_BCS_CUH
 
+// In this header file the configurer input, and launchers, are defined and declared first due to the complexity of handling the Qint boundaries
+struct IntvarBoundaryConfig{
+    dim3 egd_X1D, egd_Y1D, egd_Z1D; 
+    dim3 egd_frontback, egd_leftright, egd_topbottom;
+
+    dim3 tbd_X1D, tbd_Y1D, tbd_Z1D; 
+    dim3 tbd_frontback, tbd_leftright, tbd_topbottom;
+
+    float dt, dx, dy, dz;
+    int Nx, Ny, Nz;
+};
+
+// void LaunchIntvarsBCsPBCZ_XY(const float* fluidvars, float* intvars, const int Nx, const int Ny, const int Nz, const IntvarBoundaryConfig& ibcfg);
+void LaunchIntvarsBCsPBCZ(const float* fluidvars, float* intvars, const int Nx, const int Ny, const int Nz, const IntvarBoundaryConfig& ibcfg);
+
 /* 
 What you will notice is that this header file, and subsequent implementation, is significantly more complicated than the `fluidvars` equivalent.
 The reason for this is that the fluid variables do not need to be completely specified on the boundary every timestep for the fluidvar BCs to hold.
 
-For example, a simulation with PCRW for the x and y-dimensions can "set and forget" these variables to 0 at the boundary. 
+For example, a simulation with PCRW for the x and y-dimensions can "set and forget" these variables to 0 at the boundary because the fluid advance megakernel 
+will not touch them. 
 
 Therefore, there are lines at the top and bottom of these faces which do not matter to the fluidvars because they are not the nearest neighbors of 
-any points whose states are going to be evolved. However, they do matter to the intvars, who must be calculated roughly everywhere, 
+any points whose states are going to be evolved. However, they do matter to the intvars, who must be calculated very nearly everywhere, 
 and as the number of periodic boundaries increases so too will the number of points that need to be calculated increase until every point needs to be
 in the case when all the boundaries are periodic (3D Orszag-Tang). 
 
-GPUs do not operate thread-by-thread, so in order to perform this work an execution configuration needs to be chosen to define the threadteams, and
+NVIDIA GPUs do not operate thread-by-thread, so in order to perform this work an execution configuration needs to be chosen to define the threadteams, and
 partition the workload. Then, this workload gets processed in groups of 32 which are called "warps". Each thread in a warp performs the same instruction 
-on its data. This is one of the fundamental sources of massive parallelism in a GPU. Another is the functional units which execute these warps, namely
+on its data. This is one of the fundamental sources of massive parallelism in an NVIDIA GPU. Another is the functional units which execute these warps, namely
 the Streaming Multiprocessors (SMs). Each SM has a certain amount of register memory which they each use to store information for the threads in the 
 threadblocks scheduled to run on them. This scheduling is performed by dedicated hardware specialized for the task. In modern NVIDIA GPUs, this 
 technology is referred to as the `Gigathread Engine`.
@@ -30,7 +46,7 @@ __global__ void ComputeIntermediateVariablesBoundary(const float* fluidvar, floa
     const float D, const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
 
-// Microkernels to eliminate the problem of thread divergence in the megakernels that make them a serious bottleneck
+// Microkernels to eliminate the problem of thread divergence in the megakernels which make them a serious bottleneck
 __global__ void QintBdryFrontNoDiff(const float* fluidvar, float* intvar,
     const float dt, const float dx, const float dy, const float dz,
     const int Nx, const int Ny, const int Nz);
