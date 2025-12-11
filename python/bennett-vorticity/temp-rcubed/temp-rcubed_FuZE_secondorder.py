@@ -17,8 +17,8 @@ eV_to_K = 11604.5  # Conversion factor from eV to Kelvin
 Tp = 1 # [keV]
 Tp_degK = Tp * eV_to_K * 1e3 # Convert temperature to Kelvin
 n0 = 1e23 # [m^-3]
-u0 = 1e4 # [m/s]
-rp = 1e-3 # [m]
+u0 = 1e5 # [m/s]
+rp = 5e-3 # [m]
 
 def phi_C(n0: float, u0: float, rp: float, Tp: float) -> float:
     term1 = n0 * u0**2 * rp**3 / Tp # assumed [Tp] = [degK]
@@ -37,8 +37,8 @@ def C_BT(n0: float, rp: float, Tp: float, u0: float) -> float:
 def error_sorder_coeff(C_BT: float, n0: float) -> float:
     return 0.3 * C_BT**2 * e * np.pi * np.sqrt(mu0 * n0 / mH) 
 
-nphi = 200
-phi = np.logspace(-6, 1, nphi) # r / C_{B,T}
+nphi = 500
+phi = np.logspace(-6, 0, nphi) # r / C_{B,T}
 
 threshold_val = phi_C(n0, u0, rp, Tp_degK) * (phi + 1)**2 * (phi + 3) # second-order expansion
 

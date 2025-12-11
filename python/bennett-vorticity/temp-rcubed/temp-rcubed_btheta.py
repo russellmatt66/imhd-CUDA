@@ -13,6 +13,7 @@ plt.plot(phi, btheta_tilde)
 plt.xlabel('$\\phi = r / C_{B,T}$')
 plt.ylabel('$\\tilde{B}_{\\theta} = \\frac{B_{\\theta}}{\\mu_{0}e n_{0}u_{z,0}C_{B,T}}$')
 plt.title('Normalized Azimuthal Magnetic Field Profile of an $r^{3}$ Bennett Vortex')
-plt.xscale('log')
+# plt.xscale('log')
 # plt.grid(True)
+
 plt.show()

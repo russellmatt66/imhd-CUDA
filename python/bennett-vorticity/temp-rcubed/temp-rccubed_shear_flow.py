@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 Plot the normalized flow profile of an r^3 Bennett Vortex.
 Plot the normalized shear flow of an r^3 Bennett Vortex.
 '''
-
+# Normalized profiles
 phi = np.logspace(-6, 1, 500) # r / C_{B,T}
 # phi = np.linspace(0.0, 10.0, 200) # r / C_{B,T}
 
@@ -33,5 +33,6 @@ shear_ax.set_xlim(phi[0], phi[-1])
 # shear_ax.set_ylim(shear_tilde[0], np.max(shear_tilde))
 shear_ax.set_ylim(shear_tilde[0], 1.0)
 shear_ax.set_title('Normalized Shear Flow Profile $\\frac{d\\tilde{u}_{z}}{d\phi}$ of an $r^{3}$ Bennett Vortex')
+
 
 plt.show()

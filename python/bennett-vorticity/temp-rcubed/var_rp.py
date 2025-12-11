@@ -7,6 +7,7 @@ Plot the:
 - flow  
 - shear 
 - Btheta
+- pressure
 
 of an r^3 Bennett Vortex FuZE-like conditions.
 '''
@@ -35,6 +36,7 @@ r_mm = np.linspace(1e-3, max(r_p_array) * 1e3, 1000) # mm
 # r_mm = r # mm
 r = r_mm * 1e-3 # m
 
+# FLOW
 u_z = np.zeros((len(r_p_array), len(r_mm))) # m/s
 for i, r_p_val in enumerate(r_p_array):
     C_BT_val = (mu0 * n0 * e**2 * u_z0**2 * r_p_val**3) / (16 * kB * T_p_degK) # m
@@ -80,6 +82,7 @@ fuze_nonlog_ax.set_ylim(0.0, 2*u_z0 * 1e-3)
 fuze_nonlog_ax.axhline(u_z0 * 1e-3, color='red', linestyle='--', label=f'$u_{{z,0}}$ = {u_z0*1e-3:.1f} km/s')
 fuze_nonlog_ax.legend()
 
+# FLOW SHEAR
 fuzeshear_fig, fuzeshear_ax = plt.subplots()
 for i in range(len(r_p_array)):
     fuzeshear_ax.plot(r_mm, duz_dr[i], label=f'$r_{{p}}$ = {r_p_array[i]*1e3:.1f} mm') # 1/s
@@ -96,6 +99,7 @@ fuzeshear_ax.set_title('$r^{3}$ Bennett Vortex FuZE-like Shear Flow')
 
 fuzeshear_ax.legend()
 
+# B_THETA
 btheta = np.zeros((len(r_p_array), len(r_mm)))
 for i, r_p_val in enumerate(r_p_array):
     C_BT_val = (mu0 * n0 * e**2 * u_z0**2 * r_p_val**3) / (16 * kB * T_p_degK) # m
@@ -118,5 +122,36 @@ btheta_ax.set_title('$r^{3}$ Bennett Vortex FuZE-like Azimuthal Magnetic Field')
 btheta_ax.set_xlim(r_mm[0], r_mm[-1])
 btheta_ax.set_ylim(1e-4, 1e1)
 btheta_ax.legend()
+
+# PRESSURE CHANGE
+# p_{0} - p(r)
+pressure = np.zeros((len(r_p_array), len(r_mm)))
+for i, r_p_val in enumerate(r_p_array):
+    C_BT_val = (mu0 * n0 * e**2 * u_z0**2 * r_p_val**3) / (16 * kB * T_p_degK) # m
+    C_BT_mm_val = C_BT_val * 1e3 # mm
+    print(f"C_BT_val = {C_BT_val} [m] for r_p = {r_p_val*1e3} [mm]")
+    # phi = r_mm / C_BT_mm_val
+    pressure[i, :] = mu0 * (e* n0 * u_z0)**2 / (4 * (r_mm + C_BT_mm_val)**2) * (
+        r_mm**4 - 10 * r_mm**3 * C_BT_mm_val 
+        + 3 * r_mm**2 * C_BT_mm_val**2 * (-13 + 2 * np.log(C_BT_val)**2 + 6 * np.log(r + C_BT_val)
+                                          +2 * np.log(r + C_BT_val)**2 - 2*np.log(C_BT_val) * (3 + 2 * np.log(r + C_BT_val)))
+        + 6 * r_mm * C_BT_mm_val**3 * (-5 + 2 * np.log(C_BT_val)**2 + 8 * np.log(r + C_BT_val) + 2 * np.log(r + C_BT_val)**2
+                                                                                    -4*np.log(C_BT_val) * (2 + np.log(r + C_BT_val)))
+        + 6 * C_BT_mm_val**4 * (np.log(C_BT_val)**2 + np.log(r + C_BT_val)*(5 + np.log(r + C_BT_val)) 
+                                -np.log(C_BT_val) * (5 + 2 * np.log(r + C_BT_val))))  # N * mm^{2} / m^{4}
+    pressure[i, :] = pressure[i, :] * 1e-6 # convert to Pa from N * mm^{2} / m^{4}
+
+pressure_fig, pressure_ax = plt.subplots()
+for i in range(len(r_p_array)):
+    pressure_ax.plot(r_mm, pressure[i], label=f'$r_{{p}}$ = {r_p_array[i]*1e3:.1f} mm') # Pa
+
+pressure_ax.set_xscale('log')
+pressure_ax.set_xlabel('r (mm)')
+pressure_ax.set_yscale('log')
+pressure_ax.set_ylabel('$p_{0} - p(r)$ (Pa)')
+pressure_ax.set_title('$r^{3}$ Bennett Vortex FuZE-like Pressure Drop Profile')
+pressure_ax.set_xlim(r_mm[0], r_mm[-1])
+pressure_ax.set_ylim(0.0, np.max(pressure)*1.1)
+pressure_ax.legend()
 
 plt.show()
