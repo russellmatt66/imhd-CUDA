@@ -26,7 +26,7 @@ __global__ void ScrewPinch(float* fluidvar,
 __global__ void ScrewPinchStride(float* fluidvar, const float J0, const float* grid_x, const float* grid_y, const float* grid_z, 
     const int Nx, const int Ny, const int Nz);
 
-__global__ void ZPinch(float* fluidvar, const float Btheta_a, const float* grid_x, const float* grid_y, const float* grid_z,
+__global__ void ZPinch(float* fluidvar, const float r_max_coeff, const float* grid_x, const float* grid_y, const float* grid_z,
     const int Nx, const int Ny, const int Nz); 
 
 // __global__ void InitializeIntAndSwap(float* fluidvar_np1, float* intvar, const int Nx, const int Ny, const int Nz);
