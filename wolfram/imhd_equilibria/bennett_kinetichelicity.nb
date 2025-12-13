@@ -1,0 +1,86 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[      2371,         78]
+NotebookOptionsPosition[      1932,         63]
+NotebookOutlinePosition[      2323,         79]
+CellTagsIndexPosition[      2280,         76]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", 
+   RowBox[{"b", " ", "is", " ", "the", " ", "bennett", " ", "parameter"}], 
+   "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"$Assumptions", "=", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"R", ">", "0"}], ",", 
+      RowBox[{"R", "\[Element]", 
+       TemplateBox[{},
+        "Reals"]}], ",", 
+      RowBox[{"b", ">", "0"}], ",", 
+      RowBox[{"b", "\[Element]", 
+       TemplateBox[{},
+        "Reals"]}], ",", 
+      RowBox[{"n0", ">", "0"}], ",", 
+      RowBox[{"n0", "\[Element]", 
+       TemplateBox[{},
+        "Reals"]}], ",", 
+      RowBox[{"T", ">", "0"}], ",", 
+      RowBox[{"T", "\[Element]", 
+       TemplateBox[{},
+        "Reals"]}]}], "}"}]}], ";"}]}]], "Input",
+ CellChangeTimes->{{3.9563245080521107`*^9, 3.956324512170683*^9}, {
+  3.9563245467072973`*^9, 3.956324560243681*^9}, {3.956324658042625*^9, 
+  3.956324730714787*^9}},ExpressionUUID->"e2b0beb6-e975-43bf-a9ca-\
+6d57a733c13b"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"n", "[", "r_", "]"}], ":=", 
+   FractionBox["n0", 
+    SuperscriptBox[
+     RowBox[{"(", 
+      RowBox[{"1", "+", 
+       RowBox[{"b", "*", "n0", "*", 
+        SuperscriptBox["r", "2"]}]}], ")"}], "2"]]}], ";"}]], "Input",
+ CellChangeTimes->{{3.956324625259556*^9, 3.956324650482718*^9}},
+ CellLabel->"In[1]:=",ExpressionUUID->"786792a6-d6ee-4199-a3ea-773916b4211d"]
+},
+WindowSize->{1387.5, 762},
+WindowMargins->{{Automatic, 0}, {0, Automatic}},
+FrontEndVersion->"14.1 for Linux x86 (64-bit) (July 16, 2024)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"99a79fbe-3e39-4a59-8110-4ac5740679d9"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 958, 28, 49, "Input",ExpressionUUID->"e2b0beb6-e975-43bf-a9ca-6d57a733c13b"],
+Cell[1515, 50, 413, 11, 48, "Input",ExpressionUUID->"786792a6-d6ee-4199-a3ea-773916b4211d"]
+}
+]
+*)
+
