@@ -18,6 +18,10 @@ __global__ void ZeroVarsStride(float* vars, const int Nx, const int Ny, const in
 __global__ void CubicBennettVortex(float* fluidvar, const float* grid_x, const float* grid_y, const float* grid_z, 
     const int Nx, const int Ny, const int Nz);
 
+__global__ void CubicBennettVortex_m0(float* fluidvar, const int k, const int A, 
+    const float* grid_x, const float* grid_y, const float* grid_z, 
+    const int Nx, const int Ny, const int Nz);
+
 __global__ void ScrewPinch(float* fluidvar, 
     const float J0, const float r_max_coeff, 
     const float* grid_x, const float* grid_y, const float* grid_z,
