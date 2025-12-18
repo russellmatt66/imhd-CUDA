@@ -78,6 +78,8 @@ int main(int argc, char* argv[]){
    int SM_mult_FA_y = atoi(argv[46]);
    int SM_mult_FA_z = atoi(argv[47]);
 
+   float A = atof(argv[48]);
+
    // CUDA BOILERPLATE 
    int deviceId;
    int numberOfSMs;
@@ -158,11 +160,12 @@ int main(int argc, char* argv[]){
    InitializeX<<<egd_xgrid, tbd_xgrid>>>(x_grid, x_min, dx, Nx);
    InitializeY<<<egd_ygrid, tbd_ygrid>>>(y_grid, y_min, dy, Ny);
    InitializeZ<<<egd_zgrid, tbd_zgrid>>>(z_grid, z_min, dz, Nz);
-   // ZeroVars<<<egd_init, tbd_init>>>(fluidvars, Nx, Ny, Nz); 
-   // ZeroVars<<<egd_init, tbd_init>>>(intvars, Nx, Ny, Nz); 
    checkCuda(cudaDeviceSynchronize());
 
-   ZPinch<<<egd_init, tbd_init>>>(fluidvars, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   float k = 2 * M_PI / (z_max - z_min);
+
+   CubicBennettVortex_m0<<<egd_init, tbd_init>>>(fluidvars, k, A, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   // ZPinch<<<egd_init, tbd_init>>>(fluidvars, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    // CubicBennettVortex<<<egd_init, tbd_init>>>(fluidvars, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    // ScrewPinchStride<<<egd_init, tbd_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());

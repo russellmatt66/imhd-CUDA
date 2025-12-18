@@ -129,7 +129,7 @@ __global__ void CubicBennettVortex(float* fluidvar, const float* grid_x, const f
     return;
 }
 
-__global__ void CubicBennettVortex_m0(float* fluidvar, const int k, const int A, 
+__global__ void CubicBennettVortex_m0(float* fluidvar, const float k, const float A, 
     const float* grid_x, const float* grid_y, const float* grid_z, 
     const int Nx, const int Ny, const int Nz)
 {

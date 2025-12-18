@@ -1,4 +1,4 @@
-Nt=100
+Nt=50
 Nx=128
 Ny=128
 Nz=256
@@ -45,3 +45,4 @@ SM_mult_init_z=1
 SM_mult_FA_x=3
 SM_mult_FA_y=3
 SM_mult_FA_z=3
+A=0.5
