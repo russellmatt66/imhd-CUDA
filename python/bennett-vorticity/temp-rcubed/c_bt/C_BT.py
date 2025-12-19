@@ -70,4 +70,6 @@ for k in range(len(Tp_degK)):
     ax_log.set_zlabel('log10($C_{B,T}$) (m)')
     ax_log.set_title(f'log10($C_{{B,T}}$) Surface for Tp = {Tp[k] * 1e-3} keV, and $n_{{0}}$ = {n0} $m^{{-3}}$')
 
+    
+
 plt.show()
