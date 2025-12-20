@@ -79,6 +79,7 @@ int main(int argc, char* argv[]){
    int SM_mult_FA_z = atoi(argv[47]);
 
    float A = atof(argv[48]);
+   size_t n = atoi(argv[49]); // harmonic for axial perturbation of the MHD mode 
 
    // CUDA BOILERPLATE 
    int deviceId;
@@ -162,7 +163,7 @@ int main(int argc, char* argv[]){
    InitializeZ<<<egd_zgrid, tbd_zgrid>>>(z_grid, z_min, dz, Nz);
    checkCuda(cudaDeviceSynchronize());
 
-   float k = 2 * M_PI / (z_max - z_min);
+   float k = 2 * M_PI * n/ (z_max - z_min);
 
    CubicBennettVortex_m0<<<egd_init, tbd_init>>>(fluidvars, k, A, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    // ZPinch<<<egd_init, tbd_init>>>(fluidvars, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz);

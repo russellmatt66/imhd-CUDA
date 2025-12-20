@@ -21,7 +21,7 @@ def uz0(Tp: float, n0: float, rp: float, uzrp: float) -> float:
     rp in meters
     n0 in m^-3
     """
-    A = mu0 * e**2 * n0 * rp * uzrp
+    A = mu0 * e**2 * n0 * rp**2 * uzrp
     B = -16 * k_B * Tp
     C = uzrp * 16 * k_B * Tp
     uz0_neg = (-B - np.sqrt(B**2 - 4 * A * C)) / (2 * A)

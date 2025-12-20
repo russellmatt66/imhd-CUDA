@@ -173,13 +173,13 @@ __global__ void CubicBennettVortex_m0(float* fluidvar, const float k, const floa
                 fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = 0.0;
                 
                 if (phi < r_pinch){
-                    Btheta = -(1 + A * cos(k * z))*(pow(phi, 3) - 3*pow(phi, 2) - 6*phi + 6*(phi+1)*log(phi+1)) / (2 * phi * (phi+1));
+                    Btheta = -(1)*(pow(phi, 3) - 3*pow(phi, 2) - 6*phi + 6*(phi+1)*log(phi+1)) / (2 * phi * (phi+1));
                     
                     // p = pow(phi,3); // Ideal gas pressure
-                    p = 1 - pow((1 + A * cos(k * z)),2) * (pow(phi,3)) / pow(phi+1,2) * (phi - 10);// small C_{B,T} approximation calculated from equilibrium force balance
+                    p = 1 - (pow(phi,3)) / pow(phi+1,2) * (phi - 10);// small C_{B,T} approximation calculated from equilibrium force balance
 
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz)] = 1.0 + A * cos(k * z);
-                    fluidvar [IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = (1 + A*cos(k * z))*pow(phi, 2) / pow(phi + 1, 2);
+                    fluidvar [IDX3D(i, j, k, Nx, Ny, Nz) + 3 * cube_size] = (1)*pow(phi, 2) / pow(phi + 1, 2);
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 4 * cube_size] = Br * x_tilde - Btheta * y_tilde / phi;
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 5 * cube_size] = Br * y_tilde + Btheta * x_tilde / phi;
                     fluidvar[IDX3D(i, j, k, Nx, Ny, Nz) + 7 * cube_size] = (p / (gamma - 1.0)) 
