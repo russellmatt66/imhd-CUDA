@@ -165,9 +165,9 @@ int main(int argc, char* argv[]){
 
    float k = 2 * M_PI * n/ (z_max - z_min);
 
-   CubicBennettVortex_m0<<<egd_init, tbd_init>>>(fluidvars, k, A, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   // CubicBennettVortex_m0<<<egd_init, tbd_init>>>(fluidvars, k, A, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    // ZPinch<<<egd_init, tbd_init>>>(fluidvars, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz);
-   // CubicBennettVortex<<<egd_init, tbd_init>>>(fluidvars, x_grid, y_grid, z_grid, Nx, Ny, Nz);
+   CubicBennettVortex<<<egd_init, tbd_init>>>(fluidvars, r_max_coeff, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    // ScrewPinchStride<<<egd_init, tbd_init>>>(fluidvars, J0, x_grid, y_grid, z_grid, Nx, Ny, Nz);
    checkCuda(cudaDeviceSynchronize());
 

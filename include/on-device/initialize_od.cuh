@@ -15,7 +15,7 @@ __global__ void InitializeZ(float* grid_z, const float z_min, const float dz, co
 __global__ void ZeroVars(float* vars, const int Nx, const int Ny, const int Nz);
 __global__ void ZeroVarsStride(float* vars, const int Nx, const int Ny, const int Nz);
 
-__global__ void CubicBennettVortex(float* fluidvar, const float* grid_x, const float* grid_y, const float* grid_z, 
+__global__ void CubicBennettVortex(float* fluidvar, const float r_max_coef, const float* grid_x, const float* grid_y, const float* grid_z, 
     const int Nx, const int Ny, const int Nz);
 
 __global__ void CubicBennettVortex_m0(float* fluidvar, const float k, const float A, 

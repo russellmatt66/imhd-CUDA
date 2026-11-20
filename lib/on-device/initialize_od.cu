@@ -56,7 +56,7 @@ __global__ void InitializeZ(float* grid_z, const float z_min, const float dz, co
     return;
 }
 
-__global__ void CubicBennettVortex(float* fluidvar, const float* grid_x, const float* grid_y, const float* grid_z, 
+__global__ void CubicBennettVortex(float* fluidvar, const float r_max_coef, const float* grid_x, const float* grid_y, const float* grid_z, 
     const int Nx, const int Ny, const int Nz
 )
 {
@@ -69,7 +69,7 @@ __global__ void CubicBennettVortex(float* fluidvar, const float* grid_x, const f
     int zthreads = blockDim.z * gridDim.z;
 
     float phi = 0.0;
-    float r_pinch = 0.25 * sqrtf(pow(grid_x[Nx-1],2) + pow(grid_y[Ny-1],2)); // r_pinch = 0.25 * r_max 
+    float r_pinch = r_max_coef * sqrtf(pow(grid_x[Nx-1],2) + pow(grid_y[Ny-1],2)); // r_pinch = 0.25 * r_max 
 
     int cube_size = Nx * Ny * Nz;
 
