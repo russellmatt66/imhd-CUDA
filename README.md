@@ -7,15 +7,18 @@ Project to implement the Lax-Wendroff scheme with CUDA in order to solve the Ide
 
 ### Run (Docker)
 `Simulation`
+```bash
 cd ~/Desktop/imhd-CUDA
 sudo docker run --rm --gpus device=0 --shm-size=256m \
   --user "$(id -u):$(id -g)" \
   --mount "type=bind,source=$PWD/build/on-device/input.inp,target=/opt/imhd-cuda/build/on-device/input.inp,readonly" \
   --mount "type=bind,source=$PWD/data/on-device,target=/opt/imhd-cuda/data/on-device" \
   imhd-cuda
+```
 
 `Visualization`
 cd ~/Desktop/imhd-CUDA
+```bash
 mkdir -p movies
 (
   set -e
@@ -42,6 +45,7 @@ mkdir -p movies
     imhd-cuda-viz -u LIBGL_ALWAYS_SOFTWARE \
     python3 -u launcher_makemovie.py /data/ rhovz
 )
+```
 
 ### Build Instructions (Manual)
 See `build/README.md`
