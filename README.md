@@ -17,8 +17,9 @@ sudo docker run --rm --gpus device=0 --shm-size=256m \
 ```
 
 `Visualization`
-cd ~/Desktop/imhd-CUDA
+
 ```bash
+cd ~/Desktop/imhd-CUDA
 mkdir -p movies
 (
   set -e
