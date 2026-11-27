@@ -1,7 +1,49 @@
 ### Overview
 Project to implement the Lax-Wendroff scheme with CUDA in order to solve the Ideal MHD system using GPUs.
 
-### Build Instructions
+### Build (Docker)
+`sudo docker build -t imhd-cuda .`
+`sudo docker build -f visualization/Dockerfile -t imhd-cuda-viz .`
+
+### Run (Docker)
+`Simulation`
+cd ~/Desktop/imhd-CUDA
+sudo docker run --rm --gpus device=0 --shm-size=256m \
+  --user "$(id -u):$(id -g)" \
+  --mount "type=bind,source=$PWD/build/on-device/input.inp,target=/opt/imhd-cuda/build/on-device/input.inp,readonly" \
+  --mount "type=bind,source=$PWD/data/on-device,target=/opt/imhd-cuda/data/on-device" \
+  imhd-cuda
+
+`Visualization`
+cd ~/Desktop/imhd-CUDA
+mkdir -p movies
+(
+  set -e
+  : "${DISPLAY:?Run this from a terminal on your Ubuntu desktop}"
+  xauth_file="$(mktemp)"
+  trap 'rm -f -- "$xauth_file"' EXIT
+  xauth nlist "$DISPLAY" | sed 's/^..../ffff/' | xauth -f "$xauth_file" nmerge -
+  if [ ! -s "$xauth_file" ]; then
+    echo "Could not find an X11 authorization cookie for $DISPLAY" >&2
+    exit 1
+  fi
+
+  sudo docker run --rm --gpus all --shm-size=256m \
+    --user "$(id -u):$(id -g)" \
+    -e DISPLAY="$DISPLAY" \
+    -e XAUTHORITY=/tmp/imhd.xauth \
+    -e NVIDIA_DRIVER_CAPABILITIES=graphics,display,utility \
+    --mount "type=bind,source=$xauth_file,target=/tmp/imhd.xauth,readonly" \
+    --mount "type=bind,source=/tmp/.X11-unix,target=/tmp/.X11-unix,readonly" \
+    --mount "type=bind,source=$PWD/data/on-device,target=/data,readonly" \
+    --mount "type=bind,source=$PWD/build/on-device/input.inp,target=/opt/imhd-cuda/build/on-device/input.inp,readonly" \
+    --mount "type=bind,source=$PWD/movies,target=/output" \
+    --entrypoint /usr/bin/env \
+    imhd-cuda-viz -u LIBGL_ALWAYS_SOFTWARE \
+    python3 -u launcher_makemovie.py /data/ rhovz
+)
+
+### Build Instructions (Manual)
 See `build/README.md`
 
 ### Directory Structure

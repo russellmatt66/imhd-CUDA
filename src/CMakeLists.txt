@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(imhd-CUDA LANGUAGES CUDA CXX)
+project(imhd-CUDA LANGUAGES CUDA CXX C)
 
 find_package(CUDAToolkit REQUIRED) # This is for running on local RTX2060
 # find_package(CUDA REQUIRED) # This is for running on lightning.ai servers
